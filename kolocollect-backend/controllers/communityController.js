@@ -1290,3 +1290,122 @@ exports.getMidcycleById = async (req, res) => {
     return createErrorResponse(res, 500, 'GET_MIDCYCLE_ERROR', 'Error retrieving mid-cycle: ' + err.message);
   }
 };
+
+// Get current mid-cycle details
+exports.getCurrentMidCycleDetails = async (req, res) => {
+  try {
+    const { communityId } = req.params;
+
+    // Validate that the community exists
+    const community = await Community.findById(communityId)
+      .populate('midCycle')
+      .populate('cycles')
+      .populate({
+        path: 'members',
+        select: 'userId name email status position penalty missedContributions'
+      });
+    
+    if (!community) return createErrorResponse(res, 404, 'COMMUNITY_NOT_FOUND', 'Community not found');    // Find the active mid-cycle
+    const activeMidCycle = await MidCycle.findOne({
+      _id: { $in: community.midCycle },
+      isComplete: false
+    }).populate({
+      path: 'contributions',
+      populate: [
+        { path: 'user', select: 'name email' },
+        { path: 'contributions', select: 'amount' }
+      ]
+    });
+
+    if (!activeMidCycle) {
+      return createErrorResponse(res, 404, 'NO_ACTIVE_MIDCYCLE', 'No active mid-cycle found for this community.');
+    }
+
+    // Get the current cycle
+    const currentCycle = await Cycle.findOne({
+      _id: { $in: community.cycles },
+      isComplete: false
+    });    // Calculate mid-cycle statistics
+    const totalMidCycles = community.midCycle.length;
+    const completedMidCycles = community.midCycle.filter(mc => mc.isComplete).length;
+    
+    // Calculate contribution amounts for each user
+    let enhancedContributions = [];
+    if (activeMidCycle.contributions && activeMidCycle.contributions.length > 0) {
+      enhancedContributions = activeMidCycle.contributions.map(contribution => {
+        // Calculate total contribution amount
+        let totalAmount = 0;
+        if (contribution.contributions && contribution.contributions.length > 0) {
+          totalAmount = contribution.contributions.reduce((sum, contrib) => {
+            // Handle case where amount might be stored as Decimal128
+            const amount = contrib.amount ? 
+              (typeof contrib.amount === 'object' && contrib.amount.toString ? 
+                parseFloat(contrib.amount.toString()) : contrib.amount) : 0;
+            return sum + amount;
+          }, 0);
+        }
+        
+        return {
+          _id: contribution._id,
+          user: contribution.user,
+          contributions: contribution.contributions.map(c => c._id),
+          totalAmount: totalAmount
+        };
+      });
+    }
+    
+    // Get next in line member details
+    let nextInLineDetails = null;
+    if (activeMidCycle.nextInLine && activeMidCycle.nextInLine.userId) {
+      const nextInLineMember = await Member.findOne({
+        _id: { $in: community.members },
+        userId: activeMidCycle.nextInLine.userId
+      });
+      if (nextInLineMember) {
+        nextInLineDetails = {
+          userId: nextInLineMember.userId,
+          name: nextInLineMember.name,
+          email: nextInLineMember.email,
+          position: nextInLineMember.position
+        };
+      }
+    }    // Progress percentage calculation (based on contributions made vs. expected)
+    const totalExpectedContributions = community.members.filter(m => m.status === 'active').length;
+    const totalContributionsMade = activeMidCycle.contributions ? activeMidCycle.contributions.length : 0;
+    const contributionProgressPercentage = totalExpectedContributions > 0 
+      ? Math.round((totalContributionsMade / totalExpectedContributions) * 100) 
+      : 0;    res.status(200).json({
+      midCycleId: activeMidCycle._id,
+      cycleNumber: activeMidCycle.cycleNumber,
+      isReady: activeMidCycle.isReady,
+      isComplete: activeMidCycle.isComplete,
+      payoutDate: activeMidCycle.payoutDate,
+      payoutAmount: activeMidCycle.payoutAmount,
+      nextInLine: nextInLineDetails,
+      contributions: enhancedContributions,
+      defaulters: activeMidCycle.defaulters || [],
+      midCycleJoiners: activeMidCycle.midCycleJoiners || [],
+      contributionsToNextInLine: activeMidCycle.contributionsToNextInLine || {},
+      contributionProgress: {
+        percentage: contributionProgressPercentage,
+        made: totalContributionsMade,
+        expected: totalExpectedContributions
+      },
+      summary: {
+        totalMidCycles,
+        completedMidCycles,
+        totalDistributed: community.totalDistributed || 0,
+      },
+      currentCycle: currentCycle ? {
+        cycleNumber: currentCycle.cycleNumber,
+        startDate: currentCycle.startDate,
+        expectedEndDate: currentCycle.expectedEndDate,
+        paidMembers: currentCycle.paidMembers ? currentCycle.paidMembers.length : 0,
+        totalMembers: community.members.filter(m => m.status === 'active').length
+      } : null
+    });
+  } catch (err) {
+    console.error('Error fetching mid-cycle details:', err);
+    return createErrorResponse(res, 500, 'GET_MIDCYCLE_DETAILS_ERROR', 'Server error while fetching mid-cycle details: ' + err.message);
+  }
+};

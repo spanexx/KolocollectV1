@@ -16,14 +16,14 @@ import {
   faUser, faUsers, faCalendarDays, faDollarSign, faPiggyBank, 
   faRightToBracket, faRightFromBracket, faPlay, faCircleExclamation,
   faArrowRight, faMoneyBillTransfer, faCircleInfo, faCheckCircle,
-  faTimesCircle, faHourglassHalf, faFireAlt, faSpinner
+  faTimesCircle, faHourglassHalf, faFireAlt, faSpinner, faChartPie
 } from '@fortawesome/free-solid-svg-icons';
 import { CommunityService } from '../../../services/community.service';
 import { MidcycleService } from '../../../services/midcycle.service';
 import { ToastService } from '../../../services/toast.service';
 import { AuthService } from '../../../services/auth.service';
 import { LoadingService } from '../../../services/loading.service';
-import { Community, Member, MidCycle, Cycle, CommunitySettings } from '../../../models/community.model';
+import { Community, Member, MidCycle, Cycle, CommunitySettings, MidCycleDetails } from '../../../models/community.model';
 import { catchError, finalize, takeUntil } from 'rxjs/operators';
 import { Subject, throwError } from 'rxjs';
 import { formatDate } from '@angular/common';
@@ -54,8 +54,7 @@ import { CustomButtonComponent } from '../../../shared/components/custom-button/
   templateUrl: './community-detail.component.html',
   styleUrls: ['./community-detail.component.scss']
 })
-export class CommunityDetailComponent implements OnInit, OnDestroy {
-  // Font Awesome icons
+export class CommunityDetailComponent implements OnInit, OnDestroy {  // Font Awesome icons
   faUser = faUser;
   faUsers = faUsers;
   faCalendarDays = faCalendarDays;
@@ -66,11 +65,12 @@ export class CommunityDetailComponent implements OnInit, OnDestroy {
   faPlay = faPlay;
   faCircleExclamation = faCircleExclamation;
   faArrowRight = faArrowRight;
-  faMoneyBillTransfer = faMoneyBillTransfer;
-  faCircleInfo = faCircleInfo;
+  faMoneyBillTransfer = faMoneyBillTransfer;  faCircleInfo = faCircleInfo;
   faSpinner = faSpinner;
-  
-  communityId: string = '';
+  faChartPie = faChartPie;
+  faCheckCircle = faCheckCircle;
+  faTimesCircle = faTimesCircle;
+    communityId: string = '';
   community: Community | null = null;
   communitySettings: CommunitySettings | null = null;
   error: string = '';
@@ -81,7 +81,9 @@ export class CommunityDetailComponent implements OnInit, OnDestroy {
   isAdmin: boolean = false;
   currentDate: Date = new Date();
   activeTab: string = 'overview';
-  payDate!: Date
+  payDate!: Date;
+  midCycleDetails: MidCycleDetails | null = null;
+  loadingMidCycleDetails: boolean = false;
   
   private destroy$ = new Subject<void>();
 
@@ -113,7 +115,6 @@ export class CommunityDetailComponent implements OnInit, OnDestroy {
     this.destroy$.next();
     this.destroy$.complete();
   }
-
   loadCommunityDetails(): void {
     this.loading = true;
     this.loadingService.start('load-community-details');
@@ -134,15 +135,15 @@ export class CommunityDetailComponent implements OnInit, OnDestroy {
       .subscribe(response => {
         this.community = response.community;
         this.communitySettings = response.community.settings;
-        console.log('Community settings:', this.communitySettings);
+        
+        // After loading community, fetch mid-cycle details
+        this.loadMidCycleDetails();
         // Check if current user is a member
         if (this.currentUserId && this.community?.members) {
           const member = this.community.members.find(m => 
             m.userId === this.currentUserId || m.userId === this.currentUser?.id
           );
-          console.log('Current user member:', member);
           this.isMember = !!member;
-          console.log('Is member:', this.isMember);
         }
         
         // Check if current user is the admin
@@ -165,7 +166,6 @@ export class CommunityDetailComponent implements OnInit, OnDestroy {
       return;
     }
     
-    console.log('Looking for active midcycle in cycle:', currentCycle);
 
     // Get all non-complete midcycles from the current cycle
     const activeMidcycles = currentCycle.midCycles.filter(mc => !mc.isComplete);
@@ -188,7 +188,6 @@ export class CommunityDetailComponent implements OnInit, OnDestroy {
       return;
     }
     
-    console.log('Loading details for midcycle:', midcycleId);
     
     this.midcycleService.getMidCycleById(this.communityId, midcycleId)
       .pipe(
@@ -199,7 +198,7 @@ export class CommunityDetailComponent implements OnInit, OnDestroy {
         })
       )
       .subscribe(response => {
-        console.log('Midcycle details response:', response.data.payoutDate);
+        console.log('Midcycle details response:', response.data);
 
         this.payDate = response.data.payoutDate;
         
@@ -224,7 +223,6 @@ export class CommunityDetailComponent implements OnInit, OnDestroy {
             this.community.midCycle.push(response.data);
           }
           
-          console.log('Updated community midcycles:', this.community.midCycle);
         }
       });
   }
@@ -528,5 +526,85 @@ export class CommunityDetailComponent implements OnInit, OnDestroy {
 
   setActiveTab(tab: string): void {
     this.activeTab = tab;
+  }
+
+  /**
+   * Loads detailed information about the current mid-cycle
+   */
+  loadMidCycleDetails(): void {
+    if (!this.communityId) return;
+    
+    this.loadingMidCycleDetails = true;
+    this.communityService.getCurrentMidCycleDetails(this.communityId)
+      .pipe(
+        takeUntil(this.destroy$),
+        catchError(error => {
+          console.error('Failed to load mid-cycle details:', error);
+          // Don't show error toast as this is supplementary data
+          return throwError(() => error);
+        }),
+        finalize(() => {
+          this.loadingMidCycleDetails = false;
+        })
+      )
+      .subscribe(response => {
+        this.midCycleDetails = response;
+      });
+  }
+  
+  /**
+   * Gets formatted contribution progress percentage
+   */
+  getContributionProgressPercentage(): number {
+    return this.midCycleDetails?.contributionProgress?.percentage || 0;
+  }
+  
+  /**
+   * Updates the mid-cycle summary numbers with the actual data from the API
+   */
+  getMidCycleSummary(): { total: number, completed: number, distributed: number } {
+    return {
+      total: this.midCycleDetails?.summary?.totalMidCycles || 0,
+      completed: this.midCycleDetails?.summary?.completedMidCycles || 0,
+      distributed: this.midCycleDetails?.summary?.totalDistributed || 0
+    };
+  }
+
+  /**
+   * Distribute payouts for the current mid-cycle
+   * Only available for community admins when the mid-cycle is ready
+   */  distributePayouts(): void {
+    if (!this.isAdmin) {
+      this.toastService.error('Only community administrators can distribute payouts');
+      return;
+    }
+
+    if (!this.midCycleDetails || !this.midCycleDetails.isReady) {
+      this.toastService.error('This mid-cycle is not ready for payout distribution');
+      return;
+    }
+
+    if (confirm('Are you sure you want to distribute payouts for this mid-cycle?')) {
+      this.loading = true;
+      this.loadingService.start('distribute-payouts');
+      
+      this.communityService.distributePayouts(this.communityId)
+        .pipe(
+          takeUntil(this.destroy$),
+          catchError(error => {
+            const errorMsg = error?.error?.message || 'Failed to distribute payouts';
+            this.toastService.error(errorMsg);
+            return throwError(() => error);
+          }),
+          finalize(() => {
+            this.loading = false;
+            this.loadingService.stop('distribute-payouts');
+          })
+        )
+        .subscribe(response => {
+          this.toastService.success('Payouts distributed successfully');
+          this.loadCommunityDetails(); // Refresh community details
+        });
+    }
   }
 }

@@ -1,3 +1,9 @@
+// CSS Variables for animations
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
 // Colors from design system
 $primary-color: #6D28D9; // Deep Purple
 $primary-dark: #5B21B6; // Darker purple
@@ -559,75 +565,120 @@ $neutral-900: #111827;
     margin: 0 0 1rem;
     color: $neutral-700;
     font-weight: 500;
+    font-size: 1.125rem;
   }
   
   .midcycles-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 1rem;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.25rem;
     
-    @media (max-width: 640px) {
+    @media (max-width: 1024px) {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    
+    @media (max-width: 768px) {
       grid-template-columns: 1fr;
     }
     
     .midcycle-card {
       background-color: white;
-      border-radius: 0.5rem;
-      padding: 1rem;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-      transition: transform 0.2s, box-shadow 0.2s;
+      border-radius: 0.75rem;
+      padding: 1.5rem;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+      transition: all 0.25s ease;
+      border: 1px solid $neutral-200;
       
       &:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+        transform: translateY(-3px);
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
+        border-color: $primary-light;
       }
       
       &.midcycle-complete {
-        border-left: 3px solid $secondary-color;
+        border-left: 4px solid $secondary-color;
       }
       
       &.midcycle-ready {
-        border-left: 3px solid $primary-color;
+        border-left: 4px solid $primary-color;
       }
       
       &.midcycle-in-progress {
-        border-left: 3px solid $accent-color;
+        border-left: 4px solid $accent-color;
       }
       
       .midcycle-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 1rem;
+        margin-bottom: 1.25rem;
         
         h5 {
           margin: 0;
-          font-weight: 500;
+          font-weight: 600;
           color: $neutral-800;
+          font-size: 1.125rem;
         }
       }
       
       .midcycle-progress {
-        margin-bottom: 1rem;
+        margin: 1.25rem 0;
+        width: 100%;
         
-        .progress-bar {
-          height: 8px;
+        .progress-label {
+          margin-bottom: 0.75rem;
+          font-size: 0.95rem;
+          font-weight: 500;
+          color: $neutral-700;
+        }
+        
+        .progress-bar-container {
+          height: 0.75rem;
           background-color: $neutral-200;
-          border-radius: 4px;
+          border-radius: 1rem;
           overflow: hidden;
-          margin-bottom: 0.5rem;
+          position: relative;
+          margin-bottom: 0.75rem;
+          box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
           
-          .progress-fill {
+          .progress-bar {
             height: 100%;
-            background-color: $primary-color;
-            border-radius: 4px;
+            background: linear-gradient(to right, $primary-color, #9333EA);
+            border-radius: 1rem;
+            transition: width 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: 0 2px 4px rgba(109, 40, 217, 0.25);
+            position: relative;
+            
+            &::after {
+              content: '';
+              position: absolute;
+              top: 0;
+              left: 0;
+              right: 0;
+              bottom: 0;
+              background: linear-gradient(
+                to right,
+                rgba(255, 255, 255, 0.1),
+                rgba(255, 255, 255, 0.3),
+                rgba(255, 255, 255, 0.1)
+              );
+              background-size: 200% 100%;
+              animation: shimmer 2s infinite linear;
+            }
           }
         }
         
-        .progress-text {
-          font-size: 0.75rem;
+        .progress-stats {
+          display: flex;
+          justify-content: space-between;
+          font-size: 0.875rem;
           color: $neutral-600;
-          text-align: right;
+          
+          @media (max-width: 480px) {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.25rem;
+          }
         }
       }
       
@@ -635,15 +686,23 @@ $neutral-900: #111827;
         .midcycle-item {
           display: flex;
           justify-content: space-between;
-          margin-bottom: 0.5rem;
+          margin-bottom: 0.75rem;
+          padding: 0.5rem 0;
+          border-bottom: 1px dashed $neutral-200;
+          
+          &:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+          }
           
           .item-label {
             color: $neutral-500;
             font-size: 0.875rem;
+            font-weight: 500;
           }
           
           .item-value {
-            font-weight: 500;
+            font-weight: 600;
             color: $neutral-800;
             font-size: 0.875rem;
           }
@@ -656,8 +715,8 @@ $neutral-900: #111827;
 // Current midcycle styling in the overview tab
 .current-midcycle-section {
   margin-top: 1.5rem;
-  border-top: 1px solid $neutral-200;
   padding-top: 1.5rem;
+  border-top: 1px solid $neutral-200;
   
   .midcycle-section-title {
     font-size: 1rem;
@@ -666,8 +725,138 @@ $neutral-900: #111827;
     margin: 0 0 1rem;
   }
   
+  .midcycle-card {
+    position: relative;
+    background-color: $neutral-100;
+    border-radius: 0.5rem;
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    transition: transform 0.2s, box-shadow 0.2s;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+    }
+    
+    &.midcycle-complete {
+      border-left: 4px solid $secondary-color;
+    }
+    
+    &.midcycle-ready {
+      border-left: 4px solid $primary-color;
+    }
+    
+    &.midcycle-in-progress {
+      border-left: 4px solid $accent-color;
+    }
+    
+    .midcycle-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      
+      h5 {
+        margin: 0;
+        font-weight: 600;
+        color: $neutral-800;
+        font-size: 1.125rem;
+      }
+    }
+    
+    .midcycle-progress {
+      margin: 1.25rem 0;
+      width: 100%;
+      
+      .progress-label {
+        margin-bottom: 0.75rem;
+        font-size: 0.95rem;
+        font-weight: 500;
+        color: $neutral-700;
+      }
+      
+      .progress-bar-container {
+        height: 0.75rem;
+        background-color: $neutral-200;
+        border-radius: 1rem;
+        overflow: hidden;
+        position: relative;
+        margin-bottom: 0.75rem;
+        box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+        
+        .progress-bar {
+          height: 100%;
+          background: linear-gradient(to right, $primary-color, #9333EA);
+          border-radius: 1rem;
+          transition: width 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+          box-shadow: 0 2px 4px rgba(109, 40, 217, 0.25);
+          position: relative;
+          
+          &::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(
+              to right,
+              rgba(255, 255, 255, 0.1),
+              rgba(255, 255, 255, 0.3),
+              rgba(255, 255, 255, 0.1)
+            );
+            background-size: 200% 100%;
+            animation: shimmer 2s infinite linear;
+          }
+        }
+      }
+      
+      .progress-stats {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.875rem;
+        color: $neutral-600;
+        
+        @media (max-width: 480px) {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 0.25rem;
+        }
+      }
+    }
+    
+    .midcycle-details {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 0.75rem;
+      
+      @media (max-width: 480px) {
+        grid-template-columns: 1fr;
+      }
+      
+      .midcycle-item {
+        display: flex;
+        flex-direction: column;
+        
+        .item-label {
+          font-size: 0.875rem;
+          color: $neutral-500;
+          margin-bottom: 0.25rem;
+        }
+        
+        .item-value {
+          font-weight: 500;
+          color: $neutral-800;
+        }
+      }
+    }
+  }
+  
   .midcycle-actions {
-    margin-top: 1rem;
+    margin-top: 0.75rem;
     display: flex;
     justify-content: flex-end;
   }
@@ -924,33 +1113,70 @@ $neutral-900: #111827;
     
     h5 {
       margin: 0;
-      font-weight: 500;
+      font-weight: 600;
       color: $neutral-800;
       font-size: 1.125rem;
     }
   }
   
   .midcycle-progress {
-    margin-bottom: 1rem;
+    margin: 1.25rem 0;
+    width: 100%;
     
-    .progress-bar {
-      height: 8px;
+    .progress-label {
+      margin-bottom: 0.75rem;
+      font-size: 0.95rem;
+      font-weight: 500;
+      color: $neutral-700;
+    }
+    
+    .progress-bar-container {
+      height: 0.75rem;
       background-color: $neutral-200;
-      border-radius: 4px;
+      border-radius: 1rem;
       overflow: hidden;
-      margin-bottom: 0.5rem;
+      position: relative;
+      margin-bottom: 0.75rem;
+      box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
       
-      .progress-fill {
+      .progress-bar {
         height: 100%;
-        background-color: $primary-color;
-        border-radius: 4px;
+        background: linear-gradient(to right, $primary-color, #9333EA);
+        border-radius: 1rem;
+        transition: width 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+        box-shadow: 0 2px 4px rgba(109, 40, 217, 0.25);
+        position: relative;
+        
+        &::after {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: linear-gradient(
+            to right,
+            rgba(255, 255, 255, 0.1),
+            rgba(255, 255, 255, 0.3),
+            rgba(255, 255, 255, 0.1)
+          );
+          background-size: 200% 100%;
+          animation: shimmer 2s infinite linear;
+        }
       }
     }
     
-    .progress-text {
-      font-size: 0.75rem;
+    .progress-stats {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.875rem;
       color: $neutral-600;
-      text-align: right;
+      
+      @media (max-width: 480px) {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.25rem;
+      }
     }
   }
   
@@ -1093,5 +1319,372 @@ app-custom-button {
         font-size: 0.875rem;
       }
     }
+  }
+}
+
+// Mid-cycle tab styles
+.mb-4 {
+  margin-bottom: 1rem;
+}
+
+.cycle-info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  
+  @media (min-width: 768px) {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  
+  .info-item {
+    background-color: var(--surface-card);
+    border-radius: 8px;
+    padding: 1rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    
+    .info-label {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-bottom: 0.5rem;
+    }
+    
+    .info-value {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+  }
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.25rem 1.5rem;
+  background-color: $neutral-100;
+  border-bottom: 1px solid $neutral-200;
+  border-radius: 0.5rem 0.5rem 0 0;
+  
+  h3 {
+    margin: 0;
+    color: $neutral-800;
+    font-weight: 600;
+    font-size: 1.25rem;
+    font-family: 'Poppins', sans-serif;
+  }
+  
+  .status-badge {
+    padding: 0.35rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: white;
+    
+    &.ready {
+      background-color: $primary-color;
+    }
+    
+    &.in-progress {
+      background-color: $accent-color;
+    }
+    
+    &.completed {
+      background-color: $secondary-color;
+    }
+  }
+  
+  @media (max-width: 576px) {
+    padding: 1rem;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+}
+
+// Improved Progress Container
+.progress-container {
+  margin-bottom: 2rem;
+  border-radius: 0.5rem;
+  padding: 1.25rem;
+  background-color: white;
+  border: 1px solid $neutral-200;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  
+  h4 {
+    margin-top: 0;
+    margin-bottom: 1rem;
+    font-size: 1.125rem;
+    color: $neutral-800;
+    font-weight: 600;
+  }
+  
+  .progress-bar-container {
+    position: relative;
+    height: 0.875rem;
+    background-color: $neutral-200;
+    border-radius: 0.5rem;
+    overflow: hidden;
+    margin-bottom: 0.75rem;
+    
+    .progress-bar {
+      position: absolute;
+      left: 0;
+      top: 0;
+      height: 100%;
+      background-color: $primary-color;
+      border-radius: 0.5rem;
+      transition: width 0.5s ease;
+    }
+    
+    .progress-text {
+      position: absolute;
+      right: 0.75rem;
+      top: 0;
+      bottom: 0;
+      display: flex;
+      align-items: center;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: white;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    }
+  }
+  
+  .progress-details {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 0.5rem;
+    font-size: 0.875rem;
+    color: $neutral-600;
+    font-weight: 500;
+  }
+}
+
+// Improved Next Payout Info
+.next-payout-info {
+  margin-top: 1.5rem;
+  border-top: 1px solid $neutral-200;
+  padding-top: 1.5rem;
+  
+  h4 {
+    margin-top: 0;
+    margin-bottom: 1rem;
+    font-size: 1.125rem;
+    color: $neutral-800;
+    font-weight: 600;
+  }
+  
+  .payout-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.25rem;
+    
+    @media (max-width: 992px) {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    
+    @media (max-width: 576px) {
+      grid-template-columns: 1fr;
+    }
+    
+    .payout-item {
+      background-color: white;
+      border-radius: 0.625rem;
+      padding: 1.25rem;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+      border: 1px solid $neutral-200;
+      transition: transform 0.2s, box-shadow 0.2s;
+      
+      &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+        border-color: $primary-light;
+      }
+      
+      .payout-label {
+        font-size: 0.875rem;
+        color: $neutral-500;
+        margin-bottom: 0.5rem;
+      }
+      
+      .payout-value {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: $neutral-800;
+      }
+    }
+  }
+}
+
+// Enhanced Contributors List
+.contributors-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+  
+  .contributor-item {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    gap: 1rem;
+    align-items: center;
+    padding: 1rem;
+    border-radius: 0.625rem;
+    background-color: white;
+    border: 1px solid $neutral-200;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    transition: all 0.2s;
+    
+    &:hover {
+      background-color: $neutral-100;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+      border-color: $primary-light;
+      transform: translateY(-2px);
+    }
+    
+    @media (max-width: 768px) {
+      grid-template-columns: 2fr 1fr;
+    }
+    
+    @media (max-width: 576px) {
+      grid-template-columns: 1fr;
+      gap: 0.75rem;
+      text-align: center;
+    }
+    
+    .contributor-info {
+      display: flex;
+      flex-direction: column;
+      
+      .contributor-name {
+        font-weight: 600;
+        color: $neutral-800;
+        font-size: 1rem;
+        margin-bottom: 0.25rem;
+      }
+      
+      .contributor-email {
+        font-size: 0.875rem;
+        color: $neutral-500;
+      }
+      
+      @media (max-width: 576px) {
+        align-items: center;
+      }
+    }
+    
+    .contribution-amount {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      
+      .amount-label {
+        font-size: 0.75rem;
+        color: $neutral-500;
+        margin-bottom: 0.25rem;
+      }
+      
+      .amount-value {
+        font-weight: 700;
+        color: $secondary-color;
+        font-size: 1rem;
+      }
+      
+      @media (max-width: 576px) {
+        align-items: center;
+        margin-top: 0.5rem;
+      }
+    }
+    
+    .contribution-status {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 0.5rem;
+      
+      .status-icon {
+        font-size: 1.125rem;
+        
+        &.contributed {
+          color: $secondary-color;
+        }
+        
+        &.pending {
+          color: $accent-color;
+        }
+        
+        &.failed {
+          color: $destructive-color;
+        }
+      }
+      
+      span {
+        font-size: 0.875rem;
+        font-weight: 500;
+        color: $neutral-700;
+      }
+      
+      @media (max-width: 768px) {
+        grid-column: span 2;
+        justify-content: flex-start;
+      }
+      
+      @media (max-width: 576px) {
+        grid-column: span 1;
+        justify-content: center;
+        margin-top: 0.5rem;
+      }
+    }
+  }
+}
+
+// Admin distribute payouts action styles
+.midcycle-actions {
+  margin-top: 1rem;
+  display: flex;
+  justify-content: flex-end;
+
+  &.admin-action {
+    margin-top: 1.25rem;
+    border-top: 1px dashed $neutral-300;
+    padding-top: 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+
+    .action-notice {
+      display: flex;
+      align-items: center;
+      margin-bottom: 0.75rem;
+      background-color: rgba($primary-color, 0.08);
+      padding: 0.5rem 0.75rem;
+      border-radius: 0.25rem;
+      
+      .info-icon {
+        color: $primary-color;
+        margin-right: 0.5rem;
+        font-size: 0.875rem;
+      }
+      
+      span {
+        color: $neutral-700;
+        font-size: 0.875rem;
+        font-weight: 500;
+      }
+    }
+  }
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  text-align: center;
+  color: var(--text-muted);
+  
+  p {
+    margin-top: 1rem;
   }
 }

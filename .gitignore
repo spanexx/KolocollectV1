@@ -1,0 +1,63 @@
+# OS Files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE / Editor folders
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Node.js / npm
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+yarn.lock
+
+# Angular
+kolocollect-frontend/.angular/
+kolocollect-frontend/dist/
+kolocollect-frontend/tmp/
+kolocollect-frontend/out-tsc/
+kolocollect-frontend/.sass-cache/
+kolocollect-frontend/connect.lock
+kolocollect-frontend/coverage/
+kolocollect-frontend/libpeerconnection.log
+kolocollect-frontend/typings/
+kolocollect-frontend/documentation/
+
+# Node/Express
+kolocollect-backend/node_modules/
+kolocollect-backend/dist/
+kolocollect-backend/coverage/
+kolocollect-backend/.env
+kolocollect-backend/.env.*
+kolocollect-backend/logs/*
+!kolocollect-backend/logs/.gitkeep
+
+# Config files with sensitive info
+kolocollect-backend/config/*
+!kolocollect-backend/config/*.example.js
+!kolocollect-backend/config/db.js
+
+# Misc
+.env
+.env.*
+*.log
+logs
+*.seed
+*.pid
+*.pid.lock
+.lock-wscript
+build/Release
+.fusebox/
+.dynamodb/
+.tern-port

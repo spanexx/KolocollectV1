@@ -14,6 +14,8 @@ router.get('/filter', communityController.filterCommunity);    // Changed to GET
 router.get('/all', communityController.getAllCommunities);
 router.get('/:id', communityController.getCommunityById);
 router.get('/:communityId/midcycles/:midcycleId', communityController.getMidcycleById); // New route to get midcycle by ID
+router.get('/:communityId/current-midcycle', communityController.getCurrentMidCycleDetails); // Get current mid-cycle details
+router.get('/:communityId/midcycle-contributions', communityController.getMidCycleContributions); // Get mid-cycle contributions
 
 // Protected routes (auth required)
 router.use(authMiddleware);
@@ -43,8 +45,7 @@ router.post('/:communityId/votes', communityController.createVote);
 // Route to cast a vote
 router.post('/:communityId/votes/:voteId', communityController.castVote);
 
-//Fetch All Contributions in Mid-Cycles
-router.get('/:communityId/midcycle-contributions', communityController.getMidCycleContributions);
+// Routes moved to public section above
 
 router.get('/payout/:communityId', communityController.getPayoutInfo);
 

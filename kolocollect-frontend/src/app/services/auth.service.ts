@@ -27,7 +27,6 @@ export class AuthService {
     this.currentUserSubject = new BehaviorSubject<User | null>(this.getUserFromLocalStorage());
     this.currentUser$ = this.currentUserSubject.asObservable();
     this.checkTokenExpiration();
-    console.log('AuthService initialized with user:', this.currentUserSubject.value);
   }
 
   /**

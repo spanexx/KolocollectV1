@@ -97,3 +97,47 @@ export interface CommunityListResponse {
   page: number;
   limit: number;
 }
+
+export interface MidCycleDetails {
+  midCycleId: string;
+  cycleNumber: number;
+  isReady: boolean;
+  isComplete: boolean;
+  payoutDate: string;
+  payoutAmount: number;
+  nextInLine: {
+    userId: string;
+    name: string;
+    email: string;
+    position: number;
+  } | null;  contributions: Array<{
+    user: {
+      _id: string;
+      name: string;
+      email: string;
+    };
+    contributions: string[];
+    _id: string;
+    totalAmount: number;
+  }>;
+  defaulters: string[];
+  midCycleJoiners: any[];
+  contributionsToNextInLine: Record<string, number>;
+  contributionProgress: {
+    percentage: number;
+    made: number;
+    expected: number;
+  };
+  summary: {
+    totalMidCycles: number;
+    completedMidCycles: number;
+    totalDistributed: number;
+  };
+  currentCycle: {
+    cycleNumber: number;
+    startDate: string;
+    expectedEndDate: string;
+    paidMembers: number;
+    totalMembers: number;
+  } | null;
+}

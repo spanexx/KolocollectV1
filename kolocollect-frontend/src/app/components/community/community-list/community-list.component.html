@@ -143,8 +143,7 @@
               <span class="value amount">€{{ community.payoutDetails?.payoutAmount }}</span>
             </div>
           </div>
-        </div>
-      </mat-card-content>
+        </div>      </mat-card-content>
       <mat-card-actions>
         <a class="custom-button primary-button" [routerLink]="['/communities', community._id]">
           <fa-icon [icon]="faEye" class="button-icon"></fa-icon>
@@ -153,10 +152,10 @@
         
         <!-- Show Contribute button if user is a member, otherwise show Join button -->
         <ng-container *ngIf="isUserMemberOfCommunity(community._id)">
-          <a class="custom-button success-button" [routerLink]="['/contributions/make']">
+          <button class="custom-button success-button" (click)="navigateToMakeContribution(community._id)">
             <fa-icon [icon]="faHandHoldingDollar" class="button-icon"></fa-icon>
             Contribute
-          </a>
+          </button>
         </ng-container>
         <ng-container *ngIf="!isUserMemberOfCommunity(community._id)">
           <button class="custom-button accent-button" (click)="joinCommunity(community._id)">

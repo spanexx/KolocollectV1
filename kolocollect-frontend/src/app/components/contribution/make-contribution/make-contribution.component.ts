@@ -124,17 +124,16 @@ export class MakeContributionComponent implements OnInit {
   ngOnInit(): void {
     this.loadWalletBalance();
     this.loadUserCommunities();
-    
-    // Get URL parameters if provided
+      // Get URL parameters if provided
     this.route.queryParams.subscribe(params => {
       this.communityId = params['communityId'] || null;
       this.cycleId = params['cycleId'] || null;
       this.midcycleId = params['midcycleId'] || null;
       
       if (this.communityId) {
-        this.contributionForm.patchValue({
-          communityId: this.communityId
-        });
+        console.log('Received communityId from query params:', this.communityId);
+        // We'll set the community ID in the form after loading user communities
+        // This ensures the communities are loaded first
         this.loadCommunityDetails(this.communityId);
       }
     });

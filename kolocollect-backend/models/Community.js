@@ -15,6 +15,7 @@ const CommunitySchema = new mongoose.Schema({
     name: { type: String, required: true },
     admin: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     totalContribution: { type: Number, default: 0 },
+    totalDistributed: { type: Number, default: 0 },
     description: { type: String },
     backupFund: { type: Number, default: 0 },
     lockPayout: { type: Boolean, default: false },
@@ -899,6 +900,9 @@ CommunitySchema.methods.distributePayouts = async function () {
                 null,
                 this._id
             );
+            
+            // Update the total distributed amount
+            this.totalDistributed = (this.totalDistributed || 0) + netPayout;
         }
 
         activeMidCycle.isComplete = true;

@@ -140,17 +140,19 @@ export class CommunityListComponent implements OnInit {
         this.loadCommunities();
       }
     });
-  }
-
-  loadUserCommunities(): void {
+  }  loadUserCommunities(): void {
     // Check if user is logged in
     const currentUser = this.authService.currentUserValue;
+    console.log('Current user:', currentUser);
+    
     if (!currentUser) {
-      // User not logged in, no communities to load
+      console.log('No user logged in, skipping community load');
       return;
     }
 
     this.loadingService.start('user-communities');
+    console.log('Fetching communities for user ID:', currentUser.id);
+    
     this.userService.getUserCommunities(currentUser.id).pipe(
       catchError(error => {
         console.error('Error loading user communities:', error);
@@ -160,16 +162,105 @@ export class CommunityListComponent implements OnInit {
         this.loadingService.stop('user-communities');
       })
     ).subscribe(response => {
-      // Store the IDs of communities the user is a member of
-      this.userCommunities = (response.communities || []).map((comm: any) => comm.id || comm._id);
+      console.log('User communities API response:', response);
+      console.log('API response structure:', JSON.stringify(response, null, 2));
+      
+      // Reset user communities
+      this.userCommunities = [];
+      
+      // Check if we have the expected data structure
+      if (response && response.communities) {
+        // Handle different response structures
+        if (Array.isArray(response.communities)) {
+          console.log('Communities is an array, using directly');
+          this.userCommunities = response.communities.map((comm: any) => {
+            const id = comm.id || comm._id || comm.communityId || (comm.community && (comm.community._id || comm.community.id));
+            console.log('Extracted community ID:', id, 'from:', comm);
+            return id;
+          }).filter((id: string) => id); // Filter out any undefined IDs
+        } 
+        else if (response.communities.communities && Array.isArray(response.communities.communities)) {
+          console.log('Communities is nested in communities.communities');
+          this.userCommunities = response.communities.communities.map((comm: any) => {
+            const id = comm.id || comm._id || comm.communityId || (comm.community && (comm.community._id || comm.community.id));
+            console.log('Extracted community ID:', id, 'from:', comm);
+            return id;
+          }).filter((id: string) => id); // Filter out any undefined IDs
+        }
+        else {
+          console.log('Unknown communities structure:', response.communities);
+          this.userCommunities = [];
+        }
+      } else {
+        console.log('No communities found in response');
+        this.userCommunities = [];      }
+
+      // Add admin's communities
+      if (this.authService.currentUserValue && this.communities.length > 0) {
+        const userId = this.authService.currentUserValue.id;
+        console.log('Looking for communities where user is admin:', userId);
+        
+        // Find communities where the user is admin
+        const adminCommunities = this.communities
+          .filter(community => community.admin === userId)
+          .map(community => community._id);
+        
+        if (adminCommunities.length > 0) {
+          console.log('Found admin communities:', adminCommunities);
+          this.userCommunities.push(...adminCommunities);
+        }
+      }
+      
+      console.log('Final userCommunities array after adding admin communities:', this.userCommunities);
     });
   }
-
   /**
    * Check if the current user is a member of the given community
-   */
-  isUserMemberOfCommunity(communityId: string): boolean {
-    return this.userCommunities.includes(communityId);
+   * Handles different ID formats (with ObjectId structure or plain string)
+   */  isUserMemberOfCommunity(communityId: string): boolean {
+    if (!communityId || !this.userCommunities || this.userCommunities.length === 0) {
+      console.log(`Cannot check membership for community ${communityId}: no user communities loaded`);
+      return false;
+    }
+    
+    // Debugging the problem with communities not matching
+    console.log(`Checking if user is member of community: ${communityId}`);
+    console.log(`Available user communities:`, this.userCommunities);
+    
+    // Check if userCommunities contains objects rather than just IDs
+    if (this.userCommunities.length > 0 && typeof this.userCommunities[0] === 'object') {
+      // If userCommunities contains objects with _id or id properties
+      const isMember = this.userCommunities.some((community: any) => {
+        if (typeof community === 'object') {
+          return (community._id === communityId || community.id === communityId);
+        }
+        return false;
+      });
+      
+      if (isMember) {
+        console.log(`User is a member of community ${communityId} (matched object)`);
+        return true;
+      }
+    } else {
+      // If userCommunities contains direct ID strings
+      if (this.userCommunities.includes(communityId)) {
+        console.log(`Direct match found for community ${communityId}`);
+        return true;
+      }
+    }
+    
+    // Use admin field as fallback if the user is admin
+    const communityInList = this.communities.find(c => c._id === communityId);
+    if (communityInList && this.authService.currentUserValue) {
+      const isAdmin = communityInList.admin === this.authService.currentUserValue.id;
+      if (isAdmin) {
+        console.log(`User is admin of community ${communityId}, treating as member`);
+        return true;
+      }
+    }
+    
+    console.log(`User is NOT a member of community ${communityId}`);
+    return false;
   }
 
   navigateToContributions(): void {
@@ -350,5 +441,15 @@ export class CommunityListComponent implements OnInit {
 
   navigateToCommunityDetail(communityId: string): void {
     this.router.navigate(['/communities', communityId]);
+  }
+
+  /**
+   * Navigate to make-contribution page with the communityId pre-selected
+   * @param communityId The ID of the community to contribute to
+   */
+  navigateToMakeContribution(communityId: string): void {
+    this.router.navigate(['/contributions/make'], {
+      queryParams: { communityId: communityId }
+    });
   }
 }

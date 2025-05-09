@@ -152,6 +152,13 @@ export class CommunityService {
   }
 
   /**
+   * Get detailed information about the current mid-cycle
+   */
+  getCurrentMidCycleDetails(communityId: string): Observable<any> {
+    return this.api.get<any>(`/communities/${communityId}/current-midcycle`);
+  }
+
+  /**
    * Search mid-cycle joiners
    */
   searchMidcycleJoiners(communityId: string, midCycleJoinersId: string): Observable<any> {

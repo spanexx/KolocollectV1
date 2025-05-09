@@ -89,8 +89,7 @@
       </div>
     </div>
     
-    <div class="custom-tabs-container">
-      <div class="custom-tabs-header">
+    <div class="custom-tabs-container">      <div class="custom-tabs-header">
         <div class="tab-button" [class.active]="activeTab === 'overview'" (click)="setActiveTab('overview')">
           <fa-icon [icon]="faCircleInfo"></fa-icon>
           <span>Overview</span>
@@ -98,6 +97,10 @@
         <div class="tab-button" [class.active]="activeTab === 'members'" (click)="setActiveTab('members')">
           <fa-icon [icon]="faUsers"></fa-icon>
           <span>Members</span>
+        </div>
+        <div class="tab-button" [class.active]="activeTab === 'midcycle'" (click)="setActiveTab('midcycle')">
+          <fa-icon [icon]="faChartPie"></fa-icon>
+          <span>Mid-Cycle</span>
         </div>
         <div class="tab-button" [class.active]="activeTab === 'contributions'" (click)="setActiveTab('contributions')">
           <fa-icon [icon]="faMoneyBillTransfer"></fa-icon>
@@ -237,45 +240,60 @@
                         </div>
                       </div>
                     </div>
-                    
-                    <!-- Current Mid-Cycle Section -->
-                    <div class="current-midcycle-section" *ngIf="getCurrentMidcycle()">
+                      <!-- Current Mid-Cycle Section -->
+                    <div class="current-midcycle-section" *ngIf="midCycleDetails">
                       <h3 class="midcycle-section-title">Current Mid-Cycle</h3>
-                      <div class="midcycle-card" [ngClass]="getMidcycleStatusClass(getCurrentMidcycle())">
+                      <div class="midcycle-card" [ngClass]="{'midcycle-complete': midCycleDetails.isComplete, 'midcycle-ready': midCycleDetails.isReady && !midCycleDetails.isComplete, 'midcycle-in-progress': !midCycleDetails.isReady && !midCycleDetails.isComplete}">
                         <div class="midcycle-header">
-                          <h5>Mid-Cycle {{ getCurrentMidcycle()?.midCycleNumber }}</h5>
-                          <div class="status-chip" [ngClass]="{'complete-chip': getCurrentMidcycle()?.isComplete, 'ready-chip': getCurrentMidcycle()?.isReady && !getCurrentMidcycle()?.isComplete, 'in-progress-chip': !getCurrentMidcycle()?.isReady && !getCurrentMidcycle()?.isComplete}">
-                            {{ getCurrentMidcycle()?.isComplete ? 'Complete' : getCurrentMidcycle()?.isReady ? 'Ready' : 'In Progress' }}
+                          <h5>Mid-Cycle {{ midCycleDetails.midCycleId }}</h5>
+                          <div class="status-chip" [ngClass]="{'complete-chip': midCycleDetails.isComplete, 'ready-chip': midCycleDetails.isReady && !midCycleDetails.isComplete, 'in-progress-chip': !midCycleDetails.isReady && !midCycleDetails.isComplete}">
+                            {{ midCycleDetails.isComplete ? 'Complete' : midCycleDetails.isReady ? 'Ready for Payout' : 'In Progress' }}
                           </div>
                         </div>
                         
                         <div class="midcycle-progress">
                           <div class="progress-bar">
-                            <div class="progress-fill" [style.width.%]="getMidcycleProgress(getCurrentMidcycle())"></div>
+                            <div class="progress-fill" [style.width.%]="getContributionProgressPercentage()"></div>
                           </div>
-                          <div class="progress-text">{{ getMidcycleProgress(getCurrentMidcycle()) }}% Complete</div>
+                          <div class="progress-text">{{ getContributionProgressPercentage() }}% Complete</div>
                         </div>
                         
                         <div class="midcycle-details">
-                          <div *ngIf="getCurrentMidcycle()?.nextInLine" class="midcycle-item">
+                          <div *ngIf="midCycleDetails.nextInLine" class="midcycle-item">
                             <span class="item-label">Next In Line:</span>
-                            <span class="item-value">{{ getCurrentMidcycle()?.nextInLine?.userName }}</span>
+                            <span class="item-value">{{ midCycleDetails.nextInLine.name }}</span>
                           </div>
                           <div class="midcycle-item">
                             <span class="item-label">Payout Amount:</span>
-                            <span class="item-value">${{ getCurrentMidcycle()?.payoutAmount || 0 }}</span>
+                            <span class="item-value">${{ midCycleDetails.payoutAmount || 0 }}</span>
                           </div>
-                          <div *ngIf="getCurrentMidcycle()?.payoutDate" class="midcycle-item">
+                          <div *ngIf="midCycleDetails.payoutDate" class="midcycle-item">
                             <span class="item-label">Payout Date:</span>
-                            <span class="item-value">{{ formatDate(getCurrentMidcycle()?.payoutDate || undefined) }}</span>
+                            <span class="item-value">{{ formatDate(midCycleDetails.payoutDate) }}</span>
+                          </div>
+                          <div class="midcycle-item">
+                            <span class="item-label">Contributions:</span>
+                            <span class="item-value">{{ midCycleDetails.contributionProgress.made || 0 }}/{{ midCycleDetails.contributionProgress.expected || 0 }}</span>
                           </div>
                         </div>
-                        
-                        <div class="midcycle-actions" *ngIf="isMember && getCurrentMidcycle()?.isReady && !isUserContributedToCurrentMidcycle()">
+                          <div class="midcycle-actions" *ngIf="isMember && midCycleDetails.isReady && !isUserContributedToCurrentMidcycle()">
                           <app-custom-button variant="primary" size="small" 
                             [icon]="faMoneyBillTransfer" [disabled]="loading"
                             (buttonClick)="contributeToMidcycle(getCurrentMidcycle())">
                             Contribute
+                          </app-custom-button>
+                        </div>
+                        
+                        <!-- Admin distribute action -->
+                        <div class="midcycle-actions admin-action" *ngIf="isAdmin && midCycleDetails.isReady && !midCycleDetails.isComplete">
+                          <div class="action-notice">
+                            <fa-icon [icon]="faCircleInfo" class="info-icon"></fa-icon>
+                            <span>Ready to distribute payouts</span>
+                          </div>
+                          <app-custom-button variant="primary" size="small" 
+                            [icon]="faDollarSign" [disabled]="loading"
+                            (buttonClick)="distributePayouts()">
+                            Distribute Payouts
                           </app-custom-button>
                         </div>
                       </div>
@@ -284,33 +302,44 @@
                 </div>
               </div>
             </div>
-            
-            <!-- Mid-Cycle Summary Section -->
-            <div class="section" *ngIf="getCurrentCycle() && getCurrentCycle()?.midCycles &&  (getCurrentCycle()?.midCycles?.length || 0)">
+              <!-- Mid-Cycle Summary Section -->
+            <div class="section" *ngIf="community">
               <h2>Mid-Cycle Summary</h2>
               <div class="custom-card">
-                <div class="card-content">
+                <div class="card-content" *ngIf="loadingMidCycleDetails">
+                  <div class="loading-spinner">
+                    <fa-icon [icon]="faSpinner" [spin]="true"></fa-icon>
+                    <span>Loading mid-cycle details...</span>
+                  </div>
+                </div>
+                <div class="card-content" *ngIf="!loadingMidCycleDetails && midCycleDetails">
                   <div class="midcycle-summary-grid">
                     <div class="midcycle-stat">
                       <div class="stat-label">Total Mid-Cycles</div>
-                      <div class="stat-value">{{ getCurrentCycle()?.midCycles?.length }}</div>
+                      <div class="stat-value">{{ getMidCycleSummary().total }}</div>
                     </div>
                     <div class="midcycle-stat">
                       <div class="stat-label">Completed</div>
-                      <div class="stat-value">{{ getCompletedMidcyclesCount() }}</div>
+                      <div class="stat-value">{{ getMidCycleSummary().completed }}</div>
                     </div>
                     <div class="midcycle-stat">
-                      <div class="stat-label">In Progress</div>
-                      <div class="stat-value">{{ (getCurrentCycle()?.midCycles?.length || 0) - getCompletedMidcyclesCount() }}</div>
+                      <div class="stat-label">Active</div>
+                      <div class="stat-value">{{ midCycleDetails && !midCycleDetails.isComplete ? 1 : 0 }}</div>
                     </div>
                     <div class="midcycle-stat">
                       <div class="stat-label">Total Distributed</div>
-                      <div class="stat-value">${{ getTotalMidcycleDistributions() }}</div>
+                      <div class="stat-value">${{ getMidCycleSummary().distributed }}</div>
                     </div>
                   </div>
-                  
-                  <div class="midcycle-distribution-chart">
-                    <!-- Add chart visualization here if needed in future -->
+                    <div class="midcycle-progress">
+                    <div class="progress-label">Contribution Progress</div>
+                    <div class="progress-bar-container">
+                      <div class="progress-bar" [style.width.%]="getContributionProgressPercentage()"></div>
+                    </div>
+                    <div class="progress-stats">
+                      <span>{{ getContributionProgressPercentage() }}% Complete</span>
+                      <span>{{ midCycleDetails.contributionProgress.made || 0 }}/{{ midCycleDetails.contributionProgress.expected || 0 }} Contributions</span>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -344,6 +373,139 @@
                         <fa-icon [icon]="getMemberStatusIcon(member.status)"></fa-icon>
                         {{ member.status }}
                       </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Mid-cycle Tab -->
+        <div class="tab-panel" *ngIf="activeTab === 'midcycle'">
+          <div class="tab-content">
+            <div class="section">
+              <h2>Current Mid-Cycle</h2>
+              
+              <div class="custom-card" *ngIf="loadingMidCycleDetails">
+                <div class="card-content">
+                  <div class="loading-spinner">
+                    <fa-icon [icon]="faSpinner" [spin]="true"></fa-icon>
+                    <span>Loading mid-cycle details...</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="custom-card" *ngIf="!loadingMidCycleDetails && !midCycleDetails">
+                <div class="card-content">
+                  <p>No active mid-cycle found for this community.</p>
+                </div>
+              </div>
+              
+              <div *ngIf="!loadingMidCycleDetails && midCycleDetails">
+                <!-- Current Cycle Information -->
+                <div class="custom-card mb-4">
+                  <div class="card-header">
+                    <h3>Current Cycle Information</h3>
+                  </div>
+                  <div class="card-content">
+                    <div class="cycle-info-grid">
+                      <div class="info-item">
+                        <div class="info-label">Cycle Number</div>
+                        <div class="info-value">{{ midCycleDetails.currentCycle?.cycleNumber || 1 }}</div>
+                      </div>
+                      <div class="info-item">
+                        <div class="info-label">Start Date</div>
+                        <div class="info-value">{{ midCycleDetails.currentCycle?.startDate | date:'mediumDate' }}</div>
+                      </div>
+                      <div class="info-item">
+                        <div class="info-label">Expected End Date</div>
+                        <div class="info-value">{{ midCycleDetails.currentCycle?.expectedEndDate | date:'mediumDate' }}</div>
+                      </div>
+                      <div class="info-item">
+                        <div class="info-label">Paid Members</div>
+                        <div class="info-value">{{ midCycleDetails.currentCycle?.paidMembers || 0 }}/{{ midCycleDetails.currentCycle?.totalMembers || 0 }}</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <!-- Mid-cycle Status -->                <div class="custom-card mb-4">
+                  <div class="card-header">
+                    <h3>Mid-Cycle Status</h3>
+                    <div class="status-badge" [ngClass]="{'ready': midCycleDetails.isReady, 'in-progress': !midCycleDetails.isReady && !midCycleDetails.isComplete, 'completed': midCycleDetails.isComplete}">
+                      {{ midCycleDetails.isComplete ? 'Completed' : (midCycleDetails.isReady ? 'Ready for Payout' : 'In Progress') }}
+                    </div>
+                  </div>
+                  <div class="card-content">
+                    <div class="progress-container">
+                      <h4>Contribution Progress</h4>
+                      <div class="progress-bar-container">
+                        <div class="progress-bar" [style.width.%]="getContributionProgressPercentage()"></div>
+                        <div class="progress-text">{{ getContributionProgressPercentage() }}%</div>
+                      </div>
+                      <div class="progress-details">
+                        <span>{{ midCycleDetails && midCycleDetails.contributionProgress ? midCycleDetails.contributionProgress.made : 0 }}/{{ midCycleDetails && midCycleDetails.contributionProgress ? midCycleDetails.contributionProgress.expected : 0 }} Contributions Made</span>
+                      </div>
+                    </div>
+                    
+                    <!-- Admin Payout Action -->
+                    <div class="admin-actions" *ngIf="isAdmin && midCycleDetails.isReady && !midCycleDetails.isComplete">
+                      <div class="action-notice">
+                        <fa-icon [icon]="faCircleInfo" class="info-icon"></fa-icon>
+                        <span>As the administrator, you can now distribute payouts for this mid-cycle</span>
+                      </div>
+                      <app-custom-button variant="primary" size="medium" 
+                        [icon]="faDollarSign" [disabled]="loading"
+                        (buttonClick)="distributePayouts()">
+                        Distribute Payouts
+                      </app-custom-button>
+                    </div>
+                    
+                    <div class="next-payout-info" *ngIf="midCycleDetails.nextInLine">
+                      <h4>Next Payout Information</h4>
+                      <div class="payout-grid">
+                        <div class="payout-item">
+                          <div class="payout-label">Recipient</div>
+                          <div class="payout-value">{{ midCycleDetails.nextInLine.name }}</div>
+                        </div>
+                        <div class="payout-item">
+                          <div class="payout-label">Amount</div>
+                          <div class="payout-value">${{ midCycleDetails.payoutAmount }}</div>
+                        </div>
+                        <div class="payout-item">
+                          <div class="payout-label">Scheduled Date</div>
+                          <div class="payout-value">{{ midCycleDetails.payoutDate | date:'mediumDate' }}</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <!-- Mid-cycle Contributors -->
+                <div class="custom-card">
+                  <div class="card-header">
+                    <h3>Contributors</h3>
+                  </div>                  <div class="card-content">
+                    <div class="contributors-list" *ngIf="midCycleDetails?.contributions && midCycleDetails.contributions.length > 0">
+                      <div class="contributor-item" *ngFor="let contributor of midCycleDetails.contributions">
+                        <div class="contributor-info">
+                          <span class="contributor-name">{{ contributor.user ? contributor.user.name : 'Unknown User' }}</span>
+                          <span class="contributor-email">{{ contributor.user ? contributor.user.email : '' }}</span>
+                        </div>
+                        <div class="contribution-amount">
+                          <span class="amount-label">Amount:</span>
+                          <span class="amount-value">${{ contributor.totalAmount || 0 }}</span>
+                        </div>
+                        <div class="contribution-status">
+                          <fa-icon [icon]="faCheckCircle" class="status-icon contributed"></fa-icon>
+                          <span>Contributed</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="empty-state" *ngIf="!midCycleDetails?.contributions || midCycleDetails.contributions.length === 0">
+                      <fa-icon [icon]="faMoneyBillTransfer" class="empty-icon"></fa-icon>
+                      <p>No contributions have been made in this mid-cycle yet.</p>
                     </div>
                   </div>
                 </div>
