@@ -1,0 +1,544 @@
+// Variables based on the design system
+$primary-color: #6D28D9; // Deep Purple
+$primary-light: #8B5CF6;
+$primary-dark: #5B21B6;
+$secondary-color: #10B981; // Emerald Green
+$secondary-light: #34D399;
+$secondary-dark: #059669;
+$accent-color: #F59E0B; // Amber
+$accent-light: #FBBF24;
+$accent-dark: #D97706;
+
+// Neutral colors
+$background-light: #F9FAFB;
+$surface-light: #FFFFFF;
+$border-light: #E5E7EB;
+$text-primary-light: #111827;
+$text-secondary-light: #6B7280;
+
+// Semantic colors
+$success: #10B981; // Emerald
+$error: #EF4444; // Red
+$warning: #F59E0B; // Amber
+$info: #3B82F6; // Blue
+
+// Spacing
+$nano: 0.25rem; // 4px
+$tiny: 0.5rem; // 8px
+$small: 1rem; // 16px
+$medium: 1.5rem; // 24px
+$large: 2rem; // 32px
+$xl: 3rem; // 48px
+$xxl: 4rem; // 64px
+
+// Border radius
+$border-radius-sm: 0.25rem;
+$border-radius-md: 0.5rem;
+$border-radius-lg: 0.75rem;
+
+// Shadows
+$shadow-light: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+$shadow-medium: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+$shadow-heavy: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+
+// Dashboard styling
+.dashboard-container {
+  padding: $medium;
+  max-width: 1280px;
+  margin: 0 auto;
+  
+  @media (max-width: 768px) {
+    padding: $small;
+  }
+}
+
+.dashboard-header {
+  margin-bottom: $large;
+  
+  h1 {
+    color: $primary-color;
+    font-weight: 600;
+    margin-bottom: $nano;
+    font-size: 2.25rem;
+    line-height: 2.5rem;
+  }
+  
+  .subheading {
+    color: $text-secondary-light;
+    font-size: 1.125rem;
+    margin: 0;
+  }
+}
+
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: $medium;
+  
+  @media (max-width: 1024px) {
+    grid-template-columns: 1fr;
+  }
+  
+  .dashboard-item {
+    margin-bottom: $medium;
+    
+    &.financial-summary {
+      grid-column: span 2;
+      
+      @media (max-width: 1024px) {
+        grid-column: span 1;
+      }
+    }
+    
+    &.notifications,
+    &.upcoming-payouts {
+      @media (min-width: 1024px) {
+        grid-column: 1;
+      }
+    }
+    
+    &.my-communities,
+    &.recent-contributions {
+      @media (min-width: 1024px) {
+        grid-column: 2;
+      }
+    }
+  }
+  
+  mat-card {
+    height: 100%;
+    border-radius: $border-radius-md;
+    overflow: hidden;
+    box-shadow: $shadow-medium;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    
+    &:hover {
+      transform: translateY(-5px);
+      box-shadow: $shadow-heavy;
+    }
+    
+    mat-card-header {
+      padding: $medium;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      
+      mat-card-title {
+        margin: 0;
+        color: $primary-color;
+        font-weight: 500;
+        font-size: 1.25rem;
+      }
+      
+      .header-icon {
+        font-size: 1.75rem;
+        width: 1.75rem;
+        height: 1.75rem;
+
+        &.primary-color {
+          color: $primary-color;
+        }
+        
+        &.accent-color {
+          color: $accent-color;
+        }
+        
+        &.secondary-color {
+          color: $secondary-color;
+        }
+      }
+      
+      .header-icon-badge {
+        position: relative;
+        
+        .badge {
+          position: absolute;
+          top: -8px;
+          right: -8px;
+          background-color: $accent-color;
+          color: white;
+          border-radius: 50%;
+          width: 18px;
+          height: 18px;
+          font-size: 0.75rem;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+      }
+    }
+    
+    mat-card-content {
+      padding: 0 $medium;
+      flex-grow: 1;
+      overflow: auto;
+      max-height: 300px;
+    }
+    
+    mat-card-actions {
+      padding: $small $medium;
+      display: flex;
+      justify-content: flex-start;
+      flex-wrap: wrap;
+      gap: $tiny;
+      
+      @media (max-width: 480px) {
+        flex-direction: column;
+      }
+    }
+  }
+}
+
+// Financial summary styling
+.balance-overview {
+  display: flex;
+  justify-content: space-between;
+  padding: $medium 0;
+  
+  @media (max-width: 768px) {
+    flex-direction: column;
+  }
+  
+  .balance-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex: 1;
+    text-align: center;
+    padding: 0 $small;
+    
+    @media (max-width: 768px) {
+      margin-bottom: $small;
+      padding-bottom: $small;
+      border-bottom: 1px solid $border-light;
+      
+      &:last-child {
+        margin-bottom: 0;
+        border-bottom: none;
+      }
+    }
+    
+    .balance-label {
+      color: $text-secondary-light;
+      font-size: 0.875rem;
+      margin-bottom: $tiny;
+    }
+    
+    .balance-value {
+      font-size: 1.75rem;
+      font-weight: 600;
+      color: $text-primary-light;
+      
+      &.total {
+        color: $primary-color;
+      }
+    }
+  }
+  
+  mat-divider[vertical] {
+    height: 50px;
+    align-self: center;
+    
+    @media (max-width: 768px) {
+      display: none;
+    }
+  }
+}
+
+// Notifications styling
+.notifications-list {
+  .notification-item {
+    display: flex;
+    padding: $small 0;
+    border-bottom: 1px solid $border-light;
+    
+    &:last-child {
+      border-bottom: none;
+    }
+    
+    fa-icon {
+      margin-right: $small;
+      font-size: 1.25rem;
+    }
+    
+    .notification-content {
+      flex: 1;
+      
+      .notification-message {
+        margin-bottom: $tiny;
+        color: $text-primary-light;
+      }
+      
+      .notification-date {
+        font-size: 0.75rem;
+        color: $text-secondary-light;
+      }
+    }
+    
+    &.notification-warning {
+      .icon-warning {
+        color: $warning;
+      }
+    }
+    
+    &.notification-success {
+      .icon-success {
+        color: $success;
+      }
+    }
+    
+    &.notification-info {
+      .icon-info {
+        color: $info;
+      }
+    }
+    
+    &.notification-error {
+      .icon-error {
+        color: $error;
+      }
+    }
+  }
+}
+
+// Communities styling
+.communities-list {
+  .community-item {
+    display: flex;
+    justify-content: space-between;
+    padding: $small 0;
+    border-bottom: 1px solid $border-light;
+    
+    &:last-child {
+      border-bottom: none;
+    }
+    
+    @media (max-width: 480px) {
+      flex-direction: column;
+    }
+    
+    .community-info {
+      flex: 1;
+      
+      .community-name {
+        margin: 0 0 $tiny 0;
+        font-weight: 500;
+        font-size: 1.125rem;
+        color: $primary-color;
+      }
+      
+      .community-details {
+        display: flex;
+        flex-wrap: wrap;
+        gap: $small;
+        color: $text-secondary-light;
+        font-size: 0.875rem;
+        
+        .detail-item {
+          display: flex;
+          align-items: center;
+        }
+      }
+    }
+    
+    .community-payout {
+      text-align: right;
+      
+      @media (max-width: 480px) {
+        margin-top: $small;
+        text-align: left;
+      }
+      
+      .payout-label {
+        font-size: 0.75rem;
+        color: $text-secondary-light;
+        margin-bottom: $nano;
+      }
+      
+      .payout-date {
+        font-weight: 500;
+        color: $text-primary-light;
+      }
+      
+      .days-remaining {
+        font-size: 0.75rem;
+        color: $accent-color;
+        margin-top: $nano;
+      }
+    }
+  }
+}
+
+// Payouts styling
+.payouts-list {
+  .payout-item {
+    display: flex;
+    justify-content: space-between;
+    padding: $small 0;
+    border-bottom: 1px solid $border-light;
+    
+    &:last-child {
+      border-bottom: none;
+    }
+    
+    @media (max-width: 480px) {
+      flex-direction: column;
+    }
+    
+    .payout-info {
+      flex: 1;
+      
+      .payout-community {
+        font-weight: 500;
+        margin-bottom: $tiny;
+        color: $text-primary-light;
+      }
+      
+      .payout-amount {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: $primary-color;
+      }
+    }
+    
+    .payout-date-info {
+      text-align: right;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      
+      @media (max-width: 480px) {
+        margin-top: $small;
+        text-align: left;
+      }
+      
+      .payout-date {
+        margin-bottom: $tiny;
+        color: $text-secondary-light;
+      }
+    }
+  }
+}
+
+// Contributions styling
+.contributions-list {
+  .contribution-item {
+    display: flex;
+    justify-content: space-between;
+    padding: $small 0;
+    border-bottom: 1px solid $border-light;
+    
+    &:last-child {
+      border-bottom: none;
+    }
+    
+    @media (max-width: 480px) {
+      flex-direction: column;
+    }
+    
+    .contribution-info {
+      flex: 1;
+      
+      .contribution-community {
+        font-weight: 500;
+        margin-bottom: $tiny;
+        color: $text-primary-light;
+      }
+      
+      .contribution-amount {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: $secondary-color;
+      }
+    }
+    
+    .contribution-details {
+      text-align: right;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      
+      @media (max-width: 480px) {
+        margin-top: $small;
+        text-align: left;
+      }
+      
+      .contribution-date {
+        margin-bottom: $tiny;
+        color: $text-secondary-light;
+      }
+    }
+  }
+}
+
+// No data styling
+.no-data {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: $large 0;
+  color: $text-secondary-light;
+  
+  fa-icon {
+    font-size: 2.5rem;
+    margin-bottom: $small;
+    opacity: 0.5;
+  }
+  
+  p {
+    text-align: center;
+    margin: 0;
+  }
+}
+
+// Add modern forced colors mode support
+@media (forced-colors: active) {
+  // Card styling
+  mat-card {
+    border: 1px solid CanvasText;
+    box-shadow: none !important;
+    
+    &:hover {
+      transform: none;
+    }
+  }
+  
+  mat-card-header {
+    border-bottom: 1px solid CanvasText;
+  }
+  
+  mat-card-title, .header-icon, .balance-value.total, .payout-amount, .contribution-amount {
+    forced-color-adjust: none;
+  }
+  
+  // Dividers
+  mat-divider, .border-bottom, [class*="border-"] {
+    border-color: CanvasText !important;
+  }
+  
+  // Icons
+  .icon-warning, .icon-success, .icon-info, .icon-error {
+    forced-color-adjust: none;
+  }
+  
+  // Notification items
+  .notification-item, .community-item, .payout-item, .contribution-item {
+    border-bottom-color: CanvasText;
+  }
+  
+  // Chips and status indicators
+  mat-chip {
+    forced-color-adjust: none;
+    border: 1px solid CanvasText;
+  }
+  
+  // Ensure text is visible
+  .community-name, .balance-label, .notification-message, .notification-date,
+  .payout-community, .payout-date, .contribution-community, .contribution-date,
+  .days-remaining, p {
+    color: CanvasText !important;
+  }
+}

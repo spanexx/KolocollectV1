@@ -1,0 +1,46 @@
+<div class="error-container">
+  <mat-card>
+    <div class="error-icon">
+      <mat-icon *ngIf="errorCode === '404'">search_off</mat-icon>
+      <mat-icon *ngIf="errorCode === '500'">error_outline</mat-icon>
+      <mat-icon *ngIf="errorCode === '403'">lock</mat-icon>
+      <mat-icon *ngIf="errorCode === 'offline'">signal_wifi_off</mat-icon>
+      <mat-icon *ngIf="errorCode === 'generic'">warning</mat-icon>
+    </div>
+    
+    <mat-card-header>
+      <mat-card-title>{{ errorTitle }}</mat-card-title>
+    </mat-card-header>
+    
+    <mat-card-content>
+      <p>{{ errorMessage }}</p>
+    </mat-card-content>
+    
+    <mat-card-actions align="end">
+      <button 
+        *ngIf="showRefresh" 
+        mat-button 
+        color="primary" 
+        (click)="refresh()">
+        <mat-icon>refresh</mat-icon>
+        Refresh
+      </button>
+      
+      <button 
+        *ngIf="buttonLink" 
+        mat-flat-button 
+        color="primary"
+        [routerLink]="buttonLink">
+        {{ buttonText }}
+      </button>
+      
+      <button 
+        *ngIf="!buttonLink" 
+        mat-flat-button 
+        color="primary"
+        (click)="refresh()">
+        {{ buttonText }}
+      </button>
+    </mat-card-actions>
+  </mat-card>
+</div>

@@ -1,0 +1,86 @@
+<mat-toolbar color="primary" class="header-toolbar">
+  <div class="header-container">
+    <!-- Logo and App Name -->
+    <div class="brand">
+      <a routerLink="/dashboard" class="brand-link">
+        <span class="app-name">KoloCollect</span>
+      </a>
+    </div>
+
+    <!-- Main Navigation -->
+    <div class="main-nav" *ngIf="(currentUser$ | async)">
+      <a mat-button routerLink="/dashboard" routerLinkActive="active">Dashboard</a>
+      <a mat-button routerLink="/communities" routerLinkActive="active">Communities</a>
+      <a mat-button routerLink="/wallet" routerLinkActive="active">Wallet</a>
+      <a mat-button routerLink="/contributions" routerLinkActive="active">Contributions</a>
+      <a mat-button routerLink="/payouts" routerLinkActive="active">Payouts</a>
+    </div>
+
+    <!-- Spacer -->
+    <span class="spacer"></span>
+
+    <!-- Right side actions -->
+    <div class="header-actions">
+      <!-- Show these actions when user is authenticated -->
+      <ng-container *ngIf="(currentUser$ | async) as user; else loginActions">
+        <!-- Notifications -->
+        <button mat-icon-button [matMenuTriggerFor]="notificationsMenu" class="notification-btn" [attr.aria-label]="notificationCount + ' notifications'">
+          <div class="fa-icon-badge">
+            <fa-icon [icon]="faBell"></fa-icon>
+            <span class="badge" *ngIf="notificationCount > 0">{{notificationCount}}</span>
+          </div>
+        </button>
+        <mat-menu #notificationsMenu="matMenu" class="notifications-menu">
+          <div class="notification-header">
+            <h3>Notifications</h3>
+          </div>
+          <div *ngIf="notificationCount === 0" class="no-notifications">
+            <p>No new notifications</p>
+          </div>
+          <!-- Sample notifications - will be replaced with real data -->
+          <button mat-menu-item *ngIf="notificationCount > 0">
+            <fa-icon [icon]="faMoneyBill" class="icon-primary"></fa-icon>
+            <span>Your contribution was received</span>
+          </button>
+          <button mat-menu-item *ngIf="notificationCount > 1">
+            <fa-icon [icon]="faUsers" class="icon-accent"></fa-icon>
+            <span>New member joined your community</span>
+          </button>
+          <button mat-menu-item *ngIf="notificationCount > 2">
+            <fa-icon [icon]="faWallet" class="icon-warn"></fa-icon>
+            <span>Upcoming payout in 2 days</span>
+          </button>
+          <div class="notification-footer" *ngIf="notificationCount > 0">
+            <a mat-button color="primary" routerLink="/profile">View All</a>
+          </div>
+        </mat-menu>
+
+        <!-- User menu -->
+        <button mat-button [matMenuTriggerFor]="userMenu" class="user-menu-btn">
+          <span class="username">{{ user.name }}</span>
+          <fa-icon [icon]="faChevronDown"></fa-icon>
+        </button>
+        <mat-menu #userMenu="matMenu">
+          <button mat-menu-item routerLink="/profile">
+            <fa-icon [icon]="faUser"></fa-icon>
+            <span>Profile</span>
+          </button>
+          <button mat-menu-item routerLink="/wallet">
+            <fa-icon [icon]="faWallet"></fa-icon>
+            <span>Wallet</span>
+          </button>
+          <button mat-menu-item (click)="logout()">
+            <fa-icon [icon]="faSignOutAlt"></fa-icon>
+            <span>Logout</span>
+          </button>
+        </mat-menu>
+      </ng-container>
+
+      <!-- Show these actions when user is not authenticated -->
+      <ng-template #loginActions>
+        <a mat-button routerLink="/login" class="login-btn">Login</a>
+        <a mat-raised-button routerLink="/register" color="accent" class="register-btn">Register</a>
+      </ng-template>
+    </div>
+  </div>
+</mat-toolbar>

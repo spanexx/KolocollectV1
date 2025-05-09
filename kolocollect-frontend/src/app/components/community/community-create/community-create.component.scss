@@ -1,0 +1,63 @@
+.community-create-container {
+  padding: 2rem;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.header-section {
+  margin-bottom: 2rem;
+  
+  h1 {
+    color: #6D28D9;
+    font-weight: 600;
+  }
+}
+
+.form-card {
+  margin-bottom: 2rem;
+}
+
+.step-content {
+  padding: 1rem 0 2rem;
+  
+  h2 {
+    margin-top: 0;
+    color: #6D28D9;
+    font-weight: 500;
+  }
+  
+  p {
+    color: #6B7280;
+    margin-bottom: 2rem;
+  }
+}
+
+.form-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+  
+  .full-width {
+    grid-column: 1 / -1;
+  }
+  
+  .toggle-field {
+    display: flex;
+    align-items: center;
+    margin: 1rem 0;
+  }
+}
+
+.step-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+}
+
+.community-review {
+  background-color: #F9FAFB;
+  padding: 1.5rem;
+  border-radius: 0.5rem;
+  margin-bottom: 2rem;
+}

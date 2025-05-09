@@ -1,0 +1,125 @@
+@import '../../../styles.scss';
+
+$sidebar-width: 250px;
+$sidebar-collapsed-width: 70px;
+$header-height: 64px;
+$footer-height: 60px;
+$transition-duration: 0.3s;
+$primary-color: #6D28D9; // Deep Purple from design system
+$secondary-color: #10B981; // Emerald Green from design system
+$accent-color: #F59E0B; // Amber from design system
+
+// Add screen breakpoints for better control
+$screen-sm: 576px;
+$screen-md: 768px;
+$screen-lg: 992px;
+
+.dashboard-layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  position: relative;
+  background-color: #F9FAFB; // Light background from design system
+}
+
+.loading-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1100;
+}
+
+.content-container {
+  display: flex;
+  flex: 1;
+  position: relative;
+}
+
+.main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 1.5rem;
+  transition: margin-left $transition-duration ease, width $transition-duration ease;
+  margin-left: $sidebar-width;
+  width: calc(100% - #{$sidebar-width});
+  min-height: calc(100vh - #{$header-height});
+  
+  @media (max-width: 1280px) {
+    padding: 1rem;
+  }
+}
+
+.content-wrapper {
+  flex: 1;
+  max-width: 1280px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.sidebar-collapsed .main-content {
+  margin-left: $sidebar-collapsed-width;
+  width: calc(100% - #{$sidebar-collapsed-width});
+}
+
+.footer {
+  margin-top: auto;
+  padding-top: 1.5rem;
+  
+  .footer-content {
+    padding: 1rem 0;
+    border-top: 1px solid #e5e7eb;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    
+    @media (max-width: 768px) {
+      flex-direction: column;
+      gap: 1rem;
+      text-align: center;
+    }
+    
+    p {
+      color: #6B7280;
+      margin: 0;
+      font-size: 0.875rem;
+    }
+    
+    .footer-links {
+      display: flex;
+      gap: 1.5rem;
+      
+      a {
+        color: #6B7280;
+        text-decoration: none;
+        font-size: 0.875rem;
+        transition: color 0.2s ease;
+        
+        &:hover {
+          color: $primary-color;
+        }
+      }
+      
+      @media (max-width: 480px) {
+        flex-direction: column;
+        gap: 0.75rem;
+      }
+    }
+  }
+}
+
+// Media queries for responsive design on different devices
+@media (max-width: $screen-md) {
+  .main-content {
+    margin-left: 0 !important;
+    width: 100% !important;
+    padding-left: 20px; // Add padding to avoid content being hidden under the partially visible sidebar
+    z-index: 900; // Ensure content stays below sidebar but above other elements
+  }
+
+  .sidebar-collapsed .main-content {
+    margin-left: 0 !important;
+    width: 100% !important;
+  }
+}

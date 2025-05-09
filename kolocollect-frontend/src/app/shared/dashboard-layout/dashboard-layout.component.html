@@ -1,0 +1,32 @@
+<div class="dashboard-layout" [class.sidebar-collapsed]="sidebarCollapsed">
+  <!-- Loading indicator at the top of the page -->
+  <mat-progress-bar *ngIf="loading" mode="indeterminate" class="loading-bar"></mat-progress-bar>
+  
+  <!-- Header -->
+  <app-header></app-header>
+  
+  <div class="content-container">
+    <!-- Sidebar -->
+    <app-sidebar [isCollapsed]="sidebarCollapsed" (toggleCollapse)="toggleSidebar($event)"></app-sidebar>
+    
+    <!-- Main content area -->
+    <main class="main-content">
+      <div class="content-wrapper">
+        <router-outlet></router-outlet>
+      </div>
+      
+      <!-- Footer -->
+      <footer class="footer">
+        <div class="footer-content">
+          <p>&copy; {{ currentYear }} KoloCollect. All rights reserved.</p>
+          <div class="footer-links">
+            <a href="#">Terms of Service</a>
+            <a href="#">Privacy Policy</a>
+            <a href="#">Help Center</a>
+            <a href="#">Contact Us</a>
+          </div>
+        </div>
+      </footer>
+    </main>
+  </div>
+</div>

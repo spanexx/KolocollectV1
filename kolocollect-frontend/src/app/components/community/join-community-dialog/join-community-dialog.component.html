@@ -1,0 +1,64 @@
+<div class="join-community-dialog">
+  <h2 mat-dialog-title>Join {{ communityName }}</h2>
+
+  <mat-dialog-content>
+    <p class="description">
+      Please confirm your details to join this community. The minimum contribution amount is ${{ minContribution }}.
+    </p>
+
+    <form [formGroup]="joinForm" class="join-form">
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Name</mat-label>
+        <input matInput formControlName="name" placeholder="Your full name">
+        <mat-error *ngIf="joinForm.get('name')?.hasError('required')">
+          Name is required
+        </mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Email</mat-label>
+        <input matInput formControlName="email" placeholder="Your email address" type="email">
+        <mat-error *ngIf="joinForm.get('email')?.hasError('required')">
+          Email is required
+        </mat-error>
+        <mat-error *ngIf="joinForm.get('email')?.hasError('email')">
+          Please enter a valid email address
+        </mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Contribution Amount {{ isFirstCycle ? '(Optional)' : '' }}</mat-label>
+        <input matInput formControlName="contributionAmount" type="number" min="{{ minContribution }}" placeholder="Enter amount">
+        <span matTextPrefix>$&nbsp;</span>
+        <mat-error *ngIf="joinForm.get('contributionAmount')?.hasError('required')">
+          Contribution amount is required
+        </mat-error>
+        <mat-error *ngIf="joinForm.get('contributionAmount')?.hasError('min')">
+          Minimum contribution is ${{ minContribution }}
+        </mat-error>
+        <mat-hint *ngIf="isFirstCycle">
+          Since this is the first cycle, contribution is optional
+        </mat-hint>
+      </mat-form-field>
+    </form>
+
+    <div class="terms-note">
+      <p>
+        By joining this community, you agree to make regular contributions according to the community's schedule
+        and rules. Please review the community details before proceeding.
+      </p>
+    </div>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button (click)="cancel()">Cancel</button>
+    <button 
+      mat-raised-button 
+      color="primary" 
+      [disabled]="joinForm.invalid || loading" 
+      (click)="onSubmit()">
+      <span *ngIf="!loading">Join Community</span>
+      <mat-spinner *ngIf="loading" diameter="20" color="accent"></mat-spinner>
+    </button>
+  </mat-dialog-actions>
+</div>

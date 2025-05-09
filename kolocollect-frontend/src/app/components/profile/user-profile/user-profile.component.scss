@@ -1,0 +1,242 @@
+.user-profile-container {
+  padding: 1.5rem;
+  max-width: 1200px;
+  margin: 0 auto;
+  
+  .loading-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 300px;
+    
+    p {
+      margin-top: 1rem;
+      font-size: 1rem;
+      color: #6B7280;
+    }
+  }
+  
+  .error-container {
+    text-align: center;
+    padding: 2rem 1rem;
+    
+    .error-message {
+      color: #EF4444;
+      font-size: 1.1rem;
+      margin-bottom: 1.5rem;
+    }
+  }
+  
+  .profile-content {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 1.5rem;
+    
+    @media (max-width: 768px) {
+      grid-template-columns: 1fr;
+    }
+    
+    .profile-card {
+      border-radius: 12px;
+      border: 1px solid #E5E7EB;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+      overflow: hidden;
+      height: 100%;
+      
+      &:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 20px -5px rgba(0, 0, 0, 0.15);
+      }
+      
+      mat-card-header {
+        padding: 1.25rem 1.25rem 0.75rem;
+        
+        .header-avatar {
+          background-color: #6D28D9;
+          color: white;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 48px;
+          height: 48px;
+        }
+        
+        mat-card-title {
+          font-size: 1.25rem;
+          font-weight: 600;
+          margin-bottom: 0.25rem;
+          color: #1F2937;
+        }
+        
+        mat-card-subtitle {
+          color: #6B7280;
+        }
+      }
+      
+      mat-card-content {
+        padding: 0 1.25rem 1.25rem;
+        
+        // User info styling
+        .user-info {
+          margin-top: 0.5rem;
+          
+          .info-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 0.75rem;
+            
+            fa-icon {
+              color: #6D28D9;
+              margin-right: 0.75rem;
+            }
+            
+            .label {
+              color: #6B7280;
+              margin-right: 0.5rem;
+              font-size: 0.9rem;
+            }
+            
+            .value {
+              font-weight: 500;
+              color: #111827;
+            }
+          }
+        }
+        
+        // Wallet info styling
+        .wallet-info {
+          .balance-item {
+            padding: 0.75rem 0;
+            
+            .balance-label {
+              font-size: 0.9rem;
+              color: #6B7280;
+              margin-bottom: 0.25rem;
+            }
+            
+            .balance-value {
+              font-size: 1.5rem;
+              font-weight: 700;
+              color: #10B981;
+            }
+          }
+          
+          mat-divider {
+            margin: 0.5rem 0;
+          }
+        }
+        
+        // Communities list styling
+        .communities-list {
+          .community-item {
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #E5E7EB;
+            display: flex;
+            flex-direction: column;
+            
+            &:last-child {
+              border-bottom: none;
+            }
+            
+            .community-name {
+              font-weight: 600;
+              color: #111827;
+              margin-bottom: 0.25rem;
+            }
+            
+            .community-description {
+              color: #6B7280;
+              font-size: 0.9rem;
+              margin-bottom: 0.5rem;
+              overflow: hidden;
+              text-overflow: ellipsis;
+              display: -webkit-box;
+              -webkit-line-clamp: 2;
+              line-clamp: 2;
+              -webkit-box-orient: vertical;
+            }
+            
+            .community-role {
+              margin-bottom: 0.5rem;
+            }
+          }
+          
+          .no-communities {
+            text-align: center;
+            padding: 1rem 0;
+            color: #6B7280;
+          }
+        }
+        
+        // Payout list styling
+        .payout-list {
+          .payout-item {
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #E5E7EB;
+            
+            &:last-child {
+              border-bottom: none;
+            }
+            
+            .payout-info {
+              margin-bottom: 0.5rem;
+              
+              .payout-community {
+                font-weight: 600;
+                color: #111827;
+                margin-bottom: 0.25rem;
+              }
+              
+              .payout-date {
+                color: #6B7280;
+                font-size: 0.9rem;
+                margin-bottom: 0.25rem;
+              }
+              
+              .payout-amount {
+                font-size: 1.25rem;
+                font-weight: 700;
+                color: #10B981;
+              }
+            }
+          }
+        }
+        
+        // No payouts styling
+        .no-payouts {
+          text-align: center;
+          padding: 1rem 0;
+          color: #6B7280;
+          
+          p {
+            margin-bottom: 0.5rem;
+            
+            &:last-child {
+              margin-bottom: 0;
+            }
+          }
+        }
+      }
+      
+      mat-card_actions {
+        padding: 0.75rem 1.25rem 1.25rem;
+        display: flex;
+        justify-content: flex-end;
+        
+        button {
+          margin-left: 0.5rem;
+        }
+      }
+    }
+    
+    // Special styling for wallet card
+    .wallet-card {
+      mat-card-content {
+        padding-top: 0.5rem;
+      }
+    }
+  }
+}

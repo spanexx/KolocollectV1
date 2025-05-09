@@ -1,0 +1,189 @@
+<div class="make-contribution-container">
+  <div class="header-section">
+    <h1>
+      <fa-icon [icon]="faHandHoldingDollar" class="section-icon"></fa-icon>
+      Make a Contribution
+    </h1>
+  </div>
+  
+  <mat-card *ngIf="success" class="success-card">
+    <mat-card-content class="success-content">
+      <fa-icon [icon]="faCheck" class="success-icon fa-3x"></fa-icon>
+      <h2>Contribution Successful!</h2>
+      <p>Your contribution has been processed successfully.</p>
+      <div class="actions">
+        <a mat-raised-button color="primary" routerLink="/contributions">View Contribution History</a>
+        <button mat-stroked-button color="primary" (click)="success = false">Make Another Contribution</button>
+      </div>
+    </mat-card-content>
+  </mat-card>
+
+  <ng-container *ngIf="!success">
+    <div class="wallet-info-card">
+      <div class="wallet-balance">
+        <fa-icon [icon]="faPiggyBank" class="wallet-icon"></fa-icon>
+        <div class="balance-details">
+          <span class="balance-label">Your Wallet Balance</span>
+          <span class="balance-amount" [ngClass]="{'low-balance': walletBalance < minContributionAmount}">
+            ${{ walletBalance.toFixed(2) }}
+          </span>
+        </div>
+      </div>
+      
+      <a mat-raised-button color="accent" routerLink="/wallet/add-funds" *ngIf="walletBalance < minContributionAmount">
+        Add Funds
+      </a>
+    </div>
+
+    <mat-card class="contribution-form-card">
+      <mat-card-content>
+        <form [formGroup]="contributionForm" (ngSubmit)="submitContribution()">
+          <!-- Community Selection -->
+          <h2 class="form-section-title">
+            <fa-icon [icon]="faUsers" class="section-icon"></fa-icon>
+            Select Community
+            </h2>          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Select Community</mat-label>
+            <mat-select formControlName="communityId" (selectionChange)="onCommunityChange()">              <mat-option *ngFor="let community of userCommunities" [value]="community._id">
+                {{ community.id.name }}
+              </mat-option>
+            </mat-select>
+            <mat-error *ngIf="isFormControlInvalid(contributionForm, 'communityId')">
+              {{ getErrorMessage(contributionForm, 'communityId') }}
+            </mat-error>
+          </mat-form-field>
+          
+          <!-- Community Details -->
+          <div class="community-details" *ngIf="selectedCommunity">
+            <div class="community-info-row">
+              <div class="info-item">
+                <span class="info-label">Min. Contribution:</span>
+                <span class="info-value">${{ selectedCommunity.settings?.minContribution || 0 }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Frequency:</span>
+                <span class="info-value">{{ selectedCommunity.settings?.contributionFrequency || 'N/A' }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Backup Fund:</span>
+                <span class="info-value">{{ selectedCommunity.settings?.backupFundPercentage || 0 }}%</span>
+              </div>
+            </div>
+          </div>
+          
+          <mat-divider class="section-divider"></mat-divider>
+          
+          <!-- Contribution Amount -->
+          <h2 class="form-section-title">
+            <fa-icon [icon]="faMoneyBillWave" class="section-icon"></fa-icon>
+            Contribution Details
+          </h2>
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Amount</mat-label>
+            <input matInput formControlName="amount" type="number" [min]="minContributionAmount" 
+              [placeholder]="'Min: $' + minContributionAmount">
+            <span matPrefix>$&nbsp;</span>
+            <mat-error *ngIf="isFormControlInvalid(contributionForm, 'amount')">
+              {{ getErrorMessage(contributionForm, 'amount') }}
+            </mat-error>
+            <mat-hint *ngIf="selectedCommunity">
+              Minimum contribution: ${{ selectedCommunity.settings?.minContribution || 0 }}
+            </mat-hint>
+          </mat-form-field>
+          
+          <div class="installment-toggle-container">
+            <div class="toggle-label">
+              <span>Pay in installments?</span>
+              <fa-icon [icon]="faInfoCircle" class="info-icon" 
+                [matTooltip]="installmentsAllowed ? 'Split your payment into multiple installments' : 'This community does not allow installment payments'"></fa-icon>
+            </div>
+            <mat-slide-toggle 
+              color="primary" 
+              (change)="toggleInstallment()" 
+              [disabled]="!installmentsAllowed"
+              [matTooltip]="!installmentsAllowed ? 'This community does not allow installment payments' : ''">
+              {{ isInstallment ? 'Yes' : 'No' }}
+            </mat-slide-toggle>
+          </div>
+          
+          <!-- Installment Details (conditional) -->
+          <div class="installment-details" *ngIf="isInstallment">
+            <h3 class="form-subsection-title">Installment Plan</h3>
+            
+            <form [formGroup]="installmentForm" class="installment-form">
+              <mat-form-field appearance="outline" class="half-width">
+                <mat-label>Initial Amount</mat-label>
+                <input matInput formControlName="initialAmount" type="number" min="0">
+                <span matPrefix>$&nbsp;</span>
+                <mat-error *ngIf="isFormControlInvalid(installmentForm, 'initialAmount')">
+                  {{ getErrorMessage(installmentForm, 'initialAmount') }}
+                </mat-error>
+              </mat-form-field>
+              
+              <mat-form-field appearance="outline" class="half-width">
+                <mat-label>Remaining Amount</mat-label>
+                <input matInput formControlName="remainingAmount" type="number" min="0">
+                <span matPrefix>$&nbsp;</span>
+                <mat-error *ngIf="isFormControlInvalid(installmentForm, 'remainingAmount')">
+                  {{ getErrorMessage(installmentForm, 'remainingAmount') }}
+                </mat-error>
+              </mat-form-field>
+              
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Completion Date</mat-label>
+                <input matInput [matDatepicker]="picker" formControlName="completionDate">
+                <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+                <mat-datepicker #picker></mat-datepicker>
+                <mat-error *ngIf="isFormControlInvalid(installmentForm, 'completionDate')">
+                  {{ getErrorMessage(installmentForm, 'completionDate') }}
+                </mat-error>
+                <mat-hint>Date by which you'll pay the remaining amount</mat-hint>
+              </mat-form-field>
+            </form>
+          </div>
+          
+          <mat-divider class="section-divider"></mat-divider>
+          
+          <!-- Payment Method (fixed to wallet for now) -->
+          <h2 class="form-section-title">
+            <fa-icon [icon]="faPiggyBank" class="section-icon"></fa-icon>
+            Payment Method
+          </h2>
+          <div class="payment-method">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Payment Method</mat-label>
+              <mat-select formControlName="paymentMethod">
+                <mat-option value="wallet">Wallet Balance</mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>
+          
+          <!-- Error message display -->
+          <div class="error-message" *ngIf="error">
+            <fa-icon [icon]="faTimes" class="error-icon"></fa-icon>
+            {{ error }}
+          </div>
+          
+          <!-- Submit Button -->
+          <div class="form-actions">
+            <button mat-raised-button color="primary" type="submit" 
+              [disabled]="isLoading || (contributionForm.invalid && !isInstallment) || 
+              (isInstallment && installmentForm.invalid) || !hasSufficientFunds()">
+              <fa-icon [icon]="faHandHoldingDollar" *ngIf="!isLoading"></fa-icon>
+              <mat-spinner diameter="24" *ngIf="isLoading"></mat-spinner>
+              {{ isInstallment ? 'Make Initial Payment' : 'Make Contribution' }}
+            </button>
+            <a mat-button routerLink="/contributions">Cancel</a>
+          </div>
+          
+          <!-- Insufficient funds warning -->
+          <div class="insufficient-funds-warning" *ngIf="!hasSufficientFunds()">
+            <fa-icon [icon]="faInfoCircle" class="warning-icon"></fa-icon>
+            <span>Your wallet balance is insufficient for this contribution.</span>
+            <a mat-button color="accent" routerLink="/wallet/add-funds">Add Funds</a>
+          </div>
+        </form>
+      </mat-card-content>
+    </mat-card>
+  </ng-container>
+</div>

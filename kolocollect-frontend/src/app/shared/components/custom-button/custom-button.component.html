@@ -1,0 +1,45 @@
+<ng-container *ngIf="url; else buttonTemplate">
+  <a 
+    [routerLink]="url" 
+    [queryParams]="queryParams"
+    [target]="target" 
+    [class]="buttonClasses" 
+    [attr.aria-label]="ariaLabel"
+    [attr.disabled]="disabled ? true : null"
+    (click)="onClick($event)">
+    <ng-container *ngTemplateOutlet="contentTemplate"></ng-container>
+  </a>
+</ng-container>
+
+<ng-template #buttonTemplate>
+  <button 
+    [type]="type" 
+    [class]="buttonClasses" 
+    [disabled]="disabled" 
+    [attr.aria-label]="ariaLabel"
+    (click)="onClick($event)">
+    <ng-container *ngTemplateOutlet="contentTemplate"></ng-container>
+  </button>
+</ng-template>
+
+<ng-template #contentTemplate>
+  <div class="btn-content">
+    <fa-icon 
+      *ngIf="icon && iconPosition === 'left'" 
+      [icon]="icon" 
+      class="icon icon-left">
+    </fa-icon>
+    
+    <span class="btn-text">
+      <ng-content></ng-content>
+    </span>
+    
+    <fa-icon 
+      *ngIf="icon && iconPosition === 'right'" 
+      [icon]="icon" 
+      class="icon icon-right">
+    </fa-icon>
+    
+    <div *ngIf="loading" class="loader"></div>
+  </div>
+</ng-template>

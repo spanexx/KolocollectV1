@@ -1,0 +1,344 @@
+// Variables from the project's main theme
+$primary-color: #6D28D9; // Deep Purple
+$secondary-color: #10B981; // Emerald Green
+$accent-color: #F59E0B; // Amber
+$error-color: #EF4444; // Error red
+$warning-color: #F59E0B; // Warning amber
+$text-primary: #1F2937;
+$text-secondary: #6B7280;
+
+// Add styling for the mat-select dropdown to ensure text visibility
+::ng-deep .mat-select-panel {
+  .mat-option {
+    color: $text-primary !important;
+    
+    &:hover:not(.mat-option-disabled) {
+      background: rgba($primary-color, 0.1) !important;
+    }
+    
+    &.mat-selected:not(.mat-option-disabled) {
+      color: $primary-color !important;
+      background: rgba($primary-color, 0.05) !important;
+    }
+  }
+}
+
+.make-contribution-container {
+  padding: 1.5rem;
+  
+  .header-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+    
+    h1 {
+      font-family: 'Poppins', sans-serif;
+      font-weight: 600;
+      font-size: 1.75rem;
+      color: #333;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      
+      .section-icon {
+        color: $primary-color;
+        margin-right: 0.75rem;
+      }
+    }
+  }
+  
+  .success-card {
+    max-width: 600px;
+    margin: 2rem auto;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+    
+    .success-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem;
+      text-align: center;
+      
+      .success-icon {
+        color: $secondary-color;
+        margin-bottom: 1rem;
+      }
+      
+      h2 {
+        font-weight: 600;
+        margin-bottom: 1rem;
+        color: $secondary-color;
+      }
+      
+      p {
+        margin-bottom: 1.5rem;
+        color: #4B5563;
+      }
+      
+      .actions {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+    }
+  }
+  
+  .wallet-info-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: #F3F4F6;
+    border-radius: 8px;
+    padding: 1rem 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    
+    .wallet-balance {
+      display: flex;
+      align-items: center;
+      
+      .wallet-icon {
+        font-size: 2rem;
+        color: $primary-color;
+        margin-right: 1rem;
+      }
+      
+      .balance-details {
+        display: flex;
+        flex-direction: column;
+        
+        .balance-label {
+          font-size: 0.875rem;
+          color: $text-secondary;
+        }
+        
+        .balance-amount {
+          font-size: 1.5rem;
+          font-weight: 600;
+          color: $secondary-color;
+          
+          &.low-balance {
+            color: $error-color;
+          }
+        }
+      }
+    }
+  }
+  
+  .contribution-form-card {
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+    
+    mat-card-content {
+      padding: 1.5rem;
+      
+      form {
+        display: flex;
+        flex-direction: column;
+      }
+    }
+  }
+  
+  .form-section-title {
+    font-family: 'Poppins', sans-serif;
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+    color: $text-primary;
+    display: flex;
+    align-items: center;
+    
+    .section-icon {
+      color: $primary-color;
+      margin-right: 0.75rem;
+    }
+  }
+  
+  .form-subsection-title {
+    font-family: 'Poppins', sans-serif;
+    font-size: 1rem;
+    font-weight: 500;
+    margin-top: 0.75rem;
+    margin-bottom: 1rem;
+    color: #374151;
+  }
+  
+  .section-divider {
+    margin: 1.5rem 0;
+    opacity: 0.6;
+  }
+  
+  .community-details {
+    background-color: #F9FAFB;
+    border-radius: 6px;
+    padding: 1rem;
+    margin-top: 0.5rem;
+    
+    .community-info-row {
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 1rem;
+      
+      .info-item {
+        flex: 1;
+        min-width: 150px;
+        
+        .info-label {
+          display: block;
+          font-size: 0.875rem;
+          color: $text-secondary;
+          margin-bottom: 0.25rem;
+        }
+        
+        .info-value {
+          font-weight: 500;
+          color: $text-primary;
+        }
+      }
+    }
+  }
+  
+  .full-width {
+    width: 100%;
+    margin-bottom: 1rem;
+  }
+  
+  .half-width {
+    width: calc(50% - 0.5rem);
+    margin-bottom: 1rem;
+    
+    &:first-child {
+      margin-right: 1rem;
+    }
+  }
+  
+  .installment-toggle-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 0;
+    margin-bottom: 1rem;
+    
+    .toggle-label {
+      display: flex;
+      align-items: center;
+      
+      span {
+        font-weight: 500;
+        color: #374151;
+      }
+      
+      .info-icon {
+        color: $text-secondary;
+        margin-left: 0.5rem;
+        cursor: help;
+      }
+    }
+  }
+  
+  .installment-details {
+    background-color: #EEF2FF; // Light purple
+    border-radius: 6px;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+    
+    .installment-form {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+    }
+  }
+  
+  .form-actions {
+    display: flex;
+    justify-content: flex-start;
+    gap: 1rem;
+    margin-top: 1.5rem;
+    
+    button {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      
+      fa-icon {
+        font-size: 1.125rem;
+      }
+    }
+  }
+  
+  .error-message {
+    background-color: rgba(239, 68, 68, 0.1);
+    color: $error-color;
+    padding: 0.75rem 1rem;
+    border-radius: 6px;
+    margin-top: 1rem;
+    display: flex;
+    align-items: center;
+    
+    .error-icon {
+      margin-right: 0.75rem;
+    }
+  }
+  
+  .insufficient-funds-warning {
+    background-color: rgba(245, 158, 11, 0.1);
+    color: $warning-color;
+    padding: 0.75rem 1rem;
+    border-radius: 6px;
+    margin-top: 1rem;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    
+    .warning-icon {
+      margin-right: 0.5rem;
+    }
+    
+    a {
+      margin-left: auto;
+    }
+  }
+}
+
+// Responsive adjustments
+@media (max-width: 768px) {
+  .make-contribution-container {
+    padding: 1rem;
+    
+    .wallet-info-card {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 1rem;
+      
+      a {
+        align-self: stretch;
+      }
+    }
+    
+    .community-details {
+      .community-info-row {
+        flex-direction: column;
+        gap: 0.75rem;
+        
+        .info-item {
+          width: 100%;
+        }
+      }
+    }
+    
+    .half-width {
+      width: 100%;
+      margin-right: 0;
+    }
+  }
+}

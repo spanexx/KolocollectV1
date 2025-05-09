@@ -1,0 +1,186 @@
+.header-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  background-color: #6D28D9; // Primary color from our design system
+}
+
+.header-container {
+  display: flex;
+  width: 100%;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 1rem;
+  align-items: center;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  
+  .brand-link {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+    color: white;
+    padding: 0.5rem;
+    
+    &:hover {
+      opacity: 0.9;
+    }
+  }
+  
+  .app-name {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-left: 0.5rem;
+    font-family: 'Poppins', sans-serif;
+  }
+}
+
+.main-nav {
+  margin-left: 2rem;
+  
+  a {
+    margin-right: 0.5rem;
+    font-weight: 500;
+    
+    &.active {
+      background-color: rgba(255, 255, 255, 0.15);
+    }
+  }
+  
+  @media (max-width: 768px) {
+    display: none;
+  }
+}
+
+.spacer {
+  flex: 1 1 auto;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  
+  .notification-btn {
+    margin-right: 0.5rem;
+    
+    .fa-icon-badge {
+      position: relative;
+      display: inline-flex;
+      
+      fa-icon {
+        font-size: 1.25rem;
+      }
+      
+      .badge {
+        position: absolute;
+        top: -8px;
+        right: -8px;
+        background-color: #F59E0B; // Accent color
+        color: white;
+        border-radius: 50%;
+        min-width: 18px;
+        height: 18px;
+        font-size: 0.75rem;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 4px;
+      }
+    }
+  }
+  
+  .user-menu-btn {
+    display: flex;
+    align-items: center;
+    
+    .username {
+      margin-right: 0.5rem;
+      max-width: 150px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    
+    fa-icon {
+      font-size: 0.875rem;
+    }
+  }
+  
+  .login-btn {
+    margin-right: 0.5rem;
+  }
+  
+  .register-btn {
+    background-color: #F59E0B; // Accent color from our design system
+  }
+}
+
+::ng-deep {
+  .notifications-menu {
+    max-width: 320px;
+    
+    .notification-header {
+      padding: 1rem 1rem 0.5rem;
+      border-bottom: 1px solid #e5e7eb;
+      
+      h3 {
+        margin: 0;
+        color: #4B5563;
+        font-weight: 500;
+      }
+    }
+    
+    .no-notifications {
+      padding: 1rem;
+      text-align: center;
+      color: #6B7280;
+    }
+    
+    .mat-mdc-menu-item {
+      height: auto;
+      padding: 0.75rem 1rem;
+      white-space: normal;
+      line-height: 1.4;
+      
+      fa-icon {
+        margin-right: 1rem;
+        font-size: 1.25rem;
+        
+        &.icon-primary {
+          color: #6D28D9; // Primary color
+        }
+        
+        &.icon-accent {
+          color: #F59E0B; // Accent color
+        }
+        
+        &.icon-warn {
+          color: #EF4444; // Error color
+        }
+      }
+    }
+    
+    .notification-footer {
+      border-top: 1px solid #e5e7eb;
+      padding: 0.5rem;
+      display: flex;
+      justify-content: center;
+    }
+  }
+}
+
+// Responsive styles
+@media (max-width: 480px) {
+  .brand .app-name {
+    font-size: 1.2rem;
+  }
+  
+  .header-actions .user-menu-btn .username {
+    max-width: 80px;
+  }
+}

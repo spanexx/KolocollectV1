@@ -1,0 +1,82 @@
+<div class="mobile-toggle-button" *ngIf="isMobile" (click)="toggleSidebar()">
+  <fa-icon [icon]="faBars"></fa-icon>
+</div>
+
+<div class="sidebar" [class.collapsed]="isCollapsed" clickOutside (clickOutside)="onClickOutside()" (click)="onSidebarTabClick($event)">
+  <div class="sidebar-header">
+    <div class="logo-container">
+      <a routerLink="/dashboard" class="logo-link">
+        <span class="logo-text" *ngIf="!isCollapsed">KoloCollect</span>
+        <span class="logo-icon" *ngIf="isCollapsed || isSmallScreen">K</span>
+      </a>
+    </div>
+    <button mat-icon-button class="toggle-button" (click)="toggleSidebar()" 
+            [matTooltip]="isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'"
+            [matTooltipPosition]="'right'">
+      <fa-icon [icon]="isCollapsed ? faChevronRight : faChevronLeft"></fa-icon>
+    </button>
+  </div>
+
+  <mat-divider></mat-divider>
+
+  <div class="nav-container">
+    <ng-container *ngIf="currentUser$ | async as currentUser; else unauthenticatedMenu">
+      <mat-nav-list>
+        <ng-container *ngFor="let item of navItems">
+          <!-- Only show if the item doesn't require auth or the user is authenticated -->
+          <ng-container *ngIf="!item.requiresAuth || currentUser">
+            <!-- Only show if the item isn't admin-only or the user is an admin -->
+            <ng-container *ngIf="!item.adminOnly || isAdmin(currentUser)">
+              <a mat-list-item 
+                 [routerLink]="item.route" 
+                 routerLinkActive="active" 
+                 [matTooltip]="isCollapsed || isSmallScreen ? item.label : ''" 
+                 [matTooltipPosition]="'right'"
+                 (click)="onMenuItemClick()">
+                <div matListItemIcon class="icon-container">
+                  <fa-icon [icon]="item.faIcon"></fa-icon>
+                </div>
+                <span matListItemTitle *ngIf="!isCollapsed && !isSmallScreen">{{ item.label }}</span>
+              </a>
+            </ng-container>
+          </ng-container>
+        </ng-container>
+      </mat-nav-list>
+    </ng-container>
+
+    <ng-template #unauthenticatedMenu>
+      <mat-nav-list>
+        <a mat-list-item 
+           routerLink="/login" 
+           routerLinkActive="active" 
+           [matTooltip]="isCollapsed || isSmallScreen ? 'Login' : ''" 
+           [matTooltipPosition]="'right'"
+           (click)="onMenuItemClick()">
+          <div matListItemIcon class="icon-container">
+            <fa-icon [icon]="faSignInAlt"></fa-icon>
+          </div>
+          <span matListItemTitle *ngIf="!isCollapsed && !isSmallScreen">Login</span>
+        </a>
+        <a mat-list-item 
+           routerLink="/register" 
+           routerLinkActive="active" 
+           [matTooltip]="isCollapsed || isSmallScreen ? 'Register' : ''" 
+           [matTooltipPosition]="'right'"
+           (click)="onMenuItemClick()">
+          <div matListItemIcon class="icon-container">
+            <fa-icon [icon]="faUserPlus"></fa-icon>
+          </div>
+          <span matListItemTitle *ngIf="!isCollapsed && !isSmallScreen">Register</span>
+        </a>
+      </mat-nav-list>
+    </ng-template>
+  </div>
+
+  <div class="sidebar-footer" *ngIf="currentUser$ | async as currentUser">
+    <mat-divider></mat-divider>
+    <div class="user-info" *ngIf="!isCollapsed && !isSmallScreen">
+      <div class="user-name">{{ currentUser.name }}</div>
+      <div class="user-role">{{ currentUser.role }}</div>
+    </div>
+  </div>
+</div>

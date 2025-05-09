@@ -1,0 +1,42 @@
+:host {
+  display: block;
+}
+
+// These classes will be applied to the snackbar container via panelClass
+::ng-deep {
+  .toast-success {
+    background-color: #10B981 !important; // Success green from design system
+    color: white;
+  }
+  
+  .toast-error {
+    background-color: #EF4444 !important; // Error red from design system
+    color: white;
+  }
+  
+  .toast-warning {
+    background-color: #F59E0B !important; // Warning amber from design system
+    color: white;
+  }
+  
+  .toast-info {
+    background-color: #3B82F6 !important; // Info blue from design system
+    color: white;
+  }
+
+  // Apply consistent styling to all snackbars
+  .mat-mdc-snack-bar-container {
+    border-radius: 8px !important;
+    margin-top: 16px !important;
+    margin-right: 16px !important;
+    
+    .mdc-snackbar__surface {
+      padding: 8px 16px !important;
+    }
+
+    .mat-mdc-button {
+      color: white !important;
+      font-weight: bold !important;
+    }
+  }
+}

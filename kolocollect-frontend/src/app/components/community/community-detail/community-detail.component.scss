@@ -1,0 +1,1097 @@
+// Colors from design system
+$primary-color: #6D28D9; // Deep Purple
+$primary-dark: #5B21B6; // Darker purple
+$primary-light: #C4B5FD; // Light purple
+
+$secondary-color: #10B981; // Emerald Green
+$secondary-dark: #059669; // Darker green
+$secondary-light: #A7F3D0; // Light green
+
+$accent-color: #F59E0B; // Amber
+$accent-dark: #D97706; // Darker amber
+$accent-light: #FCD34D; // Light amber
+
+$destructive-color: #EF4444; // Red
+$destructive-dark: #DC2626; // Darker red
+$destructive-light: #FECACA; // Light red
+
+$neutral-100: #F3F4F6;
+$neutral-200: #E5E7EB;
+$neutral-300: #D1D5DB;
+$neutral-400: #9CA3AF;
+$neutral-500: #6B7280;
+$neutral-600: #4B5563;
+$neutral-700: #374151;
+$neutral-800: #1F2937;
+$neutral-900: #111827;
+
+// Container and general styling
+.community-detail-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1rem;
+  font-family: 'Inter', sans-serif;
+  
+  @media (max-width: 768px) {
+    padding: 0.5rem;
+  }
+}
+
+// Loading and error states
+.loading-spinner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  color: $primary-color;
+  
+  .spinner-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 60px;
+    height: 60px;
+    
+    fa-icon {
+      color: $primary-color;
+    }
+  }
+  
+  p {
+    margin-top: 1rem;
+    font-size: 1rem;
+    color: $neutral-600;
+  }
+}
+
+.error-container {
+  padding: 2rem;
+  
+  .error-card {
+    background-color: $neutral-100;
+    border-radius: 0.5rem;
+    border-left: 4px solid $destructive-color;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    
+    .error-card-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem;
+      text-align: center;
+      
+      .error-icon {
+        font-size: 3rem;
+        color: $destructive-color;
+        margin-bottom: 1rem;
+      }
+      
+      h3 {
+        margin: 0 0 0.5rem;
+        color: $neutral-800;
+        font-weight: 600;
+      }
+      
+      p {
+        margin: 0 0 1.5rem;
+        color: $neutral-600;
+      }
+    }
+  }
+}
+
+// Community header styling
+.community-header {
+  margin-bottom: 2rem;
+  
+  mat-card {
+    padding: 0;
+    overflow: hidden;
+    border-radius: 0.5rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  }
+  
+  .community-header-content {
+    display: flex;
+    justify-content: space-between;
+    padding: 2rem;
+    
+    @media (max-width: 768px) {
+      flex-direction: column;
+      padding: 1.5rem;
+    }
+    
+    .community-info {
+      flex: 1;
+      
+      h1 {
+        margin: 0 0 0.5rem;
+        color: $neutral-900;
+        font-weight: 700;
+        font-size: 1.75rem;
+        font-family: 'Poppins', sans-serif;
+      }
+      
+      .description {
+        color: $neutral-600;
+        margin: 0 0 1.5rem;
+        font-size: 1rem;
+        line-height: 1.5;
+      }
+    }
+    
+    .community-actions {
+      display: flex;
+      align-items: flex-start;
+      margin-left: 1rem;
+      
+      @media (max-width: 768px) {
+        margin: 1.5rem 0 0;
+        justify-content: flex-start;
+        width: 100%;
+      }
+      
+      app-custom-button + app-custom-button {
+        margin-left: 0.5rem;
+      }
+    }
+    
+    .community-stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-top: 1rem;
+      
+      @media (max-width: 640px) {
+        grid-template-columns: repeat(2, 1fr);
+      }
+      
+      .stat-item {
+        display: flex;
+        align-items: center;
+        padding: 0.75rem;
+        background: $neutral-100;
+        border-radius: 0.5rem;
+        
+        .stat-icon {
+          color: $primary-color;
+          font-size: 1.25rem;
+          margin-right: 0.75rem;
+        }
+        
+        .stat-content {
+          display: flex;
+          flex-direction: column;
+          
+          .stat-label {
+            font-size: 0.75rem;
+            color: $neutral-500;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+          }
+          
+          .stat-value {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: $neutral-800;
+          }
+        }
+      }
+    }
+  }
+}
+
+// Tab content styling
+.tab-content {
+  padding: 2rem;
+  
+  @media (max-width: 768px) {
+    padding: 1rem;
+  }
+  
+  h2 {
+    margin: 0 0 1rem;
+    color: $neutral-900;
+    font-weight: 600;
+    font-size: 1.25rem;
+    font-family: 'Poppins', sans-serif;
+  }
+}
+
+.section {
+  margin-bottom: 2rem;
+}
+
+// Overview section grid
+.overview-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+  
+  @media (max-width: 1024px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  @media (max-width: 640px) {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .overview-item {
+    border-bottom: 1px solid $neutral-200;
+    padding-bottom: 0.75rem;
+    
+    .item-label {
+      color: $neutral-500;
+      font-size: 0.875rem;
+      margin-bottom: 0.25rem;
+    }
+    
+    .item-value {
+      color: $neutral-800;
+      font-weight: 500;
+      font-size: 1rem;
+      
+      &.admin-info {
+        display: flex;
+        align-items: center;
+        
+        .admin-icon {
+          color: $primary-color;
+          margin-right: 0.5rem;
+        }
+      }
+    }
+  }
+}
+
+// Status indicators
+.status-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.75rem;
+  border-radius: 1rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  
+  &.active-chip {
+    background-color: rgba($secondary-color, 0.1);
+    color: $secondary-dark;
+  }
+  
+  &.inactive-chip {
+    background-color: rgba($neutral-500, 0.1);
+    color: $neutral-600;
+  }
+  
+  &.complete-chip {
+    background-color: rgba($secondary-color, 0.1);
+    color: $secondary-dark;
+  }
+  
+  &.in-progress-chip {
+    background-color: rgba($accent-color, 0.1);
+    color: $accent-dark;
+  }
+  
+  &.ready-chip {
+    background-color: rgba($primary-color, 0.1);
+    color: $primary-dark;
+  }
+}
+
+// Next payout styling
+.next-payout {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+  
+  .payout-stat {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    background-color: $neutral-100;
+    border-radius: 0.5rem;
+    
+    .payout-icon {
+      font-size: 1.5rem;
+      color: $primary-color;
+      margin-right: 1rem;
+    }
+    
+    .payout-content {
+      display: flex;
+      flex-direction: column;
+      
+      .payout-label {
+        font-size: 0.75rem;
+        color: $neutral-500;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+      
+      .payout-value {
+        font-size: 1rem;
+        font-weight: 600;
+        color: $neutral-800;
+      }
+    }
+  }
+}
+
+// Cycle information styling
+.cycle-info {
+  background-color: $neutral-100;
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  
+  .cycle-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    
+    .cycle-number {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: $neutral-800;
+    }
+  }
+  
+  .cycle-dates {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2rem;
+    
+    .cycle-date {
+      display: flex;
+      align-items: center;
+      
+      .date-icon {
+        color: $primary-color;
+        margin-right: 0.75rem;
+      }
+      
+      div {
+        display: flex;
+        flex-direction: column;
+        
+        .date-label {
+          font-size: 0.75rem;
+          color: $neutral-500;
+        }
+        
+        .date-value {
+          font-size: 0.95rem;
+          font-weight: 500;
+          color: $neutral-800;
+        }
+      }
+    }
+  }
+}
+
+// Members list styling
+.members-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  
+  .member-item {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    background-color: $neutral-100;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    
+    &:hover {
+      background-color: $primary-light;
+      box-shadow: 0 3px 5px rgba(0, 0, 0, 0.05);
+    }
+    
+    .member-avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background-color: $primary-color;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 1rem;
+      
+      fa-icon {
+        color: white;
+        font-size: 1rem;
+      }
+    }
+    
+    .member-info {
+      flex: 1;
+      
+      .member-name {
+        font-weight: 500;
+        color: $neutral-800;
+        font-size: 1rem;
+      }
+      
+      .member-joined {
+        font-size: 0.75rem;
+        color: $neutral-500;
+        margin-top: 0.25rem;
+      }
+    }
+    
+    .member-status {
+      margin-left: auto;
+      
+      .status-indicator {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.25rem 0.75rem;
+        border-radius: 1rem;
+        font-size: 0.75rem;
+        font-weight: 500;
+        
+        fa-icon {
+          margin-right: 0.35rem;
+        }
+        
+        &.member-status-active {
+          background-color: rgba($secondary-color, 0.1);
+          color: $secondary-dark;
+        }
+        
+        &.member-status-inactive {
+          background-color: rgba($destructive-color, 0.1);
+          color: $destructive-dark;
+        }
+        
+        &.member-status-waiting {
+          background-color: rgba($accent-color, 0.1);
+          color: $accent-dark;
+        }
+      }
+    }
+  }
+}
+
+// Empty states
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  text-align: center;
+  
+  &.small {
+    padding: 1.5rem;
+  }
+  
+  .empty-icon, .info-icon {
+    font-size: 3rem;
+    color: $neutral-400;
+    margin-bottom: 1rem;
+  }
+  
+  p {
+    color: $neutral-600;
+    max-width: 80%;
+    margin: 0;
+  }
+  
+  span {
+    color: $neutral-600;
+    font-size: 0.95rem;
+  }
+}
+
+// Cycles and midcycles styling
+.cycles-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  
+  .cycle-card {
+    background-color: $neutral-100;
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+    
+    .cycle-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+      
+      h3 {
+        margin: 0;
+        color: $neutral-800;
+        font-weight: 600;
+      }
+    }
+    
+    .cycle-dates {
+      color: $neutral-600;
+      font-size: 0.95rem;
+      margin-bottom: 1.5rem;
+      
+      div + div {
+        margin-top: 0.5rem;
+      }
+    }
+  }
+}
+
+.midcycles-container {
+  margin-top: 1.5rem;
+  
+  h4 {
+    margin: 0 0 1rem;
+    color: $neutral-700;
+    font-weight: 500;
+  }
+  
+  .midcycles-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1rem;
+    
+    @media (max-width: 640px) {
+      grid-template-columns: 1fr;
+    }
+    
+    .midcycle-card {
+      background-color: white;
+      border-radius: 0.5rem;
+      padding: 1rem;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+      transition: transform 0.2s, box-shadow 0.2s;
+      
+      &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+      }
+      
+      &.midcycle-complete {
+        border-left: 3px solid $secondary-color;
+      }
+      
+      &.midcycle-ready {
+        border-left: 3px solid $primary-color;
+      }
+      
+      &.midcycle-in-progress {
+        border-left: 3px solid $accent-color;
+      }
+      
+      .midcycle-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+        
+        h5 {
+          margin: 0;
+          font-weight: 500;
+          color: $neutral-800;
+        }
+      }
+      
+      .midcycle-progress {
+        margin-bottom: 1rem;
+        
+        .progress-bar {
+          height: 8px;
+          background-color: $neutral-200;
+          border-radius: 4px;
+          overflow: hidden;
+          margin-bottom: 0.5rem;
+          
+          .progress-fill {
+            height: 100%;
+            background-color: $primary-color;
+            border-radius: 4px;
+          }
+        }
+        
+        .progress-text {
+          font-size: 0.75rem;
+          color: $neutral-600;
+          text-align: right;
+        }
+      }
+      
+      .midcycle-details {
+        .midcycle-item {
+          display: flex;
+          justify-content: space-between;
+          margin-bottom: 0.5rem;
+          
+          .item-label {
+            color: $neutral-500;
+            font-size: 0.875rem;
+          }
+          
+          .item-value {
+            font-weight: 500;
+            color: $neutral-800;
+            font-size: 0.875rem;
+          }
+        }
+      }
+    }
+  }
+}
+
+// Current midcycle styling in the overview tab
+.current-midcycle-section {
+  margin-top: 1.5rem;
+  border-top: 1px solid $neutral-200;
+  padding-top: 1.5rem;
+  
+  .midcycle-section-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: $neutral-700;
+    margin: 0 0 1rem;
+  }
+  
+  .midcycle-actions {
+    margin-top: 1rem;
+    display: flex;
+    justify-content: flex-end;
+  }
+}
+
+// Midcycle Summary in the Overview tab
+.midcycle-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  
+  @media (max-width: 768px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  @media (max-width: 480px) {
+    grid-template-columns: 1fr;
+  }
+  
+  .midcycle-stat {
+    background-color: $neutral-100;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    text-align: center;
+    
+    .stat-label {
+      color: $neutral-500;
+      font-size: 0.875rem;
+      margin-bottom: 0.5rem;
+    }
+    
+    .stat-value {
+      color: $primary-color;
+      font-weight: 600;
+      font-size: 1.5rem;
+    }
+  }
+}
+
+.midcycle-distribution-chart {
+  margin-top: 2rem;
+  min-height: 200px;
+}
+
+// Override Mat-Tab styling for better appearance
+::ng-deep {
+  .mat-mdc-tab-group {
+    background-color: white;
+    border-radius: 0.5rem;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    
+    .mat-mdc-tab-header {
+      border-bottom: 1px solid $neutral-200;
+      
+      .mat-mdc-tab {
+        min-width: 120px;
+        opacity: 1;
+        
+        &.mat-mdc-tab-label-active {
+          .mdc-tab__text-label {
+            color: $primary-color;
+          }
+        }
+        
+        .mdc-tab__text-label {
+          text-transform: none;
+          letter-spacing: normal;
+          font-weight: 500;
+          font-size: 0.95rem;
+        }
+      }
+      
+      .mdc-tab-indicator__content--underline {
+        border-color: $primary-color;
+      }
+    }
+    
+    .mat-mdc-tab-body-wrapper {
+      background-color: white;
+    }
+  }
+  
+  mat-card {
+    padding: 0;
+  }
+  
+  mat-card_content {
+    padding: 1.5rem;
+  }
+}
+
+// Class for left margin in buttons
+.ml-2 {
+  margin-left: 0.5rem;
+}
+
+// Custom card component to replace Material cards
+.custom-card {
+  background-color: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  margin-bottom: 1.5rem;
+  border: 1px solid $neutral-200;
+}
+
+// Custom tabs styling
+.custom-tabs-container {
+  background-color: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  border: 1px solid $neutral-200;
+  margin-bottom: 2rem;
+  
+  .custom-tabs-header {
+    display: flex;
+    border-bottom: 1px solid $neutral-200;
+    overflow-x: auto;
+    
+    /* Hide scrollbar for Chrome, Safari and Opera */
+    &::-webkit-scrollbar {
+      display: none;
+    }
+    
+    /* Hide scrollbar for IE, Edge and Firefox */
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+    
+    .tab-button {
+      padding: 1rem 1.5rem;
+      border-bottom: 3px solid transparent;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-weight: 500;
+      color: $neutral-700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+      
+      fa-icon {
+        font-size: 1rem;
+        color: $neutral-500;
+      }
+      
+      &:hover {
+        color: $primary-color;
+        background-color: rgba($primary-color, 0.05);
+        
+        fa-icon {
+          color: $primary-color;
+        }
+      }
+      
+      &.active {
+        color: $primary-color;
+        border-bottom-color: $primary-color;
+        
+        fa-icon {
+          color: $primary-color;
+        }
+      }
+      
+      @media (max-width: 640px) {
+        padding: 0.75rem 1rem;
+        font-size: 0.875rem;
+      }
+    }
+  }
+  
+  .custom-tabs-content {
+    background-color: white;
+  }
+}
+
+// Card content styles
+.card-content {
+  padding: 1.5rem;
+}
+
+// Section header with action button
+.section-header-with-action {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  
+  @media (max-width: 640px) {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+}
+
+// Next payout large for payout tab
+.next-payout-large {
+  padding: 1.5rem;
+  
+  h3 {
+    margin: 0 0 1.25rem;
+    font-size: 1.25rem;
+    color: $neutral-800;
+    font-weight: 600;
+    font-family: 'Poppins', sans-serif;
+  }
+  
+  .payout-details {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    
+    @media (max-width: 768px) {
+      grid-template-columns: 1fr;
+    }
+  }
+}
+
+// Midcycle card updates
+.midcycle-card {
+  position: relative;
+  background-color: $neutral-100;
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  transition: transform 0.2s, box-shadow 0.2s;
+  overflow: hidden;
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1);
+  }
+  
+  &.midcycle-complete {
+    border-left: 4px solid $secondary-color;
+  }
+  
+  &.midcycle-ready {
+    border-left: 4px solid $primary-color;
+  }
+  
+  &.midcycle-in-progress {
+    border-left: 4px solid $accent-color;
+  }
+  
+  .midcycle-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    
+    h5 {
+      margin: 0;
+      font-weight: 500;
+      color: $neutral-800;
+      font-size: 1.125rem;
+    }
+  }
+  
+  .midcycle-progress {
+    margin-bottom: 1rem;
+    
+    .progress-bar {
+      height: 8px;
+      background-color: $neutral-200;
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 0.5rem;
+      
+      .progress-fill {
+        height: 100%;
+        background-color: $primary-color;
+        border-radius: 4px;
+      }
+    }
+    
+    .progress-text {
+      font-size: 0.75rem;
+      color: $neutral-600;
+      text-align: right;
+    }
+  }
+  
+  .midcycle-details {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    
+    .midcycle-item {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 0.5rem;
+      
+      .item-label {
+        color: $neutral-500;
+        font-size: 0.875rem;
+      }
+      
+      .item-value {
+        font-weight: 500;
+        color: $neutral-800;
+        font-size: 0.875rem;
+      }
+    }
+  }
+}
+
+// Custom button styling to match community list standards
+app-custom-button {
+  .custom-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.7rem 1.5rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+    border-radius: 0.6rem;
+    cursor: pointer;
+    transition: all 0.25s ease-in-out;
+    text-decoration: none;
+    border: none;
+    letter-spacing: 0.02em;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(255, 255, 255, 0);
+      transition: background-color 0.25s ease;
+    }
+    
+    &:hover {
+      box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
+      transform: translateY(-2px);
+      
+      &::before {
+        background-color: rgba(255, 255, 255, 0.1);
+      }
+    }
+    
+    &:active {
+      transform: translateY(0);
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+    
+    &:focus {
+      outline: 2px solid rgba(109, 40, 217, 0.4);
+      outline-offset: 2px;
+    }
+    
+    .button-icon {
+      margin-right: 0.625rem;
+      font-size: 1rem;
+      position: relative;
+      z-index: 1;
+    }
+    
+    // Text inside button needs to be above the overlay
+    span {
+      position: relative;
+      z-index: 1;
+    }
+    
+    &.primary-button {
+      background-color: $primary-color;
+      color: white;
+      background-image: linear-gradient(135deg, $primary-color, #7c3aed);
+      
+      &:hover {
+        background-image: linear-gradient(135deg, $primary-dark, $primary-color);
+      }
+      
+      &:active {
+        background-image: linear-gradient(135deg, #4c1d95, $primary-dark);
+      }
+    }
+    
+    &.secondary-button {
+      background-color: $secondary-color;
+      color: white;
+      background-image: linear-gradient(135deg, $secondary-color, #34d399);
+      
+      &:hover {
+        background-image: linear-gradient(135deg, $secondary-dark, $secondary-color);
+      }
+      
+      &:active {
+        background-image: linear-gradient(135deg, #047857, $secondary-dark);
+      }
+    }
+    
+    &.destructive-button {
+      background-color: $destructive-color;
+      color: white;
+      background-image: linear-gradient(135deg, $destructive-color, #f87171);
+      
+      &:hover {
+        background-image: linear-gradient(135deg, $destructive-dark, $destructive-color);
+      }
+      
+      &:active {
+        background-image: linear-gradient(135deg, #b91c1c, $destructive-dark);
+      }
+    }
+    
+    // Make buttons responsive
+    @media (max-width: 480px) {
+      padding: 0.625rem 1.25rem;
+      font-size: 0.875rem;
+      
+      .button-icon {
+        margin-right: 0.5rem;
+        font-size: 0.875rem;
+      }
+    }
+  }
+}

@@ -1,0 +1,293 @@
+@import '../../../styles.scss';
+
+$sidebar-width: 250px;
+$sidebar-collapsed-width: 70px;
+$transition-duration: 0.3s;
+$primary-color: #6D28D9; // Deep Purple from design system
+
+// Add screens breakpoints for better control
+$screen-sm: 576px;
+$screen-md: 768px;
+$screen-lg: 992px;
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  width: $sidebar-width;
+  height: 100%;
+  background-color: white;
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+  transition: width $transition-duration ease, transform $transition-duration ease;
+  overflow-x: hidden;
+  z-index: 1000; // Ensures sidebar appears above content
+  
+  &.collapsed {
+    width: $sidebar-collapsed-width;
+  }
+  
+  // Force collapse on small screens but keep visible
+  @media (max-width: $screen-sm) {
+    width: $sidebar-collapsed-width;
+    &:not(.collapsed) {
+      width: $sidebar-width;
+    }
+  }
+  
+  // Media query for mobile responsive design
+  @media (max-width: $screen-md) {
+    position: fixed;
+    z-index: 1000;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    
+    &.collapsed {
+      // Move the sidebar almost entirely off-screen (leave 10px visible)
+      transform: translateX(-$sidebar-collapsed-width + 10px);
+      width: $sidebar-collapsed-width;
+      
+      // Show pull tab indicator
+      &::after {
+        content: '›';
+        position: absolute;
+        display: flex;
+        right: -10px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 20px;
+        height: 48px;
+        background-color: $primary-color;
+        color: white;
+        border-radius: 0 4px 4px 0;
+        justify-content: center;
+        align-items: center;
+        font-size: 20px;
+        font-weight: bold;
+        box-shadow: 2px 0 5px rgba(0, 0, 0, 0.2);
+        cursor: pointer;
+        z-index: 1001;
+      }
+    }
+    
+    // Add an overlay when sidebar is open on mobile
+    &:not(.collapsed) {
+      transform: translateX(0);
+      width: $sidebar-collapsed-width; // Show only icons when expanded
+      
+      &::after {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: -1;
+      }
+    }
+  }
+}
+
+// Add a mobile toggle button that's always visible
+.mobile-toggle-button {
+  display: none;
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  z-index: 990;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: $primary-color;
+  color: white;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  
+  @media (max-width: $screen-md) {
+    display: flex;
+  }
+}
+
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  height: 64px;
+  
+  .logo-container {
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    
+    .logo-link {
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      
+      .logo-text {
+        font-family: 'Poppins', sans-serif;
+        font-weight: 600;
+        font-size: 1.25rem;
+        color: $primary-color;
+        white-space: nowrap;
+      }
+      
+      .logo-icon {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background-color: $primary-color;
+        color: white;
+        font-weight: bold;
+        font-family: 'Poppins', sans-serif;
+        font-size: 1.25rem;
+      }
+    }
+  }
+  
+  .toggle-button {
+    color: #6B7280;
+    min-width: 36px;
+    height: 36px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 50%;
+    transition: background-color 0.2s ease;
+    
+    &:hover {
+      color: $primary-color;
+      background-color: rgba($primary-color, 0.1);
+    }
+    
+    fa-icon {
+      font-size: 1.1rem;
+    }
+    
+    @media (max-width: $screen-sm) {
+      background-color: rgba($primary-color, 0.1);
+      color: $primary-color;
+      
+      &:hover {
+        background-color: rgba($primary-color, 0.2);
+      }
+    }
+  }
+  
+  // Add a fixed toggle button for very small screens
+  @media (max-width: $screen-sm) {
+    justify-content: flex-end;
+    
+    .logo-container {
+      .logo-text {
+        display: none;
+      }
+    }
+  }
+}
+
+.nav-container {
+  flex: 1;
+  overflow-y: auto;
+  
+  mat-nav-list {
+    padding-top: 8px;
+    
+    a.mat-list-item {
+      height: 48px;
+      margin: 4px 8px;
+      border-radius: 8px;
+      transition: background-color 0.2s ease;
+      
+      &.active {
+        background-color: rgba($primary-color, 0.1);
+        
+        .mat-icon, fa-icon, span {
+          color: $primary-color;
+          font-weight: 500;
+        }
+      }
+      
+      &:hover:not(.active) {
+        background-color: rgba(0, 0, 0, 0.04);
+      }
+      
+      .icon-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 24px;
+        height: 24px;
+        margin-right: 16px;
+        
+        fa-icon {
+          color: #6B7280;
+          font-size: 1.1rem;
+        }
+      }
+      
+      span {
+        color: #4B5563;
+        font-size: 0.9rem;
+        font-weight: 400;
+      }
+    }
+  }
+}
+
+.sidebar-footer {
+  padding: 16px;
+  
+  .user-info {
+    padding: 8px 0;
+    
+    .user-name {
+      font-weight: 500;
+      color: #374151;
+      margin-bottom: 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    
+    .user-role {
+      font-size: 0.8rem;
+      color: #6B7280;
+      text-transform: capitalize;
+    }
+  }
+}
+
+// Replace -ms-high-contrast with modern forced colors mode
+@media (forced-colors: active) {
+  .sidebar {
+    border-right: 1px solid CanvasText;
+    box-shadow: none;
+  }
+  
+  .logo-icon {
+    forced-color-adjust: none;
+  }
+  
+  .mat-list-item.active {
+    forced-color-adjust: none;
+    
+    .mat-icon, fa-icon, span {
+      forced-color-adjust: none;
+    }
+  }
+  
+  a.mat-list-item:hover:not(.active) {
+    background-color: Canvas;
+    
+    .mat-icon, span {
+      color: CanvasText;
+    }
+  }
+}

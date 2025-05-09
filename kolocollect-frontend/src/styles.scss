@@ -1,0 +1,63 @@
+/* You can add global styles to this file, and also import other style files */
+
+/* Import Angular Material theming */
+@use '@angular/material' as mat;
+
+/* Include the common styles for Angular Material */
+@include mat.core();
+
+/* Define your custom theme */
+$kolocollect-primary: mat.define-palette(mat.$deep-purple-palette, 600);
+$kolocollect-accent: mat.define-palette(mat.$amber-palette, 500);
+$kolocollect-warn: mat.define-palette(mat.$red-palette);
+
+/* Create the theme object */
+$kolocollect-theme: mat.define-light-theme((
+  color: (
+    primary: $kolocollect-primary,
+    accent: $kolocollect-accent,
+    warn: $kolocollect-warn,
+  ),
+  typography: mat.define-typography-config(),
+  density: 0,
+));
+
+/* Include theme styles for core and each component used */
+@include mat.all-component-themes($kolocollect-theme);
+
+/* Global styles */
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  font-family: 'Inter', 'Roboto', 'Helvetica Neue', sans-serif;
+}
+
+/* Color variables based on theme for custom components */
+:root {
+  --primary-color: #6D28D9;
+  --primary-light: #8B5CF6;
+  --primary-dark: #5B21B6;
+  --secondary-color: #10B981;
+  --secondary-light: #34D399;
+  --secondary-dark: #059669;
+  --accent-color: #F59E0B;
+  --accent-light: #FBBF24;
+  --accent-dark: #D97706;
+  --background-light: #F9FAFB;
+  --border-light: #E5E7EB;
+  --text-primary-light: #111827;
+  --text-secondary-light: #6B7280;
+  --success: #10B981;
+  --error: #EF4444;
+  --warning: #F59E0B;
+  --info: #3B82F6;
+}
+
+/* Fix for -ms-high-contrast deprecation warning */
+@media (forced-colors: active) {
+  /* Add forced colors mode styles here */
+  .mat-icon, .mat-badge {
+    forced-color-adjust: none;
+  }
+}

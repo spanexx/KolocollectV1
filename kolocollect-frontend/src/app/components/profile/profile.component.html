@@ -1,0 +1,254 @@
+<div class="profile-container">
+  <div *ngIf="isLoading" class="loading-overlay">
+    <mat-spinner diameter="50"></mat-spinner>
+  </div>
+
+  <div *ngIf="error" class="error-container">
+    <mat-card class="error-card">
+      <mat-card-header>
+        <mat-card-title>Error</mat-card-title>
+      </mat-card-header>
+      <mat-card-content>
+        <p>{{ error }}</p>
+      </mat-card-content>
+      <mat-card-actions>
+        <button mat-raised-button color="primary" (click)="loadUserProfile()">Retry</button>
+      </mat-card-actions>
+    </mat-card>
+  </div>
+
+  <mat-card class="profile-card" *ngIf="!error">
+    <mat-card-header>
+      <div class="profile-header">
+        <div class="profile-avatar">
+          <div class="avatar-placeholder">
+            <fa-icon [icon]="faUser" size="2x"></fa-icon>
+          </div>
+        </div>
+        <div class="profile-title">
+          <mat-card-title>{{ user?.name || 'User Profile' }}</mat-card-title>
+          <mat-card-subtitle>{{ user?.email }}</mat-card-subtitle>
+        </div>
+      </div>
+    </mat-card-header>
+    
+    <mat-card-content>
+      <mat-tab-group animationDuration="300ms">
+        <!-- Profile Information Tab -->
+        <mat-tab label="Profile Information">
+          <div class="tab-content">
+            <form [formGroup]="profileForm">
+              <div class="profile-form">
+                <div class="form-row">
+                  <mat-form-field appearance="outline" class="form-field">
+                    <mat-label>Full Name</mat-label>
+                    <input matInput formControlName="name" [readonly]="!isEditing">
+                    <mat-icon matPrefix><fa-icon [icon]="faUser"></fa-icon></mat-icon>
+                    <mat-error *ngIf="profileForm.get('name')?.hasError('required')">Name is required</mat-error>
+                  </mat-form-field>
+
+                  <mat-form-field appearance="outline" class="form-field">
+                    <mat-label>Email</mat-label>
+                    <input matInput formControlName="email" [readonly]="!isEditing">
+                    <mat-icon matPrefix><fa-icon [icon]="faEnvelope"></fa-icon></mat-icon>
+                    <mat-error *ngIf="profileForm.get('email')?.hasError('required')">Email is required</mat-error>
+                    <mat-error *ngIf="profileForm.get('email')?.hasError('email')">Please enter a valid email</mat-error>
+                  </mat-form-field>
+                </div>
+
+                <div class="form-row">
+                  <mat-form-field appearance="outline" class="form-field">
+                    <mat-label>Phone</mat-label>
+                    <input matInput formControlName="phone" [readonly]="!isEditing">
+                    <mat-icon matPrefix><fa-icon [icon]="faPhone"></fa-icon></mat-icon>
+                    <mat-error *ngIf="profileForm.get('phone')?.hasError('pattern')">Please enter a valid phone number</mat-error>
+                  </mat-form-field>
+
+                  <mat-form-field appearance="outline" class="form-field">
+                    <mat-label>Address</mat-label>
+                    <input matInput formControlName="address" [readonly]="!isEditing">
+                    <mat-icon matPrefix><fa-icon [icon]="faMapMarkerAlt"></fa-icon></mat-icon>
+                  </mat-form-field>
+                </div>
+
+                <mat-form-field appearance="outline" class="form-field full-width">
+                  <mat-label>Bio</mat-label>
+                  <textarea matInput formControlName="bio" rows="3" [readonly]="!isEditing"></textarea>
+                </mat-form-field>
+
+                <div class="button-row">
+                  <button *ngIf="!isEditing" mat-raised-button color="primary" (click)="toggleEditProfile()">
+                    <fa-icon [icon]="faEdit" class="button-icon"></fa-icon>
+                    Edit Profile
+                  </button>
+                  <ng-container *ngIf="isEditing">
+                    <button mat-raised-button color="primary" (click)="updateProfile()" [disabled]="profileForm.invalid || isLoading">
+                      Save Changes
+                    </button>
+                    <button mat-button color="warn" (click)="toggleEditProfile()">
+                      Cancel
+                    </button>
+                  </ng-container>
+                </div>
+              </div>
+            </form>
+          </div>
+        </mat-tab>
+
+        <!-- Account Security Tab -->
+        <mat-tab label="Account Security">
+          <div class="tab-content">
+            <h3>
+              <fa-icon [icon]="faKey" class="section-icon"></fa-icon>
+              Change Password
+            </h3>
+            <form [formGroup]="passwordForm" (ngSubmit)="updatePassword()">
+              <div class="security-form">
+                <mat-form-field appearance="outline" class="form-field">
+                  <mat-label>Current Password</mat-label>
+                  <input matInput type="password" formControlName="currentPassword">
+                  <mat-error *ngIf="passwordForm.get('currentPassword')?.hasError('required')">Current password is required</mat-error>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="form-field">
+                  <mat-label>New Password</mat-label>
+                  <input matInput type="password" formControlName="newPassword">
+                  <mat-error *ngIf="passwordForm.get('newPassword')?.hasError('required')">New password is required</mat-error>
+                  <mat-error *ngIf="passwordForm.get('newPassword')?.hasError('minlength')">Password must be at least 8 characters</mat-error>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline" class="form-field">
+                  <mat-label>Confirm New Password</mat-label>
+                  <input matInput type="password" formControlName="confirmPassword">
+                  <mat-error *ngIf="passwordForm.get('confirmPassword')?.hasError('required')">Confirm password is required</mat-error>
+                </mat-form-field>
+
+                <div class="password-error" *ngIf="passwordForm.hasError('notMatching')">
+                  Passwords do not match
+                </div>
+
+                <div class="button-row">
+                  <button mat-raised-button color="primary" type="submit" [disabled]="passwordForm.invalid || isLoading">
+                    Update Password
+                  </button>
+                </div>
+              </div>
+            </form>
+
+            <mat-divider class="section-divider"></mat-divider>
+
+            <h3>
+              <fa-icon [icon]="faShieldAlt" class="section-icon"></fa-icon>
+              Security Settings
+            </h3>
+            <div class="security-settings">
+              <div class="security-setting-item">
+                <span>Two-factor authentication</span>
+                <button mat-stroked-button color="primary">
+                  Setup 2FA
+                </button>
+              </div>
+              <div class="security-setting-item">
+                <span>Active Sessions</span>
+                <button mat-stroked-button color="warn">
+                  Logout All Devices
+                </button>
+              </div>
+            </div>
+          </div>
+        </mat-tab>
+
+        <!-- Notifications Tab -->
+        <mat-tab label="Notifications">
+          <div class="tab-content">
+            <div class="notifications-section">
+              <h3>
+                <fa-icon [icon]="faBell" class="section-icon"></fa-icon>
+                Notification Settings
+              </h3>
+              <form [formGroup]="notificationForm" (ngSubmit)="updateNotificationSettings()">
+                <div class="notification-preferences">
+                  <div class="notification-preference-item">
+                    <span>Email Notifications</span>
+                    <mat-slide-toggle formControlName="emailNotifications"></mat-slide-toggle>
+                  </div>
+                  <div class="notification-preference-item">
+                    <span>App Notifications</span>
+                    <mat-slide-toggle formControlName="appNotifications"></mat-slide-toggle>
+                  </div>
+                  <div class="notification-preference-item">
+                    <span>Community Updates</span>
+                    <mat-slide-toggle formControlName="communityUpdates"></mat-slide-toggle>
+                  </div>
+                  <div class="notification-preference-item">
+                    <span>Payout Alerts</span>
+                    <mat-slide-toggle formControlName="payoutAlerts"></mat-slide-toggle>
+                  </div>
+                  
+                  <div class="button-row">
+                    <button mat-raised-button color="primary" type="submit" [disabled]="notificationForm.invalid || isLoading">
+                      Save Preferences
+                    </button>
+                  </div>
+                </div>
+              </form>
+
+              <mat-divider class="section-divider"></mat-divider>
+
+              <h3>
+                <fa-icon [icon]="faBellSlash" class="section-icon"></fa-icon>
+                Recent Notifications
+              </h3>
+              <div class="notifications-list">
+                <div *ngIf="notifications.length === 0" class="no-data-message">
+                  No recent notifications
+                </div>
+                <mat-card *ngFor="let notification of notifications" class="notification-item">
+                  <div [ngClass]="{'notification-unread': !notification.read}">
+                    <div class="notification-content">
+                      <p>{{ notification.message }}</p>
+                      <span class="notification-date">{{ formatDate(notification.date) }}</span>
+                    </div>
+                    <button *ngIf="!notification.read" mat-icon-button color="primary" (click)="markNotificationRead(notification.id)">
+                      <mat-icon>check</mat-icon>
+                    </button>
+                  </div>
+                </mat-card>
+              </div>
+            </div>
+          </div>
+        </mat-tab>
+
+        <!-- Activity Log Tab -->
+        <mat-tab label="Activity Log">
+          <div class="tab-content">
+            <div class="activity-log-section">
+              <div class="activity-header">
+                <h3>
+                  <fa-icon [icon]="faHistory" class="section-icon"></fa-icon>
+                  Recent Activities
+                </h3>
+                <button mat-stroked-button color="warn" (click)="clearActivityLog()">
+                  Clear Activity Log
+                </button>
+              </div>
+              
+              <div class="activity-list">
+                <div *ngIf="activityLog.length === 0" class="no-data-message">
+                  No activity records
+                </div>
+                <div *ngFor="let activity of activityLog" class="activity-item">
+                  <div class="activity-content">
+                    <p class="activity-action">{{ activity.action }}</p>
+                    <p class="activity-details">{{ activity.details }}</p>
+                    <span class="activity-date">{{ formatDate(activity.timestamp) }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </mat-tab>
+      </mat-tab-group>
+    </mat-card-content>
+  </mat-card>
+</div>

@@ -1,0 +1,69 @@
+<div class="register-container">
+  <mat-card class="register-card">
+    <mat-card-header>
+      <mat-card-title>Create Your KoloCollect Account</mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
+        <div *ngIf="error" class="alert alert-danger">{{error}}</div>
+        
+        <div class="form-group">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Full Name</mat-label>
+            <input matInput formControlName="name" type="text" autocomplete="name" />
+            <mat-error *ngIf="submitted && f['name'].errors?.['required']">Full name is required</mat-error>
+          </mat-form-field>
+        </div>
+        
+        <div class="form-group">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Email</mat-label>
+            <input matInput formControlName="email" type="email" autocomplete="email" />
+            <mat-error *ngIf="submitted && f['email'].errors?.['required']">Email is required</mat-error>
+            <mat-error *ngIf="submitted && f['email'].errors?.['email']">Enter a valid email address</mat-error>
+          </mat-form-field>
+        </div>
+        
+        <div class="form-group">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Password</mat-label>
+            <input matInput formControlName="password" type="password" autocomplete="new-password" />
+            <mat-error *ngIf="submitted && f['password'].errors?.['required']">Password is required</mat-error>
+            <mat-error *ngIf="submitted && f['password'].errors?.['minlength']">Password must be at least 6 characters</mat-error>
+          </mat-form-field>
+        </div>
+        
+        <div class="form-group">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Confirm Password</mat-label>
+            <input matInput formControlName="confirmPassword" type="password" autocomplete="new-password" />
+            <mat-error *ngIf="submitted && f['confirmPassword'].errors?.['required']">Please confirm your password</mat-error>
+            <mat-error *ngIf="submitted && f['confirmPassword'].errors?.['passwordMismatch']">Passwords do not match</mat-error>
+          </mat-form-field>
+        </div>
+        
+        <div class="form-group terms-checkbox">
+          <mat-checkbox formControlName="acceptTerms" color="primary">
+            I accept the Terms and Conditions
+          </mat-checkbox>
+          <mat-error *ngIf="submitted && f['acceptTerms'].errors?.['required']" class="checkbox-error">
+            You must accept the terms and conditions to register
+          </mat-error>
+        </div>
+        
+        <div class="form-group">
+          <button mat-raised-button color="primary" [disabled]="loading" type="submit" class="full-width">
+            <span *ngIf="loading" class="spinner-border spinner-border-sm mr-1">
+              <mat-spinner diameter="20"></mat-spinner>
+            </span>
+            Register
+          </button>
+        </div>
+        
+        <div class="login-link">
+          Already have an account? <a routerLink="/login">Login</a>
+        </div>
+      </form>
+    </mat-card-content>
+  </mat-card>
+</div>

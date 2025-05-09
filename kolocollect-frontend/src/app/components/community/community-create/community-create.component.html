@@ -1,0 +1,116 @@
+<div class="community-create-container">
+  <div class="header-section">
+    <h1>Create a New Community</h1>
+  </div>
+  
+  <mat-card class="form-card">
+    <mat-card-content>
+      <mat-stepper linear>
+        <!-- Basic Information Step -->
+        <mat-step label="Basic Information">
+          <div class="step-content">
+            <h2>Basic Information</h2>
+            <p>Provide information about your new community</p>
+            
+            <div class="form-fields">
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Community Name</mat-label>
+                <input matInput placeholder="Enter community name">
+              </mat-form-field>
+              
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Description</mat-label>
+                <textarea matInput rows="4" placeholder="Describe your community"></textarea>
+              </mat-form-field>
+            </div>
+            
+            <div class="step-actions">
+              <button mat-button matStepperNext color="primary">Next</button>
+            </div>
+          </div>
+        </mat-step>
+        
+        <!-- Contribution Settings Step -->
+        <mat-step label="Contribution Settings">
+          <div class="step-content">
+            <h2>Contribution Settings</h2>
+            <p>Configure how contributions work in your community</p>
+            
+            <div class="form-fields">
+              <mat-form-field appearance="outline">
+                <mat-label>Contribution Frequency</mat-label>
+                <mat-select>
+                  <mat-option value="weekly">Weekly</mat-option>
+                  <mat-option value="biweekly">Bi-weekly</mat-option>
+                  <mat-option value="monthly">Monthly</mat-option>
+                </mat-select>
+              </mat-form-field>
+              
+              <mat-form-field appearance="outline">
+                <mat-label>Minimum Contribution</mat-label>
+                <input matInput type="number" placeholder="Enter amount">
+                <span matTextPrefix>$&nbsp;</span>
+              </mat-form-field>
+              
+              <mat-form-field appearance="outline">
+                <mat-label>Maximum Members</mat-label>
+                <input matInput type="number" placeholder="Enter number">
+              </mat-form-field>
+            </div>
+            
+            <div class="step-actions">
+              <button mat-button matStepperPrevious>Back</button>
+              <button mat-button matStepperNext color="primary">Next</button>
+            </div>
+          </div>
+        </mat-step>
+        
+        <!-- Advanced Settings Step -->
+        <mat-step label="Advanced Settings">
+          <div class="step-content">
+            <h2>Advanced Settings</h2>
+            <p>Configure advanced options for your community</p>
+            
+            <div class="form-fields">
+              <mat-form-field appearance="outline">
+                <mat-label>Backup Fund Percentage</mat-label>
+                <input matInput type="number" placeholder="Enter percentage">
+                <span matSuffix>%</span>
+              </mat-form-field>
+              
+              <div class="toggle-field">
+                <mat-slide-toggle>Allow Mid-Cycle Joining</mat-slide-toggle>
+              </div>
+              
+              <div class="toggle-field">
+                <mat-slide-toggle>Allow Installment Payments</mat-slide-toggle>
+              </div>
+            </div>
+            
+            <div class="step-actions">
+              <button mat-button matStepperPrevious>Back</button>
+              <button mat-button matStepperNext color="primary">Next</button>
+            </div>
+          </div>
+        </mat-step>
+        
+        <!-- Review & Create Step -->
+        <mat-step label="Review & Create">
+          <div class="step-content">
+            <h2>Review Community</h2>
+            <p>Review your community settings before creating</p>
+            
+            <div class="community-review">
+              <!-- Community review details will go here -->
+            </div>
+            
+            <div class="step-actions">
+              <button mat-button matStepperPrevious>Back</button>
+              <button mat-raised-button color="primary">Create Community</button>
+            </div>
+          </div>
+        </mat-step>
+      </mat-stepper>
+    </mat-card-content>
+  </mat-card>
+</div>

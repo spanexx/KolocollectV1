@@ -1,0 +1,225 @@
+<div class="dashboard-container">
+  <div class="dashboard-header">
+    <h1>Welcome{{ currentUser?.name ? ', ' + currentUser?.name : '' }}</h1>
+    <p class="subheading">Here's an overview of your KoloCollect activity</p>
+  </div>
+  
+  <div class="dashboard-grid">
+    <!-- Financial Summary Card -->
+    <div class="dashboard-item financial-summary">
+      <mat-card>
+        <mat-card-header>
+          <mat-card-title>Financial Summary</mat-card-title>
+          <fa-icon [icon]="faWallet" class="header-icon accent-color"></fa-icon>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="balance-overview">
+            <div class="balance-item">
+              <span class="balance-label">Available Balance</span>
+              <span class="balance-value">${{walletBalance.available.toFixed(2)}}</span>
+            </div>
+            <mat-divider [vertical]="true"></mat-divider>
+            <div class="balance-item">
+              <span class="balance-label">Fixed Balance</span>
+              <span class="balance-value">${{walletBalance.fixed.toFixed(2)}}</span>
+            </div>
+            <mat-divider [vertical]="true"></mat-divider>
+            <div class="balance-item">
+              <span class="balance-label">Total Balance</span>
+              <span class="balance-value total">${{walletBalance.total.toFixed(2)}}</span>
+            </div>
+          </div>
+        </mat-card-content>
+        <mat-divider></mat-divider>
+        <mat-card-actions>
+          <a mat-button color="primary" routerLink="/wallet/deposit">
+            <fa-icon [icon]="faPlus"></fa-icon>
+            Add Funds
+          </a>
+          <a mat-button color="primary" routerLink="/wallet/withdraw">
+            <fa-icon [icon]="faMinus"></fa-icon>
+            Withdraw
+          </a>
+          <a mat-button color="primary" routerLink="/wallet">
+            <fa-icon [icon]="faWallet"></fa-icon>
+            View Wallet
+          </a>
+        </mat-card-actions>
+      </mat-card>
+    </div>
+
+    <!-- Notifications Card -->
+    <div class="dashboard-item notifications">
+      <mat-card>
+        <mat-card-header>
+          <mat-card-title>Notifications</mat-card-title>
+          <div class="header-icon-badge">
+            <fa-icon [icon]="faBell" class="header-icon primary-color"></fa-icon>
+            <span class="badge accent-color" *ngIf="notifications.length > 0">{{notifications.length}}</span>
+          </div>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="notifications-list">
+            <div *ngFor="let notification of notifications" class="notification-item" [ngClass]="getNotificationClass(notification.type)">
+              <fa-icon [icon]="getFaNotificationIcon(notification.type)" [ngClass]="'icon-' + notification.type"></fa-icon>
+              <div class="notification-content">
+                <div class="notification-message">{{notification.message}}</div>
+                <div class="notification-date">{{formatDate(notification.date)}}</div>
+              </div>
+            </div>
+            
+            <div *ngIf="notifications.length === 0" class="no-data">
+              <fa-icon [icon]="faBell" size="2x"></fa-icon>
+              <p>No new notifications</p>
+            </div>
+          </div>
+        </mat-card-content>
+        <mat-divider></mat-divider>
+        <mat-card-actions>
+          <a mat-button color="primary" routerLink="/notifications">
+            <fa-icon [icon]="faEye"></fa-icon>
+            View All
+          </a>
+          <button mat-button color="accent">
+            <fa-icon [icon]="faCheck"></fa-icon>
+            Mark All Read
+          </button>
+        </mat-card-actions>
+      </mat-card>
+    </div>
+    
+    <!-- My Communities Card -->
+    <div class="dashboard-item my-communities">
+      <mat-card>
+        <mat-card-header>
+          <mat-card-title>My Communities</mat-card-title>
+          <fa-icon [icon]="faUsers" class="header-icon primary-color"></fa-icon>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="communities-list">
+            <div *ngFor="let community of communities" class="community-item">
+              <div class="community-info">
+                <h3 class="community-name">{{community.name}}</h3>
+                <div class="community-details">
+                  <span class="detail-item">
+                    <fa-icon [icon]="faUsers" class="detail-icon"></fa-icon>
+                    {{community.members}} Members
+                  </span>
+                  <span class="detail-item">
+                    <fa-icon [icon]="faMoneyBill" class="detail-icon"></fa-icon>
+                    ${{community.contribution}} {{community.frequency}}
+                  </span>
+                </div>
+              </div>
+              <div class="community-payout">
+                <div class="payout-label">Next Payout</div>
+                <div class="payout-date">{{formatDate(community.nextPayout)}}</div>
+                <div class="days-remaining">
+                  {{getDaysRemaining(community.nextPayout)}} days
+                </div>
+              </div>
+            </div>
+            
+            <div *ngIf="communities.length === 0" class="no-data">
+              <fa-icon [icon]="faUsers" size="2x"></fa-icon>
+              <p>You haven't joined any communities yet</p>
+            </div>
+          </div>
+        </mat-card-content>
+        <mat-divider></mat-divider>
+        <mat-card-actions>
+          <a mat-button color="primary" routerLink="/communities">
+            <fa-icon [icon]="faEye"></fa-icon>
+            View All
+          </a>
+          <a mat-button color="accent" routerLink="/communities/create">
+            <fa-icon [icon]="faPlus"></fa-icon>
+            Create Community
+          </a>
+        </mat-card-actions>
+      </mat-card>
+    </div>
+    
+    <!-- Upcoming Payouts Card -->
+    <div class="dashboard-item upcoming-payouts">
+      <mat-card>
+        <mat-card-header>
+          <mat-card-title>Upcoming Payouts</mat-card-title>
+          <fa-icon [icon]="faMoneyBillWave" class="header-icon primary-color"></fa-icon>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="payouts-list">
+            <div *ngFor="let payout of upcomingPayouts" class="payout-item">
+              <div class="payout-info">
+                <div class="payout-community">{{payout.communityName}}</div>
+                <div class="payout-amount">${{payout.amount.toFixed(2)}}</div>
+              </div>
+              <div class="payout-date-info">
+                <div class="payout-date">{{formatDate(payout.date)}}</div>
+                <div class="days-remaining">
+                  <mat-chip color="accent" selected>{{getDaysRemaining(payout.date)}} days</mat-chip>
+                </div>
+              </div>
+            </div>
+            
+            <div *ngIf="upcomingPayouts.length === 0" class="no-data">
+              <fa-icon [icon]="faMoneyBillWave" size="2x"></fa-icon>
+              <p>No upcoming payouts</p>
+            </div>
+          </div>
+        </mat-card-content>
+        <mat-divider></mat-divider>
+        <mat-card-actions>
+          <a mat-button color="primary" routerLink="/payouts">
+            <fa-icon [icon]="faMoneyBillWave"></fa-icon>
+            View Payout History
+          </a>
+        </mat-card-actions>
+      </mat-card>
+    </div>
+    
+    <!-- Recent Contributions Card -->
+    <div class="dashboard-item recent-contributions">
+      <mat-card>
+        <mat-card-header>
+          <mat-card-title>Recent Contributions</mat-card-title>
+          <fa-icon [icon]="faReceipt" class="header-icon primary-color"></fa-icon>
+        </mat-card-header>
+        <mat-card-content>
+          <div class="contributions-list">
+            <div *ngFor="let contribution of recentContributions" class="contribution-item">
+              <div class="contribution-info">
+                <div class="contribution-community">{{contribution.communityName}}</div>
+                <div class="contribution-amount">${{contribution.amount.toFixed(2)}}</div>
+              </div>
+              <div class="contribution-details">
+                <div class="contribution-date">{{formatDate(contribution.date)}}</div>
+                <div class="contribution-status">
+                  <mat-chip [color]="contribution.status === 'completed' ? 'primary' : 'warn'" selected>
+                    {{contribution.status}}
+                  </mat-chip>
+                </div>
+              </div>
+            </div>
+            
+            <div *ngIf="recentContributions.length === 0" class="no-data">
+              <fa-icon [icon]="faReceipt" size="2x"></fa-icon>
+              <p>No recent contributions</p>
+            </div>
+          </div>
+        </mat-card-content>
+        <mat-divider></mat-divider>
+        <mat-card-actions>
+          <a mat-button color="primary" routerLink="/contributions">
+            <fa-icon [icon]="faEye"></fa-icon>
+            View All Contributions
+          </a>
+          <a mat-button color="accent" routerLink="/contributions/make">
+            <fa-icon [icon]="faPlus"></fa-icon>
+            Make Contribution
+          </a>
+        </mat-card-actions>
+      </mat-card>
+    </div>
+  </div>
+</div>

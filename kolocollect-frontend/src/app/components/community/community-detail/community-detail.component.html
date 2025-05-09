@@ -1,0 +1,486 @@
+<div class="community-detail-container">
+  <div *ngIf="loading" class="loading-spinner">
+    <div class="spinner-container">
+      <fa-icon [icon]="faSpinner" [spin]="true" size="2x"></fa-icon>
+    </div>
+    <p>Loading community details...</p>
+  </div>
+  
+  <div *ngIf="error" class="error-container">
+    <div class="error-card">
+      <div class="error-card-content">
+        <fa-icon [icon]="faCircleExclamation" class="error-icon"></fa-icon>
+        <h3>Error loading community</h3>
+        <p>{{ error }}</p>
+        <app-custom-button variant="primary" size="medium" [icon]="faArrowRight" (buttonClick)="loadCommunityDetails()">
+          Try Again
+        </app-custom-button>
+      </div>
+    </div>
+  </div>
+  
+  <ng-container *ngIf="community && !loading && !error">
+    <div class="community-header">
+      <div class="custom-card">
+        <div class="community-header-content">
+          <div class="community-info">
+            <h1>{{ community.name }}</h1>
+            <p class="description">{{ community.description }}</p>
+            
+            <div class="community-stats">
+              <div class="stat-item">
+                <fa-icon [icon]="faUsers" class="stat-icon"></fa-icon>
+                <div class="stat-content">
+                  <span class="stat-label">Members</span>
+                  <span class="stat-value">{{ getActiveMembersCount() }}/{{ communitySettings?.maxMembers || 'Unlimited' }}</span>
+                </div>
+              </div>
+              <div class="stat-item">
+                <fa-icon [icon]="faCalendarDays" class="stat-icon"></fa-icon>
+                <div class="stat-content">
+                  <span class="stat-label">Current Cycle</span>
+                  <span class="stat-value">{{ community.cycles.length || 'Not started' }}</span>
+                </div>
+              </div>
+              <div class="stat-item">
+                <fa-icon [icon]="faDollarSign" class="stat-icon"></fa-icon>
+                <div class="stat-content">
+                  <span class="stat-label">Contribution</span>
+                  <span class="stat-value">${{ communitySettings?.minContribution || 0 }} {{ getContributionFrequencyText(community.settings.contributionFrequency) }}</span>
+                </div>
+              </div>
+              <div class="stat-item">
+                <fa-icon [icon]="faPiggyBank" class="stat-icon"></fa-icon>
+                <div class="stat-content">
+                  <span class="stat-label">Backup Fund</span>
+                  <span class="stat-value">${{ community.backupFund || 0 }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="community-actions">
+            <ng-container *ngIf="currentUserId">
+              <app-custom-button *ngIf="!isMember" variant="primary" size="medium" 
+                [icon]="faRightToBracket" [disabled]="loading"
+                (buttonClick)="joinCommunity()">
+                Join Community
+              </app-custom-button>
+              
+              <app-custom-button *ngIf="isMember" variant="destructive" size="medium" 
+                [icon]="faRightFromBracket" [disabled]="loading"
+                (buttonClick)="leaveCommunity()">
+                Leave Community
+              </app-custom-button>
+              
+              <app-custom-button *ngIf="isAdmin" variant="secondary" size="medium" 
+                [icon]="faPlay" [disabled]="loading" class="ml-2"
+                (buttonClick)="startNewCycle()">
+                Start New Cycle
+              </app-custom-button>
+            </ng-container>
+            <app-custom-button *ngIf="!currentUserId" variant="primary" size="medium" 
+              [icon]="faRightToBracket" url="/login" 
+              [queryParams]="{returnUrl: '/communities/' + communityId}">
+              Log in to Join
+            </app-custom-button>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="custom-tabs-container">
+      <div class="custom-tabs-header">
+        <div class="tab-button" [class.active]="activeTab === 'overview'" (click)="setActiveTab('overview')">
+          <fa-icon [icon]="faCircleInfo"></fa-icon>
+          <span>Overview</span>
+        </div>
+        <div class="tab-button" [class.active]="activeTab === 'members'" (click)="setActiveTab('members')">
+          <fa-icon [icon]="faUsers"></fa-icon>
+          <span>Members</span>
+        </div>
+        <div class="tab-button" [class.active]="activeTab === 'contributions'" (click)="setActiveTab('contributions')">
+          <fa-icon [icon]="faMoneyBillTransfer"></fa-icon>
+          <span>Contributions</span>
+        </div>
+        <div class="tab-button" [class.active]="activeTab === 'payouts'" (click)="setActiveTab('payouts')">
+          <fa-icon [icon]="faDollarSign"></fa-icon>
+          <span>Payouts</span>
+        </div>
+      </div>
+      
+      <div class="custom-tabs-content">
+        <!-- Overview Tab -->
+        <div class="tab-panel" *ngIf="activeTab === 'overview'">
+          <div class="tab-content">
+            <div class="section">
+              <h2>Community Overview</h2>
+              <div class="custom-card">
+                <div class="card-content">
+                  <div class="overview-grid">
+                    <div class="overview-item">
+                      <div class="item-label">Admin</div>
+                      <div class="item-value admin-info">
+                        <fa-icon [icon]="faUser" class="admin-icon"></fa-icon>
+                        <span>{{ community.admin || 'Not assigned' }}</span>
+                      </div>
+                    </div>
+                    <div class="overview-item">
+                      <div class="item-label">Created On</div>
+                      <div class="item-value">{{ formatDate(community.createdAt) }}</div>
+                    </div>
+                    <div class="overview-item">
+                      <div class="item-label">Status</div>
+                      <div class="item-value">
+                        <div class="status-chip" [ngClass]="community.active ? 'active-chip' : 'inactive-chip'">
+                          {{ community.cycleState ? 'Active' : 'Locked' }}
+                        </div>
+                      </div>
+                    </div>
+                    <div class="overview-item">
+                      <div class="item-label">Total Contribution</div>
+                      <div class="item-value">${{ community.totalContribution || 0 }}</div>
+                    </div>
+                    <div class="overview-item">
+                      <div class="item-label">Contribution Frequency</div>
+                      <div class="item-value">{{ getContributionFrequencyText(community.settings.contributionFrequency) }}</div>
+                    </div>
+                    <div class="overview-item">
+                      <div class="item-label">Minimum Contribution</div>
+                      <div class="item-value">${{ community.settings.minContribution || 0 }}</div>
+                    </div>
+                    <div class="overview-item">
+                      <div class="item-label">Maximum Members</div>
+                      <div class="item-value">{{ community.settings.maxMembers || 'Unlimited' }}</div>
+                    </div>
+                    <div class="overview-item">
+                      <div class="item-label">Backup Fund Percentage</div>
+                      <div class="item-value">{{ community.settings.backupFundPercentage || 0 }}%</div>
+                    </div>
+                    <div class="overview-item">
+                      <div class="item-label">Positioning Mode</div>
+                      <div class="item-value">{{ community.positioningMode || 'Not set' }}</div>
+                    </div>
+                    <div class="overview-item">
+                      <div class="item-label">Lock Payout</div>
+                      <div class="item-value">{{ community.lockPayout ? 'Yes' : 'No' }}</div>
+                    </div>
+                    <div class="overview-item">
+                      <div class="item-label">Cycle Lock</div>
+                      <div class="item-value">{{ community.cycleLockEnabled ? 'Locked' : 'Open' }}</div>
+                    </div>
+                    <div class="overview-item">
+                      <div class="item-label">Penalty Fee</div>
+                      <div class="item-value">{{ communitySettings?.penalty || 0 }}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="section" *ngIf="community.payoutDetails">
+              <h2>Next Payout</h2>
+              <div class="custom-card">
+                <div class="card-content">
+                  <div class="next-payout">
+                    <div class="payout-stat">
+                      <fa-icon [icon]="faUser" class="payout-icon"></fa-icon>
+                      <div class="payout-content">
+                        <span class="payout-label">Recipient</span>
+                        <span class="payout-value">{{ community.payoutDetails.nextRecipient || 'Not assigned yet' }}</span>
+                      </div>
+                    </div>
+                    <div class="payout-stat">
+                      <fa-icon [icon]="faMoneyBillTransfer" class="payout-icon"></fa-icon>
+                      <div class="payout-content">
+                        <span class="payout-label">Amount</span>
+                        <span class="payout-value">${{ community.payoutDetails.payoutAmount || 0 }}</span>
+                      </div>
+                    </div>
+                    <div class="payout-stat">
+                      <fa-icon [icon]="faCalendarDays" class="payout-icon"></fa-icon>
+                      <div class="payout-content">
+                        <span class="payout-label">Date</span>
+                        <span class="payout-value">{{ formatDate(payDate) }}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="section" *ngIf="getCurrentCycle()">
+              <h2>Current Cycle Information</h2>
+              <div class="custom-card">
+                <div class="card-content">
+                  <div class="cycle-info">
+                    <div class="cycle-header">
+                      <span class="cycle-number">Cycle {{ getCurrentCycle()?.cycleNumber }}</span>
+                      <div class="status-chip" [ngClass]="getCurrentCycle()?.isComplete ? 'complete-chip' : 'in-progress-chip'">
+                        {{ getCurrentCycle()?.isComplete ? 'Complete' : 'In Progress' }}
+                      </div>
+                    </div>
+                    
+                    <div class="cycle-dates">
+                      <div class="cycle-date">
+                        <fa-icon [icon]="faCalendarDays" class="date-icon"></fa-icon>
+                        <div>
+                          <span class="date-label">Start Date</span>
+                          <span class="date-value">{{ formatDate(getCurrentCycle()?.startDate || undefined) }}</span>
+                        </div>
+                      </div>
+                      <div class="cycle-date" *ngIf="getCurrentCycle()?.isComplete">
+                        <fa-icon [icon]="faCalendarDays" class="date-icon"></fa-icon>
+                        <div>
+                          <span class="date-label">End Date</span>
+                          <span class="date-value">{{ formatDate(getCurrentCycle()?.endDate || undefined) }}</span>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <!-- Current Mid-Cycle Section -->
+                    <div class="current-midcycle-section" *ngIf="getCurrentMidcycle()">
+                      <h3 class="midcycle-section-title">Current Mid-Cycle</h3>
+                      <div class="midcycle-card" [ngClass]="getMidcycleStatusClass(getCurrentMidcycle())">
+                        <div class="midcycle-header">
+                          <h5>Mid-Cycle {{ getCurrentMidcycle()?.midCycleNumber }}</h5>
+                          <div class="status-chip" [ngClass]="{'complete-chip': getCurrentMidcycle()?.isComplete, 'ready-chip': getCurrentMidcycle()?.isReady && !getCurrentMidcycle()?.isComplete, 'in-progress-chip': !getCurrentMidcycle()?.isReady && !getCurrentMidcycle()?.isComplete}">
+                            {{ getCurrentMidcycle()?.isComplete ? 'Complete' : getCurrentMidcycle()?.isReady ? 'Ready' : 'In Progress' }}
+                          </div>
+                        </div>
+                        
+                        <div class="midcycle-progress">
+                          <div class="progress-bar">
+                            <div class="progress-fill" [style.width.%]="getMidcycleProgress(getCurrentMidcycle())"></div>
+                          </div>
+                          <div class="progress-text">{{ getMidcycleProgress(getCurrentMidcycle()) }}% Complete</div>
+                        </div>
+                        
+                        <div class="midcycle-details">
+                          <div *ngIf="getCurrentMidcycle()?.nextInLine" class="midcycle-item">
+                            <span class="item-label">Next In Line:</span>
+                            <span class="item-value">{{ getCurrentMidcycle()?.nextInLine?.userName }}</span>
+                          </div>
+                          <div class="midcycle-item">
+                            <span class="item-label">Payout Amount:</span>
+                            <span class="item-value">${{ getCurrentMidcycle()?.payoutAmount || 0 }}</span>
+                          </div>
+                          <div *ngIf="getCurrentMidcycle()?.payoutDate" class="midcycle-item">
+                            <span class="item-label">Payout Date:</span>
+                            <span class="item-value">{{ formatDate(getCurrentMidcycle()?.payoutDate || undefined) }}</span>
+                          </div>
+                        </div>
+                        
+                        <div class="midcycle-actions" *ngIf="isMember && getCurrentMidcycle()?.isReady && !isUserContributedToCurrentMidcycle()">
+                          <app-custom-button variant="primary" size="small" 
+                            [icon]="faMoneyBillTransfer" [disabled]="loading"
+                            (buttonClick)="contributeToMidcycle(getCurrentMidcycle())">
+                            Contribute
+                          </app-custom-button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Mid-Cycle Summary Section -->
+            <div class="section" *ngIf="getCurrentCycle() && getCurrentCycle()?.midCycles &&  (getCurrentCycle()?.midCycles?.length || 0)">
+              <h2>Mid-Cycle Summary</h2>
+              <div class="custom-card">
+                <div class="card-content">
+                  <div class="midcycle-summary-grid">
+                    <div class="midcycle-stat">
+                      <div class="stat-label">Total Mid-Cycles</div>
+                      <div class="stat-value">{{ getCurrentCycle()?.midCycles?.length }}</div>
+                    </div>
+                    <div class="midcycle-stat">
+                      <div class="stat-label">Completed</div>
+                      <div class="stat-value">{{ getCompletedMidcyclesCount() }}</div>
+                    </div>
+                    <div class="midcycle-stat">
+                      <div class="stat-label">In Progress</div>
+                      <div class="stat-value">{{ (getCurrentCycle()?.midCycles?.length || 0) - getCompletedMidcyclesCount() }}</div>
+                    </div>
+                    <div class="midcycle-stat">
+                      <div class="stat-label">Total Distributed</div>
+                      <div class="stat-value">${{ getTotalMidcycleDistributions() }}</div>
+                    </div>
+                  </div>
+                  
+                  <div class="midcycle-distribution-chart">
+                    <!-- Add chart visualization here if needed in future -->
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Members Tab -->
+        <div class="tab-panel" *ngIf="activeTab === 'members'">
+          <div class="tab-content">
+            <h2>Community Members</h2>
+            <div class="custom-card">
+              <div class="card-content">
+                <div *ngIf="!community.members || community.members.length === 0" class="empty-state">
+                  <fa-icon [icon]="faUsers" class="empty-icon"></fa-icon>
+                  <p>No members have joined this community yet.</p>
+                </div>
+                
+                <div class="members-list" *ngIf="community.members && community.members.length > 0">
+                  <div class="member-item" *ngFor="let member of community.members; let last = last" 
+                       (click)="navigateToMemberDetail(member.userId)">
+                    <div class="member-avatar">
+                      <fa-icon [icon]="faUser"></fa-icon>
+                    </div>
+                    <div class="member-info">
+                      <div class="member-name">{{ member.name }}</div>
+                      <div class="member-joined">Joined: {{ formatDate(member.joinedAt || undefined) }}</div>
+                    </div>
+                    <div class="member-status">
+                      <span class="status-indicator" [ngClass]="getMemberStatusClass(member.status)">
+                        <fa-icon [icon]="getMemberStatusIcon(member.status)"></fa-icon>
+                        {{ member.status }}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Contributions Tab -->
+        <div class="tab-panel" *ngIf="activeTab === 'contributions'">
+          <div class="tab-content">
+            <div class="section-header-with-action">
+              <h2>Contribution History</h2>
+              <app-custom-button *ngIf="isMember && !loading" variant="primary" size="medium" 
+                [icon]="faMoneyBillTransfer" 
+                (buttonClick)="navigateToContributionPage()">
+                Make Contribution
+              </app-custom-button>
+            </div>
+            <div class="custom-card">
+              <div class="card-content">
+                <div *ngIf="!community.cycles || community.cycles.length === 0" class="empty-state">
+                  <fa-icon [icon]="faCalendarDays" class="empty-icon"></fa-icon>
+                  <p>No contribution cycles have been started yet.</p>
+                </div>
+                
+                <div *ngIf="community.cycles && community.cycles.length > 0" class="cycles-list">
+                  <div *ngFor="let cycle of community.cycles" class="cycle-card">
+                    <div class="cycle-card-header">
+                      <h3>Cycle {{ cycle.cycleNumber }}</h3>
+                      <div class="status-chip" [ngClass]="cycle.isComplete ? 'complete-chip' : 'in-progress-chip'">
+                        {{ cycle.isComplete ? 'Complete' : 'In Progress' }}
+                      </div>
+                    </div>
+                    <div class="cycle-dates">
+                      <div>Start Date: {{ formatDate(cycle.startDate || undefined) }}</div>
+                      <div *ngIf="cycle.isComplete">End Date: {{ formatDate(cycle.endDate || undefined) }}</div>
+                    </div>
+                    
+                    <div class="midcycles-container" *ngIf="cycle.midCycles && cycle.midCycles.length > 0">
+                      <h4>Mid-Cycles</h4>
+                      <div class="midcycles-grid">
+                        <div *ngFor="let midCycle of cycle.midCycles" class="midcycle-card" [ngClass]="getMidcycleStatusClass(midCycle)">
+                          <div class="midcycle-header">
+                            <h5>Mid-Cycle {{ midCycle.midCycleNumber }}</h5>
+                            <div class="status-chip" [ngClass]="{
+                              'complete-chip': midCycle.isComplete, 
+                              'ready-chip': midCycle.isReady && !midCycle.isComplete, 
+                              'in-progress-chip': !midCycle.isReady && !midCycle.isComplete
+                            }">
+                              {{ midCycle.isComplete ? 'Complete' : midCycle.isReady ? 'Ready' : 'In Progress' }}
+                            </div>
+                          </div>
+                          
+                          <div class="midcycle-progress">
+                            <div class="progress-bar">
+                              <div class="progress-fill" [style.width.%]="getMidcycleProgress(midCycle)"></div>
+                            </div>
+                            <div class="progress-text">{{ getMidcycleProgress(midCycle) }}% Complete</div>
+                          </div>
+                          
+                          <div class="midcycle-details">
+                            <div *ngIf="midCycle.nextInLine" class="midcycle-item">
+                              <span class="item-label">Next In Line:</span>
+                              <span class="item-value">{{ midCycle.nextInLine.userName }}</span>
+                            </div>
+                            <div class="midcycle-item">
+                              <span class="item-label">Payout Amount:</span>
+                              <span class="item-value">${{ midCycle.payoutAmount || 0 }}</span>
+                            </div>
+                            <div *ngIf="midCycle.payoutDate" class="midcycle-item">
+                              <span class="item-label">Payout Date:</span>
+                              <span class="item-value">{{ formatDate(midCycle.payoutDate || undefined) }}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div *ngIf="!cycle.midCycles || cycle.midCycles.length === 0" class="empty-state small">
+                      <fa-icon [icon]="faCircleInfo" class="info-icon"></fa-icon>
+                      <span>No mid-cycles available for this cycle.</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Payouts Tab -->
+        <div class="tab-panel" *ngIf="activeTab === 'payouts'">
+          <div class="tab-content">
+            <h2>Payout Schedule</h2>
+            <div class="custom-card">
+              <div class="card-content">
+                <div *ngIf="!community.cycles || community.cycles.length === 0 || !community.payoutDetails" class="empty-state">
+                  <fa-icon [icon]="faMoneyBillTransfer" class="empty-icon"></fa-icon>
+                  <p>No payout information is available yet. Payouts will be scheduled once the community cycle begins.</p>
+                </div>
+                
+                <div *ngIf="community.payoutDetails && community.cycles && community.cycles.length > 0" class="payout-info">
+                  <div class="next-payout-large">
+                    <h3>Next Payout</h3>
+                    <div class="payout-details">
+                      <div class="payout-stat">
+                        <fa-icon [icon]="faUser" class="payout-icon"></fa-icon>
+                        <div class="payout-content">
+                          <span class="payout-label">Recipient: </span>
+                          <span class="payout-value">{{ community.payoutDetails.nextRecipient || 'Not assigned yet' }}</span>
+                        </div>
+                      </div>
+                      
+                      <div class="payout-stat">
+                        <fa-icon [icon]="faMoneyBillTransfer" class="payout-icon"></fa-icon>
+                        <div class="payout-content">
+                          <span class="payout-label">Amount</span>
+                          <span class="payout-value">${{ community.payoutDetails.payoutAmount || 0 }}</span>
+                        </div>
+                      </div>
+                      
+                      <div class="payout-stat">
+                        <fa-icon [icon]="faCalendarDays" class="payout-icon"></fa-icon>
+                        <div class="payout-content">
+                          <span class="payout-label">Date: </span>
+                          <span class="payout-value">{{ formatDate(payDate) }}</span>
+                          <!-- <span>{{payDate}}</span> -->
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+</div>

@@ -1,0 +1,66 @@
+.error-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  padding: 2rem;
+  
+  mat-card {
+    max-width: 500px;
+    width: 100%;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+    padding: 2rem;
+  }
+  
+  .error-icon {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 1.5rem;
+    
+    mat-icon {
+      font-size: 4rem;
+      height: 4rem;
+      width: 4rem;
+      color: #6D28D9; // Primary color from design system
+    }
+  }
+  
+  mat-card-header {
+    justify-content: center;
+    margin-bottom: 1rem;
+    
+    mat-card-title {
+      font-family: 'Poppins', sans-serif;
+      font-weight: 600;
+      font-size: 1.5rem;
+      color: #111827; // Text primary color from design system
+      text-align: center;
+    }
+  }
+  
+  mat-card-content {
+    text-align: center;
+    margin-bottom: 2rem;
+    
+    p {
+      color: #6B7280; // Text secondary color from design system
+      font-size: 1rem;
+      line-height: 1.5;
+    }
+  }
+  
+  mat-card-actions {
+    display: flex;
+    justify-content: center;
+    gap: 1rem;
+    
+    button {
+      font-weight: 500;
+      
+      &[color="primary"] {
+        background-color: #6D28D9; // Primary color from design system
+      }
+    }
+  }
+}

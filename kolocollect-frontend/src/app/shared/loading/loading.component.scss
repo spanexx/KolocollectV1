@@ -1,0 +1,15 @@
+.loading-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1100; // Ensure it's above everything else
+}
+
+::ng-deep {
+  .mat-mdc-progress-bar {
+    .mdc-linear-progress__bar-inner {
+      border-color: #6D28D9 !important; // Use primary color from design system
+    }
+  }
+}

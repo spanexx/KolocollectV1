@@ -1,0 +1,180 @@
+<div class="contribution-history-container">
+  <div class="header-section">
+    <h1>
+      <fa-icon [icon]="faHistory" class="section-icon"></fa-icon>
+      Contribution History
+    </h1>
+    <div class="header-actions">
+      <button mat-stroked-button class="filter-button">
+        <fa-icon [icon]="faFilter" class="button-icon"></fa-icon>
+        Filter
+      </button>
+      <button mat-stroked-button class="export-button">
+        <fa-icon [icon]="faDownload" class="button-icon"></fa-icon>
+        Export
+      </button>
+      <button mat-raised-button color="primary" (click)="makeContribution()">
+        <fa-icon [icon]="faPlus" class="button-icon"></fa-icon>
+        Make Contribution
+      </button>
+    </div>
+  </div>
+  
+  <mat-card>
+    <mat-card-content>
+      <!-- Loading indicator -->
+      <div class="loading-container" *ngIf="isLoading">
+        <fa-icon [icon]="faSpinner" [spin]="true" size="3x"></fa-icon>
+        <p>Loading contributions...</p>
+      </div>
+
+      <!-- Error message -->
+      <div class="error-container" *ngIf="error && !isLoading">
+        <fa-icon [icon]="faExclamationCircle" class="error-icon"></fa-icon>
+        <p>{{ error }}</p>
+        <button mat-raised-button color="primary" (click)="loadContributionsHistory()">
+          Retry
+        </button>
+      </div>
+
+      <div class="table-container" *ngIf="!isLoading && !error && contributions.length > 0">
+        <div class="responsive-hint">
+          <fa-icon [icon]="faExclamationCircle" class="hint-icon"></fa-icon>
+          <span>Swipe horizontally to see more details on small screens</span>
+        </div>
+        <table mat-table [dataSource]="contributions" matSort class="responsive-table">
+          <!-- Date Column -->
+          <ng-container matColumnDef="date">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>
+              <fa-icon [icon]="faCalendarAlt" class="column-icon"></fa-icon>
+              <span class="column-title">Date</span>
+            </th>
+            <td mat-cell *matCellDef="let contribution">
+              <span class="mobile-label">Date:</span>
+              {{ formatDate(contribution.contributionDate || contribution.date) }}
+            </td>
+          </ng-container>
+          
+          <!-- Community Column -->
+          <ng-container matColumnDef="community">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>
+              <fa-icon [icon]="faBuilding" class="column-icon"></fa-icon>
+              <span class="column-title">Community</span>
+            </th>
+            <td mat-cell *matCellDef="let contribution">
+              <span class="mobile-label">Community:</span>
+              <span [title]="contribution.communityName">{{ contribution.communityName }}</span>
+            </td>
+          </ng-container>
+          
+          <!-- Cycle Column -->
+          <ng-container matColumnDef="cycle">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>
+              <fa-icon [icon]="faReceipt" class="column-icon"></fa-icon>
+              <span class="column-title">Cycle</span>
+            </th>
+            <td mat-cell *matCellDef="let contribution">
+              <span class="mobile-label">Cycle:</span>
+              Cycle {{ contribution.cycleNumber }}
+            </td>
+          </ng-container>
+          
+          <!-- Amount Column -->
+          <ng-container matColumnDef="amount">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>
+              <fa-icon [icon]="faMoneyBillWave" class="column-icon"></fa-icon>
+              <span class="column-title">Amount</span>
+            </th>
+            <td mat-cell *matCellDef="let contribution">
+              <span class="mobile-label">Amount:</span>
+              {{ formatAmount(contribution.amount) }}
+            </td>
+          </ng-container>
+            <!-- Status Column -->
+          <ng-container matColumnDef="status">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>
+              <fa-icon [icon]="faCheckCircle" class="column-icon"></fa-icon>
+              <span class="column-title">Status</span>
+            </th>
+            <td mat-cell *matCellDef="let contribution">
+              <span class="mobile-label">Status:</span>
+              <span class="status-chip" [ngClass]="getStatusClass(contribution.status)">
+                <fa-icon [icon]="getStatusIcon(contribution.status)" class="status-icon"></fa-icon>
+                {{ contribution.status | titlecase }}
+              </span>
+            </td>
+          </ng-container>          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;" 
+              (click)="viewContributionDetails(row)" 
+              class="interactive-row"></tr>
+        </table>
+
+        <!-- Pagination -->
+        <mat-paginator 
+          [length]="totalContributions"
+          [pageSize]="pageSize"
+          [pageSizeOptions]="[5, 10, 25, 50]"
+          (page)="onPageChange($event)"
+          aria-label="Select page of contributions">
+        </mat-paginator>
+      </div>      <!-- Placeholder for when there are no contributions -->
+      <div class="no-data-placeholder" *ngIf="!isLoading && !error && contributions.length === 0">
+        <fa-icon [icon]="faExclamationCircle" class="no-data-icon"></fa-icon>
+        <h3>No Contributions Found</h3>
+        <p>You haven't made any contributions yet. Start by exploring communities or making your first contribution.</p>
+        <div class="action-buttons">
+          <button mat-raised-button color="primary" (click)="makeContribution()">
+            <fa-icon [icon]="faPlus" class="button-icon"></fa-icon>
+            Make Contribution
+          </button>
+          <button mat-stroked-button color="primary" (click)="exploreCommunities()">
+            <fa-icon [icon]="faBuilding" class="button-icon"></fa-icon>
+            Explore Communities
+          </button>
+        </div>
+      </div>
+    </mat-card-content>
+  </mat-card>
+    <!-- Stats cards with real data -->  <div class="contribution-stats-cards" *ngIf="contributionSummary">
+    <mat-card class="stat-card total-contributions">
+      <mat-card-content>
+        <fa-icon [icon]="faMoneyBillWave" class="stat-icon"></fa-icon>
+        <div class="stat-content">
+          <div class="stat-label">Total Contributed</div>
+          <div class="stat-value">{{ formatAmount(contributionSummary.totalAmount) }}</div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+    
+    <mat-card class="stat-card communities">
+      <mat-card-content>
+        <fa-icon [icon]="faBuilding" class="stat-icon"></fa-icon>
+        <div class="stat-content">
+          <div class="stat-label">Active Communities</div>
+          <div class="stat-value">{{ activeCommunities }}</div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+    
+    <mat-card class="stat-card upcoming">
+      <mat-card-content>
+        <fa-icon [icon]="faCalendarAlt" class="stat-icon"></fa-icon>
+        <div class="stat-content">
+          <div class="stat-label">Upcoming Contributions</div>
+          <div class="stat-value">{{ upcomingContributionsCount }}</div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+    
+    <!-- Last contribution card -->
+    <mat-card class="stat-card last-contribution" *ngIf="contributionSummary.lastContribution">
+      <mat-card-content>
+        <fa-icon [icon]="faHistory" class="stat-icon"></fa-icon>
+        <div class="stat-content">
+          <div class="stat-label">Last Contribution</div>
+          <div class="stat-value">{{ formatDate(contributionSummary.lastContribution) }}</div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>

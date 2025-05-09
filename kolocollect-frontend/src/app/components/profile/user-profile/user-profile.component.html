@@ -1,0 +1,146 @@
+<div class="user-profile-container">
+  <!-- Loading state -->
+  <div *ngIf="isLoading" class="loading-container">
+    <mat-spinner diameter="40"></mat-spinner>
+    <p>Loading user profile...</p>
+  </div>
+  
+  <!-- Error state -->
+  <div *ngIf="error && !isLoading" class="error-container">
+    <p class="error-message">{{ error }}</p>
+    <button mat-raised-button color="primary" (click)="loadUserProfile(userId)">Retry</button>
+  </div>
+  
+  <!-- User profile content -->
+  <div *ngIf="userProfile && !isLoading && !error" class="profile-content">
+    <!-- Basic Information Card -->
+    <mat-card class="profile-card">
+      <mat-card-header>
+        <div class="header-avatar" mat-card-avatar>
+          <fa-icon [icon]="faUser" size="2x"></fa-icon>
+        </div>
+        <mat-card-title>{{ userProfile.name }}</mat-card-title>
+        <mat-card-subtitle>{{ userProfile.email }}</mat-card-subtitle>
+      </mat-card-header>
+      
+      <mat-card-content>
+        <div class="user-info">
+          <div class="info-item">
+            <fa-icon [icon]="faCalendarAlt"></fa-icon>
+            <span class="label">Member Since:</span>
+            <span class="value">{{ formatDate(userProfile.joinedAt || userProfile.dateJoined) }}</span>
+          </div>
+          
+          <div class="info-item">
+            <fa-icon [icon]="faUserShield"></fa-icon>
+            <span class="label">Role:</span>
+            <span class="value">{{ userProfile.role === 'admin' ? 'Administrator' : 'Member' }}</span>
+          </div>
+          
+          <div class="info-item">
+            <fa-icon [icon]="faUsers"></fa-icon>
+            <span class="label">Communities:</span>
+            <span class="value">{{ userProfile.communities?.length || 0 }}</span>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Communities Card -->
+    <mat-card class="profile-card" *ngIf="userProfile.communities && userProfile.communities.length > 0">
+      <mat-card-header>
+        <div class="header-avatar" mat-card-avatar>
+          <fa-icon [icon]="faUsers" size="2x"></fa-icon>
+        </div>
+        <mat-card-title>My Communities</mat-card-title>
+      </mat-card-header>
+      
+      <mat-card-content>
+        <div class="communities-list">
+          <div class="community-item" *ngFor="let community of userProfile.communities">
+            <div class="community-name">{{ community.id?.name }}</div>
+            <div class="community-description" *ngIf="community.id?.description">{{ community.id.description }}</div>
+            <div class="community-role">
+              <mat-chip color="{{ community.isAdmin ? 'accent' : 'primary' }}" selected>
+                {{ community.isAdmin ? 'Admin' : 'Member' }}
+              </mat-chip>
+            </div>
+            <button mat-button color="primary" (click)="navigateToCommunity(community.id._id || community.id)">
+              <fa-icon [icon]="faEye" class="button-icon"></fa-icon>
+              View
+            </button>
+          </div>
+          
+          <div *ngIf="userProfile.communities.length === 0" class="no-communities">
+            <p>You are not a member of any communities yet.</p>
+          </div>
+        </div>
+      </mat-card-content>
+      
+      <mat-card-actions>
+        <button mat-button color="primary" (click)="buttonClick.emit(); router.navigate(['/communities'])">
+          <fa-icon [icon]="faUsersViewfinder" class="button-icon"></fa-icon>
+          View All Communities
+        </button>
+      </mat-card-actions>
+    </mat-card>
+
+    <!-- Next In Line Details Card -->
+    <mat-card class="profile-card" *ngIf="nextInLineDetails && nextInLineDetails.length > 0">
+      <mat-card-header>
+        <div class="header-avatar" mat-card-avatar>
+          <fa-icon [icon]="faArrowTrendUp" size="2x"></fa-icon>
+        </div>
+        <mat-card-title>Upcoming Payouts</mat-card-title>
+      </mat-card-header>
+      
+      <mat-card-content>
+        <div class="payout-list">
+          <div class="payout-item" *ngFor="let payout of nextInLineDetails">
+            <div class="payout-info">
+              <div class="payout-community">{{ payout.communityName }}</div>
+              <div class="payout-date">Expected: {{ formatDate(payout.expectedDate) }}</div>
+              <div class="payout-amount">€{{ payout.expectedAmount }}</div>
+            </div>
+            <div class="payout-status">
+              <mat-chip [color]="payout.position === 1 ? 'accent' : 'primary'" selected>
+                {{ payout.position === 1 ? 'Next in Line' : 'Position: ' + payout.position }}
+              </mat-chip>
+            </div>
+          </div>
+        </div>
+      </mat-card-content>
+      
+      <mat-card-actions>
+        <button mat-button color="primary" (click)="navigateToContributions(); buttonClick.emit()">
+          <fa-icon [icon]="faMoneyBillTransfer" class="button-icon"></fa-icon>
+          View Contributions
+        </button>
+      </mat-card-actions>
+    </mat-card>
+    
+    <!-- No upcoming payouts -->
+    <mat-card class="profile-card" *ngIf="!nextInLineDetails || nextInLineDetails.length === 0">
+      <mat-card-header>
+        <div class="header-avatar" mat-card-avatar>
+          <fa-icon [icon]="faMoneyBillWave" size="2x"></fa-icon>
+        </div>
+        <mat-card-title>Upcoming Payouts</mat-card-title>
+      </mat-card-header>
+      
+      <mat-card-content>
+        <div class="no-payouts">
+          <p>You don't have any upcoming payouts scheduled.</p>
+          <p>Join a community and start contributing to receive payouts.</p>
+        </div>
+      </mat-card-content>
+      
+      <mat-card-actions>
+        <button mat-button color="primary" (click)="buttonClick.emit(); router.navigate(['/communities'])">
+          <fa-icon [icon]="faUserPlus" class="button-icon"></fa-icon>
+          Join Communities
+        </button>
+      </mat-card-actions>
+    </mat-card>
+  </div>
+</div>

@@ -1,0 +1,182 @@
+<div class="community-list-container">
+  <div class="header-section">
+    <h1>
+      <fa-icon [icon]="faUsers" class="section-icon"></fa-icon>
+      Communities
+    </h1>
+    <div class="actions">
+      <a routerLink="/communities/create" class="custom-button primary-button">
+        <fa-icon [icon]="faPlus" class="button-icon"></fa-icon>
+        Create Community
+      </a>
+    </div>
+  </div>
+  
+  <div class="search-filter-section">
+    <div class="search-box">
+      <mat-form-field appearance="outline">
+        <mat-label>
+          <fa-icon [icon]="faSearch" class="search-icon"></fa-icon>
+          Search Communities
+        </mat-label>
+        <input matInput [(ngModel)]="searchQuery" placeholder="Enter community name" 
+               (keyup.enter)="searchCommunities()">
+      </mat-form-field>
+      <button class="custom-button primary-button" (click)="searchCommunities()">
+        <fa-icon [icon]="faSearch"></fa-icon>
+        Search
+      </button>
+    </div>
+    
+    <div class="filter-options">
+      <button class="custom-button filter-button" [matMenuTriggerFor]="filterMenu">
+        <fa-icon [icon]="faFilter"></fa-icon>
+        Filter
+      </button>
+      <mat-menu #filterMenu="matMenu">
+        <!-- Community Status -->
+        <div mat-menu-item class="menu-section-title">Status</div>
+        <button mat-menu-item (click)="applyFilters({status: 'active'})">Active Communities</button>
+        <button mat-menu-item (click)="applyFilters({})">All Communities</button>
+        <div class="custom-divider"></div>
+        
+        <!-- Sort Options -->
+        <div mat-menu-item class="menu-section-title">Sort By</div>
+        <button mat-menu-item (click)="applyFilters({sortBy: 'memberCount', order: 'desc'})">Most Members</button>
+        <button mat-menu-item (click)="applyFilters({sortBy: 'memberCount', order: 'asc'})">Least Members</button>
+        <button mat-menu-item (click)="applyFilters({sortBy: 'minContribution', order: 'asc'})">Lowest Contribution</button>
+        <button mat-menu-item (click)="applyFilters({sortBy: 'minContribution', order: 'desc'})">Highest Contribution</button>
+        <button mat-menu-item (click)="applyFilters({sortBy: 'backupFund', order: 'desc'})">Largest Backup Fund</button>
+        <button mat-menu-item (click)="applyFilters({sortBy: 'createdAt', order: 'desc'})">Newest First</button>
+        <button mat-menu-item (click)="applyFilters({sortBy: 'createdAt', order: 'asc'})">Oldest First</button>
+        <div class="custom-divider"></div>
+        
+        <!-- Contribution Frequency -->
+        <div mat-menu-item class="menu-section-title">Frequency</div>
+        <button mat-menu-item (click)="applyFilters({contributionFrequency: 'weekly'})">Weekly</button>
+        <button mat-menu-item (click)="applyFilters({contributionFrequency: 'biweekly'})">Bi-weekly</button>
+        <button mat-menu-item (click)="applyFilters({contributionFrequency: 'monthly'})">Monthly</button>
+      </mat-menu>
+    </div>
+  </div>
+
+  <!-- Loading indicator -->
+  <div *ngIf="isLoading" class="loading-container">
+    <mat-spinner diameter="40"></mat-spinner>
+    <p>Loading communities...</p>
+  </div>
+  
+  <!-- Error message -->
+  <div *ngIf="error && !isLoading" class="error-container">
+    <p class="error-message">{{ error }}</p>
+    <button class="custom-button primary-button" (click)="loadCommunities()">Try Again</button>
+  </div>
+
+  <!-- No results message -->
+  <div *ngIf="!isLoading && !error && communities && communities.length === 0" class="no-results">
+    <p>No communities found matching your criteria.</p>
+    <button class="custom-button primary-button" (click)="loadCommunities()">Clear Search</button>
+  </div>
+  
+  <!-- Communities grid -->
+  <div *ngIf="!isLoading && communities && communities.length > 0" class="communities-grid">
+    <mat-card class="community-card" *ngFor="let community of communities">
+      <mat-card-header>
+        <div class="card-icon-container">
+          <fa-icon [icon]="faUserFriends" class="card-icon small-icon"></fa-icon>
+        </div>
+        <mat-card-title>{{ community.name }}</mat-card-title>
+        <mat-card-subtitle>
+          <fa-icon [icon]="faUsers" class="info-icon"></fa-icon>
+          {{ getActiveMemberCount(community) }} / {{ community.settings.maxMembers || 0 }} Members
+        </mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <p class="description">{{ community.description || 'No description provided.' }}</p>
+        <div class="community-stats">
+          <div class="stat">
+            <fa-icon [icon]="faMoneyBillWave" class="stat-icon"></fa-icon>
+            <span class="label">Min Contribution:</span>
+            <span class="value">€{{ community.settings.minContribution || 0 }}</span>
+          </div>
+          <div class="stat">
+            <fa-icon [icon]="faCalendar" class="stat-icon"></fa-icon>
+            <span class="label">Frequency:</span>
+            <span class="value">{{ formatContributionFrequency(community.settings.contributionFrequency) }}</span>
+          </div>
+          <div class="stat">
+            <fa-icon [icon]="faShieldAlt" class="stat-icon"></fa-icon>
+            <span class="label">Backup Fund:</span>
+            <span class="value">{{ community.settings.backupFundPercentage || 0 }}%</span>
+          </div>
+          <div class="stat next-payout">
+            <span class="label">Next Payout:</span>
+            <span class="value">{{ getNextPayoutDate(community) }}</span>
+          </div>
+        </div>
+
+        <!-- Mid-cycle information section -->
+        <div class="midcycle-info" *ngIf="community.midCycle && community.midCycle.length > 0">
+          <h4>
+            <fa-icon [icon]="faClock" class="midcycle-icon"></fa-icon>
+            Mid-Cycle Status
+          </h4>
+          <div class="midcycle-details">
+            <div class="midcycle-stat">
+              <span class="label">Status:</span>
+              <span class="value" 
+                [ngClass]="{
+                  'ready': getMidCycleStatus(community).includes('Ready'), 
+                  'collecting': getMidCycleStatus(community).includes('Collecting')
+                }">
+                <fa-icon [icon]="getMidCycleStatus(community).includes('Ready') ? faShieldAlt : faSpinner" 
+                         [spin]="getMidCycleStatus(community).includes('Collecting')"></fa-icon>
+                {{ getMidCycleStatus(community) }}
+              </span>
+            </div>
+            <div class="midcycle-stat" *ngIf="community.payoutDetails?.nextRecipient">
+              <span class="label">Next In Line:</span>
+              <span class="value recipient">{{ community.payoutDetails?.nextRecipient }}</span>
+            </div>
+            <div class="midcycle-stat" *ngIf="community.payoutDetails?.payoutAmount">
+              <span class="label">Payout Amount:</span>
+              <span class="value amount">€{{ community.payoutDetails?.payoutAmount }}</span>
+            </div>
+          </div>
+        </div>
+      </mat-card-content>
+      <mat-card-actions>
+        <a class="custom-button primary-button" [routerLink]="['/communities', community._id]">
+          <fa-icon [icon]="faEye" class="button-icon"></fa-icon>
+          View
+        </a>
+        
+        <!-- Show Contribute button if user is a member, otherwise show Join button -->
+        <ng-container *ngIf="isUserMemberOfCommunity(community._id)">
+          <a class="custom-button success-button" [routerLink]="['/contributions/make']">
+            <fa-icon [icon]="faHandHoldingDollar" class="button-icon"></fa-icon>
+            Contribute
+          </a>
+        </ng-container>
+        <ng-container *ngIf="!isUserMemberOfCommunity(community._id)">
+          <button class="custom-button accent-button" (click)="joinCommunity(community._id)">
+            <fa-icon [icon]="faUserPlus" class="button-icon"></fa-icon>
+            Join
+          </button>
+        </ng-container>
+      </mat-card-actions>
+    </mat-card>
+  </div>
+  
+  <!-- Pagination controls -->
+  <div *ngIf="!isLoading && communities && communities.length > 0" class="pagination-controls">
+    <mat-paginator
+      [length]="totalCount"
+      [pageSize]="pageSize"
+      [pageIndex]="pageIndex"
+      [pageSizeOptions]="[5, 10, 25, 50]"
+      (page)="onPageChange($event)"
+      aria-label="Select page">
+    </mat-paginator>
+  </div>
+</div>

@@ -1,0 +1,241 @@
+<div class="wallet-dashboard-container">
+  <!-- Loading indicator -->
+  <div *ngIf="isLoading" class="loading-container">
+    <mat-spinner diameter="40"></mat-spinner>
+    <p>Loading wallet data...</p>
+  </div>
+
+  <!-- Error message display with improved styling -->
+  <div *ngIf="error && !isLoading" class="error-container">
+    <mat-card class="error-card">
+      <mat-card-content>
+        <mat-icon color="warn">error_outline</mat-icon>
+        <h2>Error Loading Wallet</h2>
+        <p>{{ error }}</p>
+        <button mat-raised-button color="primary" (click)="loadWalletData()">
+          <mat-icon>refresh</mat-icon> Try Again
+        </button>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Wallet content when data is loaded -->
+  <ng-container *ngIf="!isLoading && !error">
+    <div class="wallet-summary">
+      <mat-card class="balance-card">
+        <mat-card-content>
+          <div class="balance-info">
+            <div class="balance-header">
+              <div class="balance-label">Total Balance</div>
+              <fa-icon [icon]="faWallet" class="header-icon"></fa-icon>
+            </div>
+            <div class="balance-amount">{{ formatCurrency(totalBalance) }}</div>
+            <div [ngClass]="monthlyChange >= 0 ? 'balance-change positive' : 'balance-change negative'">
+              {{ monthlyChange >= 0 ? '+' : '' }}{{ formatCurrency(monthlyChange) }} this month
+            </div>
+          </div>
+          <div class="balance-actions">
+            <a mat-raised-button color="primary" [routerLink]="['/wallet/add-funds']">
+              <fa-icon [icon]="faPlus" class="button-icon"></fa-icon>
+              Add Funds
+            </a>
+            <a mat-stroked-button color="primary" [routerLink]="['/wallet/withdraw']">
+              <fa-icon [icon]="faMinus" class="button-icon"></fa-icon>
+              Withdraw
+            </a>
+          </div>
+        </mat-card-content>
+      </mat-card>
+      
+      <div class="wallet-stats">
+        <mat-card>
+          <mat-card-content>
+            <div class="stat-icon incoming">
+              <fa-icon [icon]="faMoneyBillWave"></fa-icon>
+            </div>
+            <div class="stat-info">
+              <div class="stat-label">Available</div>
+              <div class="stat-value">{{ formatCurrency(availableBalance) }}</div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+        
+        <mat-card>
+          <mat-card-content>
+            <div class="stat-icon outgoing">
+              <fa-icon [icon]="faLock"></fa-icon>
+            </div>
+            <div class="stat-info">
+              <div class="stat-label">Fixed</div>
+              <div class="stat-value">{{ formatCurrency(fixedBalance) }}</div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+        
+        <mat-card>
+          <mat-card-content>
+            <div class="stat-icon pending">
+              <fa-icon [icon]="faCreditCard"></fa-icon>
+            </div>
+            <div class="stat-info">
+              <div class="stat-label">Pending</div>
+              <div class="stat-value">{{ formatCurrency(pendingAmount) }}</div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </div>
+    
+    <mat-tab-group>
+      <mat-tab label="Transactions">
+        <div class="tab-content">
+          <h2>
+            <fa-icon [icon]="faHistory" class="section-icon"></fa-icon>
+            Recent Transactions
+          </h2>
+          
+          <div *ngIf="transactions && transactions.length > 0" class="transactions-list">
+            <div *ngFor="let transaction of transactions" class="transaction-item">
+              <div [ngClass]="'transaction-icon ' + getTransactionClass(transaction.type)">
+                <fa-icon [icon]="getTransactionIcon(transaction.type)"></fa-icon>
+              </div>
+              <div class="transaction-details">
+                <div class="transaction-title">{{ transaction.description }}</div>
+                <div class="transaction-date">{{ formatDate(transaction.date) }}</div>
+              </div>
+              <div class="transaction-status">
+                <mat-chip [color]="transaction.status === 'completed' ? 'primary' : 'accent'">
+                  {{ transaction.status || 'completed' }}
+                </mat-chip>
+              </div>
+              <div [ngClass]="isPositiveTransaction(transaction.type) ? 'transaction-amount positive' : 'transaction-amount negative'">
+                {{ isPositiveTransaction(transaction.type) ? '+' : '-' }}{{ formatCurrency(transaction.amount) }}
+              </div>
+            </div>
+          </div>
+          
+          <div *ngIf="!transactions || transactions.length === 0" class="empty-state">
+            <fa-icon [icon]="faHistory" size="3x"></fa-icon>
+            <p>No transaction history available</p>
+          </div>
+          
+          <div class="view-all">
+            <a mat-button color="primary" [routerLink]="['/wallet/transactions']">
+              <fa-icon [icon]="faEye" class="button-icon"></fa-icon>
+              View All Transactions
+            </a>
+          </div>
+        </div>
+      </mat-tab>
+      
+      <mat-tab label="Fixed Funds">
+        <div class="tab-content">
+          <h2>
+            <fa-icon [icon]="faLock" class="section-icon"></fa-icon>
+            Fixed Funds
+          </h2>
+          
+          <div *ngIf="fixedFunds && fixedFunds.length > 0" class="fixed-funds-list">
+            <mat-card *ngFor="let fund of fixedFunds" class="fixed-fund-item">
+              <mat-card-content>
+                <div class="fixed-fund-info">
+                  <h3>{{ fund.purpose || 'Fixed Fund' }}</h3>
+                  <div class="fund-dates">
+                    <div class="fund-date-group">
+                      <span class="fund-date-label">Fixed on:</span>
+                      <span class="fund-date-value">{{ formatDate(fund.startDate) }}</span>
+                    </div>
+                    <div class="fund-date-group">
+                      <span class="fund-date-label">Available on:</span>
+                      <span class="fund-date-value">{{ formatDate(fund.endDate) }}</span>
+                    </div>
+                  </div>
+                  <div class="fund-progress">
+                    <mat-progress-bar [value]="getFundProgress(fund.startDate, fund.endDate)" 
+                      [color]="fund.isMatured ? 'accent' : 'primary'"></mat-progress-bar>
+                    <p *ngIf="getRemainingDays(fund.endDate) > 0" class="remaining-days">
+                      {{ getRemainingDays(fund.endDate) }} days remaining
+                    </p>
+                    <p *ngIf="getRemainingDays(fund.endDate) <= 0" class="ready-to-release">
+                      Ready to release
+                    </p>
+                  </div>
+                  <div class="fund-actions">
+                    <div>
+                      <mat-chip [color]="!fund.isMatured ? 'primary' : 'accent'">
+                        {{ !fund.isMatured ? 'Active' : 'Matured' }}
+                      </mat-chip>
+                    </div>
+                    <button *ngIf="getRemainingDays(fund.endDate) <= 0 && !fund.isMatured" 
+                      mat-button color="primary" (click)="releaseFund(fund.id)">
+                      <fa-icon [icon]="faMoneyBillWave" class="button-icon"></fa-icon>
+                      Release Funds
+                    </button>
+                  </div>
+                </div>
+                <div class="fixed-fund-amount">{{ formatCurrency(fund.amount) }}</div>
+              </mat-card-content>
+            </mat-card>
+          </div>
+          
+          <div *ngIf="!fixedFunds || fixedFunds.length === 0" class="empty-state">
+            <fa-icon [icon]="faLock" size="3x"></fa-icon>
+            <p>No fixed funds available</p>
+            <a mat-raised-button color="primary" [routerLink]="['/wallet/fix-funds']">
+              <fa-icon [icon]="faLock" class="button-icon"></fa-icon>
+              Fix New Funds
+            </a>
+          </div>
+          
+          <div class="view-all">
+            <a mat-raised-button color="primary" [routerLink]="['/wallet/fix-funds']">
+              <fa-icon [icon]="faLock" class="button-icon"></fa-icon>
+              Fix New Funds
+            </a>
+          </div>
+        </div>
+      </mat-tab>
+      
+      <mat-tab label="Settings">
+        <div class="tab-content">
+          <h2>
+            <fa-icon [icon]="faCreditCard" class="section-icon"></fa-icon>
+            Wallet Settings
+          </h2>
+          
+          <mat-card class="settings-card">
+            <mat-card-content>
+              <div class="settings-section">
+                <h3>Payment Methods</h3>
+                <p class="settings-description">Manage your payment methods for deposits and withdrawals</p>
+                <a mat-stroked-button color="primary" [routerLink]="['/wallet/payment-methods']">
+                  Manage Payment Methods
+                </a>
+              </div>
+              
+              <mat-divider></mat-divider>
+              
+              <div class="settings-section">
+                <h3>Transaction History</h3>
+                <p class="settings-description">View and download your complete transaction history</p>
+                <a mat-stroked-button color="primary" [routerLink]="['/wallet/transactions']">
+                  View Transaction History
+                </a>
+              </div>
+              
+              <mat-divider></mat-divider>
+              
+              <div class="settings-section">
+                <h3>Notifications</h3>
+                <p class="settings-description">Configure notifications for wallet activities</p>
+                <a mat-stroked-button color="primary" [routerLink]="['/settings/notifications']">
+                  Configure Notifications
+                </a>
+              </div>
+            </mat-card-content>
+          </mat-card>
+        </div>
+      </mat-tab>
+    </mat-tab-group>
+  </ng-container>
+</div>

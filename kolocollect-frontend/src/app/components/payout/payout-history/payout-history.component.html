@@ -1,0 +1,99 @@
+<div class="payout-history-container">
+  <div class="header-section">
+    <h1>Payout History</h1>
+  </div>
+  
+  <mat-card>
+    <mat-card-content>
+      <div class="table-container">
+        <table mat-table>
+          <!-- Date Column -->
+          <ng-container matColumnDef="date">
+            <th mat-header-cell *matHeaderCellDef>Date</th>
+            <td mat-cell *matCellDef>April 15, 2025</td>
+          </ng-container>
+          
+          <!-- Community Column -->
+          <ng-container matColumnDef="community">
+            <th mat-header-cell *matHeaderCellDef>Community</th>
+            <td mat-cell *matCellDef>Family Savings Group</td>
+          </ng-container>
+          
+          <!-- Cycle Column -->
+          <ng-container matColumnDef="cycle">
+            <th mat-header-cell *matHeaderCellDef>Cycle</th>
+            <td mat-cell *matCellDef>Cycle 2</td>
+          </ng-container>
+          
+          <!-- Amount Column -->
+          <ng-container matColumnDef="amount">
+            <th mat-header-cell *matHeaderCellDef>Amount</th>
+            <td mat-cell *matCellDef>$800.00</td>
+          </ng-container>
+          
+          <!-- Status Column -->
+          <ng-container matColumnDef="status">
+            <th mat-header-cell *matHeaderCellDef>Status</th>
+            <td mat-cell *matCellDef>
+              <span class="status-chip completed">Received</span>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+        </table>
+      </div>
+
+      <!-- Placeholder for when there are no payouts -->
+      <div class="no-data-placeholder" *ngIf="false">
+        <p>You haven't received any payouts yet.</p>
+        <button mat-raised-button color="primary">Join Communities</button>
+      </div>
+    </mat-card-content>
+  </mat-card>
+  
+  <!-- Upcoming Payouts Section -->
+  <div class="upcoming-payouts-section">
+    <h2>Upcoming Payouts</h2>
+    
+    <mat-card class="upcoming-payout-card">
+      <mat-card-content>
+        <div class="upcoming-payout-details">
+          <div class="community-name">Business Investment Group</div>
+          <div class="payout-info">
+            <div class="amount">$1,000.00</div>
+            <div class="date">Expected: June 15, 2025</div>
+          </div>
+          <div class="cycle-info">
+            <mat-icon>loop</mat-icon>
+            <span>Cycle 3</span>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+  
+  <!-- Payout Stats -->
+  <div class="payout-stats-cards">
+    <mat-card>
+      <mat-card-content>
+        <div class="stat-label">Total Received</div>
+        <div class="stat-value">$1,800.00</div>
+      </mat-card-content>
+    </mat-card>
+    
+    <mat-card>
+      <mat-card-content>
+        <div class="stat-label">Upcoming</div>
+        <div class="stat-value">$1,000.00</div>
+      </mat-card-content>
+    </mat-card>
+    
+    <mat-card>
+      <mat-card-content>
+        <div class="stat-label">Communities Paid</div>
+        <div class="stat-value">2</div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>
