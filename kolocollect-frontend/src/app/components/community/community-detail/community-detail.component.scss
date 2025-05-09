@@ -449,11 +449,21 @@ $neutral-900: #111827;
         color: $neutral-800;
         font-size: 1rem;
       }
-      
-      .member-joined {
+        .member-joined {
         font-size: 0.75rem;
         color: $neutral-500;
         margin-top: 0.25rem;
+      }
+      
+      .member-position {
+        font-size: 0.75rem;
+        color: $primary-color;
+        font-weight: 500;
+        margin-top: 0.25rem;
+        display: inline-block;
+        background-color: rgba($primary-color, 0.1);
+        padding: 0.15rem 0.5rem;
+        border-radius: 0.75rem;
       }
     }
     

@@ -28,6 +28,7 @@ export interface Member {
   userId: string;
   name: string;
   status: 'active' | 'inactive' | 'waiting';
+  position?: number;
   joinedAt: Date;
   lastContribution?: Date;
   contributionTotal?: number;

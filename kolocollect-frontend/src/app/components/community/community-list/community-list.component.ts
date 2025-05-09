@@ -217,7 +217,8 @@ export class CommunityListComponent implements OnInit {
   /**
    * Check if the current user is a member of the given community
    * Handles different ID formats (with ObjectId structure or plain string)
-   */  isUserMemberOfCommunity(communityId: string): boolean {
+   */  
+  isUserMemberOfCommunity(communityId: string): boolean {
     if (!communityId || !this.userCommunities || this.userCommunities.length === 0) {
       console.log(`Cannot check membership for community ${communityId}: no user communities loaded`);
       return false;
@@ -226,41 +227,18 @@ export class CommunityListComponent implements OnInit {
     // Debugging the problem with communities not matching
     console.log(`Checking if user is member of community: ${communityId}`);
     console.log(`Available user communities:`, this.userCommunities);
-    
-    // Check if userCommunities contains objects rather than just IDs
-    if (this.userCommunities.length > 0 && typeof this.userCommunities[0] === 'object') {
-      // If userCommunities contains objects with _id or id properties
-      const isMember = this.userCommunities.some((community: any) => {
-        if (typeof community === 'object') {
-          return (community._id === communityId || community.id === communityId);
-        }
-        return false;
-      });
-      
-      if (isMember) {
-        console.log(`User is a member of community ${communityId} (matched object)`);
-        return true;
+
+    const isMember = this.userCommunities.some((userCommunity: any) => {
+      // Handle when userCommunity is an object
+      if (typeof userCommunity === 'object' && userCommunity !== null) {
+        return (userCommunity.id === communityId || userCommunity._id === communityId);
       }
-    } else {
-      // If userCommunities contains direct ID strings
-      if (this.userCommunities.includes(communityId)) {
-        console.log(`Direct match found for community ${communityId}`);
-        return true;
-      }
-    }
-    
-    // Use admin field as fallback if the user is admin
-    const communityInList = this.communities.find(c => c._id === communityId);
-    if (communityInList && this.authService.currentUserValue) {
-      const isAdmin = communityInList.admin === this.authService.currentUserValue.id;
-      if (isAdmin) {
-        console.log(`User is admin of community ${communityId}, treating as member`);
-        return true;
-      }
-    }
-    
-    console.log(`User is NOT a member of community ${communityId}`);
-    return false;
+      // Handle when userCommunity is a string ID
+      return userCommunity === communityId;
+    });
+
+    console.log(`Is user member of ${communityId}: ${isMember}`);
+    return isMember;
   }
 
   navigateToContributions(): void {

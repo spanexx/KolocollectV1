@@ -358,8 +358,7 @@
                   <p>No members have joined this community yet.</p>
                 </div>
                 
-                <div class="members-list" *ngIf="community.members && community.members.length > 0">
-                  <div class="member-item" *ngFor="let member of community.members; let last = last" 
+                <div class="members-list" *ngIf="community.members && community.members.length > 0">                  <div class="member-item" *ngFor="let member of community.members; let last = last" 
                        (click)="navigateToMemberDetail(member.userId)">
                     <div class="member-avatar">
                       <fa-icon [icon]="faUser"></fa-icon>
@@ -367,6 +366,9 @@
                     <div class="member-info">
                       <div class="member-name">{{ member.name }}</div>
                       <div class="member-joined">Joined: {{ formatDate(member.joinedAt || undefined) }}</div>
+                      <div class="member-position" *ngIf="member.position !== undefined && member.position !== null">
+                        Position: {{ member.position }}
+                      </div>
                     </div>
                     <div class="member-status">
                       <span class="status-indicator" [ngClass]="getMemberStatusClass(member.status)">

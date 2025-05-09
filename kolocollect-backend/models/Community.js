@@ -408,26 +408,37 @@ CommunitySchema.methods.startNewCycle = async function () {
  * - Updates community payout details
  * - Links mid-cycle to parent cycle
  */
-CommunitySchema.methods.startMidCycle = async function () {
-    try {
+CommunitySchema.methods.startMidCycle = async function () {    try {
         const activeCycle = await Cycle.findOne({ _id: { $in: this.cycles }, isComplete: false });
-        if (!activeCycle) throw new Error('No active cycle found.');
-
+        if (!activeCycle) throw new Error('No active cycle found.');        // Get all active members sorted by position
         const activeMembers = await Member.find({ 
             _id: { $in: this.members },
             status: 'active',
             position: { $ne: null }
         }).sort('position');
-
-        const nextInLine = await Member.findOne({
-            _id: { $in: this.members },
-            userId: { $nin: activeCycle.paidMembers }
+        
+        // Find members who haven't been paid yet in this cycle
+        const unpaidMembers = activeMembers.filter(member => {
+            // Convert ObjectIds to strings for comparison
+            const memberUserId = member.userId.toString();
+            return !activeCycle.paidMembers.some(paidMemberId => 
+                paidMemberId.toString() === memberUserId
+            );
         });
-
+        
+        // If no unpaid members, we've completed the cycle
+        if (unpaidMembers.length === 0) {
+            throw new Error('All active members have received payouts in this cycle.');
+        }
+        
+        // Select the member with the lowest position who hasn't been paid yet
+        const nextInLine = unpaidMembers[0];
+        
         if (!nextInLine) {
             throw new Error('No eligible member found for payout.');
-        }
-
+        }        // Log the selected next in line member for debugging
+        console.log(`Next in line: Member ${nextInLine.name} with position ${nextInLine.position}`);
+        
         const newMidCycle = new MidCycle({
             cycleNumber: activeCycle.cycleNumber,
             nextInLine: { userId: nextInLine.userId },

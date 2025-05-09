@@ -6,6 +6,16 @@ This document tracks the progress of implementing the frontend for KoloCollect a
 
 ## Latest Backend Updates (May 9, 2025)
 
+- [✅] **Fix: Corrected next-in-line recipient selection in mid-cycle creation**
+  - Problem: The next-in-line recipient for midcycles wasn't being selected correctly based on position
+  - Solution:
+    1. Updated the startMidCycle method to properly select unpaid members based on position order
+    2. Added proper handling of ObjectId to string conversions for accurate comparisons
+    3. Improved error handling for when all members have been paid
+    4. Added debugging logs to track recipient selection
+  - Implementation date: May 9, 2025
+  - Impact: Ensures that payouts are distributed in the correct sequence based on member positions
+
 - [✅] **Fix: Added wallet transaction to createContributionWithInstallment method**
   - Problem: The createContributionWithInstallment method in the Contribution model wasn't updating the user's wallet balance
   - Solution:
@@ -39,6 +49,16 @@ This document tracks the progress of implementing the frontend for KoloCollect a
     5. Added contributor list with contribution status
   - Implementation date: May 9, 2025
   - Integration with backend: Uses the new `getCurrentMidCycleDetails` endpoint
+
+- [✅] **Enhancement: Added Member Position Display in Community Detail**
+  - Problem: Member positions were not visible in the Community Detail view
+  - Solution:
+    1. Updated the Member interface to include position property
+    2. Added position display in the member list item in the Community Detail component
+    3. Added styled position indicator with purple badge for better visibility
+    4. Implemented conditional display to only show position when it's available
+  - Implementation date: May 9, 2025
+  - Impact: Improves transparency about payment order and member positioning in the community
 
 ## Latest Updates (May 9, 2025)
 
@@ -246,14 +266,16 @@ This document tracks the progress of implementing the frontend for KoloCollect a
    - Add sorting functionality
    - Create responsive design for mobile view
    - Connect to Community List for real-time filtering
+  
+5. 🔄 **Implement Authentication Guards**
 
-4. 🔄 **Implement Authentication Guards**
    - Create AuthGuard with proper redirect functionality
    - Add route guards to all protected routes
    - Improve login/registration flow
    - Add token refresh mechanism
 
-5. 🔄 **Test and Verify Make Contribution Component**
+6. 🔄 **Test and Verify Make Contribution Component**
+
    - Test the fix for user communities loading
    - Verify that contribution submissions work properly
    - Add error recovery paths for API failures

@@ -189,86 +189,70 @@ ContributionSchema.statics.createContribution = async function(userId, community
 };
 
 ContributionSchema.statics.createContributionWithInstallment = async function (userId, communityId, amount, midCycleId) {
-  const session = await mongoose.startSession();
-  try {
-    session.startTransaction();
-    
-    const community = await Community.findById(communityId).session(session);
-    if (!community) throw new Error('Community not found');
+  const community = await Community.findById(communityId);
+  if (!community) throw new Error('Community not found');
 
-    // Get mid-cycle with populated data
-    const midCycle = await mongoose.model('MidCycle').getMidcycle(midCycleId);
-    if (!midCycle) throw new Error('Mid-cycle not found');
+  // Get mid-cycle with populated data
+  const midCycle = await mongoose.model('MidCycle').getMidcycle(midCycleId);
+  if (!midCycle) throw new Error('Mid-cycle not found');
 
-    // Check wallet balance and make the transaction
-    const wallet = await mongoose.model('Wallet').findOne({ userId }).session(session);
-    if (!wallet) throw new Error('Wallet not found');
-    
-    if (wallet.availableBalance < amount) {
-      throw new Error('Insufficient wallet balance');
+  const contribution = new this({
+    communityId,
+    userId,
+    amount,
+    midCycleId,
+    cycleNumber: midCycle.cycleNumber,
+    status: 'completed',
+    date: new Date(),
+    penalty: 0,
+    paymentPlan: { type: 'Full', remainingAmount: 0, installments: 0 }
+  });
+
+  await contribution.save();
+
+  // Create activity log for the contribution
+  const activityLog = new CommunityActivityLog({
+    communityId,
+    activityType: 'contribution_created',
+    userId,
+    timestamp: new Date()
+  });
+  await activityLog.save();
+  
+  // Add activity log to community
+  community.activityLog.push(activityLog._id);
+  await community.save();
+
+     // Check wallet balance
+    const wallet = await mongoose.model('Wallet').findOne({ userId })
+    if (!wallet || wallet.availableBalance < amount) {
+      throw new Error('Insufficient wallet balance.');
     }
-    
-    // Create the contribution
-    const contribution = new this({
-      communityId,
-      userId,
-      amount,
-      midCycleId,
-      cycleNumber: midCycle.cycleNumber,
-      status: 'completed',
-      date: new Date(),
-      penalty: 0,
-      paymentPlan: { type: 'Full', remainingAmount: 0, installments: 0 }
-    });
 
-    await contribution.save({ session });    // Deduct from wallet using addTransaction
+  // Update user's contribution records
+  const user = await User.findById(userId);
+  if (user) {
+    await user.addContribution(contribution._id, amount);
+  }
+
+      // Update wallet
     await wallet.addTransaction(
       amount,
       'contribution',
       `Contribution to community ${community.name}`,
       null,
-      communityId
-    );
-    wallet.markModified('transactions');
-    await wallet.save({ session });
-
-    // Create activity log for the contribution
-    const activityLog = new CommunityActivityLog({
       communityId,
-      activityType: 'contribution_created',
-      userId,
-      timestamp: new Date(),
-      details: `User contributed €${amount} to mid-cycle ${midCycleId}`,
-      referenceId: contribution._id
-    });
-    await activityLog.save({ session });
-    
-    // Add activity log to community
-    community.activityLog.push(activityLog._id);
-    await community.save({ session });
+    );
 
-    // Update user's contribution records
-    const user = await User.findById(userId).session(session);
-    if (user) {
-      await user.addContribution(contribution._id, amount, { session });
-    }
+  // Record the contribution in community
+  await community.record({
+    contributorId: userId,
+    recipientId: midCycle.nextInLine.userId,
+    amount,
+    contributionId: contribution._id
+  });
 
-    // Record the contribution in community
-    await community.record({
-      contributorId: userId,
-      recipientId: midCycle.nextInLine.userId,
-      amount,
-      contributionId: contribution._id
-    }, { session });
-    
-    await session.commitTransaction();
-    return contribution;
-  } catch (error) {
-    await session.abortTransaction();
-    throw error;
-  } finally {
-    session.endSession();
-  }
+  return contribution;
 };
 
 module.exports = mongoose.model('Contribution', ContributionSchema);
