@@ -78,7 +78,7 @@ export class ContributionService {
             communityId: typeof contribution.communityId === 'object' ? 
               (contribution.communityId?._id || contribution.communityId?.id) : 
               contribution.communityId,
-            communityName: contribution.communityName || 
+            communityName: contribution.communityId|| 
               (contribution.community?.name || contribution.community?.displayName) ||
               'Loading...'
           };

@@ -159,7 +159,7 @@ exports.getContributionsByUser = async (req, res) => {
       return res.status(200).json([]);
     }
 
-    console.log(`Found ${contributions.length} contributions for user ID: ${userId}`);
+    console.log('Contributions found for user ID:', userId, contributions);
     res.status(200).json(contributions);
   } catch (err) {
     console.error('Error fetching user contributions:', err);

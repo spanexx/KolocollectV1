@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable } from 'rxjs';
-import { tap } from 'rxjs/operators';
+import { BehaviorSubject, Observable, of } from 'rxjs';
+import { tap, map, catchError } from 'rxjs/operators';
 import { ApiService } from './api.service';
 import { Notification } from '../models/user.model';
 
@@ -14,17 +14,18 @@ export class NotificationService {
   public unreadCount$ = this.unreadCountSubject.asObservable();
 
   constructor(private api: ApiService) {}
-
   /**
    * Load notifications for the user
    */
   loadNotifications(userId: string): Observable<Notification[]> {
-    return this.api.get<{ notifications: Notification[] }>(`/users/${userId}/notifications`)
+    return this.api.get<{ message: string, notifications: Notification[] }>(`/users/${userId}/notifications`)
       .pipe(
         tap(response => {
           this.notificationsSubject.next(response.notifications);
           this.updateUnreadCount(response.notifications);
-        })
+        }),
+        // Transform the response to match the expected return type
+        map(response => response.notifications)
       );
   }
 
@@ -66,23 +67,30 @@ export class NotificationService {
         })
       );
   }
-
   /**
    * Get a single notification
    */
   getNotification(userId: string, notificationId: string): Observable<Notification> {
-    return this.api.get<{ notification: Notification }>(`/users/${userId}/notifications/${notificationId}`)
-      .pipe(
-        tap(response => {
-          // Update the notification in the local list if it exists
-          const notifications = this.notificationsSubject.value;
-          const index = notifications.findIndex(n => n.id === notificationId);
-          if (index !== -1) {
-            notifications[index] = response.notification;
-            this.notificationsSubject.next([...notifications]);
-          }
-        })
-      );
+    // First try to get the notification from our local cache
+    const cachedNotification = this.notificationsSubject.value.find(n => n.id === notificationId);
+    if (cachedNotification) {
+      return of(cachedNotification);
+    }
+    
+    // If not found in cache, load all notifications and then find the one we need
+    return this.loadNotifications(userId).pipe(
+      map(notifications => {
+        const notification = notifications.find(n => n.id === notificationId);
+        if (!notification) {
+          throw new Error(`Notification with ID ${notificationId} not found`);
+        }
+        return notification;
+      }),
+      catchError(error => {
+        console.error('Error fetching notification:', error);
+        throw error;
+      })
+    );
   }
 
   /**

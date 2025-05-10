@@ -569,4 +569,45 @@ export class CommunityListComponent implements OnInit {
   isCommunityExpanded(communityId: string): boolean {
     return this.expandedCommunities[communityId] === true;
   }
+
+  /**
+   * Calculate the total amount distributed to community members
+   * @param community The community object
+   */
+  calculateTotalDistributed(community: Community): number {
+    // If no cycles or midCycles exist, return 0
+    if (!community.cycles || !community.cycles.length) {
+      return 0;
+    }
+    
+    let totalDistributed = 0;
+    
+    // Sum up payouts from all completed midCycles across all cycles
+    for (const cycle of community.cycles) {
+      if (cycle.midCycles && cycle.midCycles.length) {
+        // Only count completed midCycles
+        const completedMidCycles = cycle.midCycles.filter(mc => mc.isComplete);
+        
+        for (const midCycle of completedMidCycles) {
+          // Add the payout amount to our total
+          if (midCycle.payoutAmount) {
+            totalDistributed += midCycle.payoutAmount;
+          }
+        }
+      }
+    }
+    
+    return totalDistributed;
+  }
+  
+  /**
+   * Format currency value for display
+   * @param value The value to format
+   */
+  formatCurrency(value: number | undefined): string {
+    if (value === undefined || value === null) {
+      return '€0.00';
+    }
+    return '€' + value.toFixed(2);
+  }
 }

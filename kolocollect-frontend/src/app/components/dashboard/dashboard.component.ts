@@ -7,9 +7,17 @@ import { MatDividerModule } from '@angular/material/divider';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatBadgeModule } from '@angular/material/badge';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { RouterModule } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { User } from '../../models/user.model';
+import { WalletService } from '../../services/wallet.service';
+import { CommunityService } from '../../services/community.service';
+import { ContributionService } from '../../services/contribution.service';
+import { PayoutService } from '../../services/payout.service';
+import { UserService } from '../../services/user.service';
+import { NotificationService } from '../../services/notification.service';
+import { forkJoin } from 'rxjs';
 
 // Import FontAwesome
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
@@ -31,14 +39,14 @@ import {
 
 @Component({
   selector: 'app-dashboard',
-  standalone: true,
-  imports: [
+  standalone: true,  imports: [
     CommonModule,
     MatCardModule,
     MatButtonModule,
     MatIconModule,
     MatDividerModule,
     MatProgressBarModule,
+    MatProgressSpinnerModule,
     MatChipsModule,
     MatBadgeModule,
     RouterModule,
@@ -63,101 +71,64 @@ export class DashboardComponent implements OnInit {
   faReceipt = faReceipt;
   faUserPlus = faUserPlus;
 
+  // Loading state
+  isLoading = true;
+
   // User data
   currentUser: User | null = null;
   
   // Financial overview
   walletBalance = {
-    available: 0,
-    fixed: 0,
-    total: 0
+    availableBalance: 0,
+    fixedBalance: 0,
+    totalBalance: 0
   };
-
   // Communities
-  communities = [
-    {
-      id: '1',
-      name: 'Monthly Savings Group',
-      members: 8,
-      contribution: 100,
-      frequency: 'Monthly',
-      nextPayout: new Date(2025, 4, 15)
-    },
-    {
-      id: '2',
-      name: 'Emergency Fund',
-      members: 12,
-      contribution: 50,
-      frequency: 'Weekly',
-      nextPayout: new Date(2025, 4, 10)
-    },
-    {
-      id: '3',
-      name: 'School Fees',
-      members: 5,
-      contribution: 200,
-      frequency: 'Monthly',
-      nextPayout: new Date(2025, 5, 1)
+  communities: Array<{
+    id: {
+      _id: string;
+    name: string;
+    description: string;
     }
-  ];
+    isAdmin: boolean;
+    _id?: string;
+  }> = [];
 
   // Recent activity
-  recentContributions = [
-    {
-      id: '101',
-      communityName: 'Monthly Savings Group',
-      amount: 100,
-      date: new Date(2025, 4, 1),
-      status: 'completed'
-    },
-    {
-      id: '102',
-      communityName: 'Emergency Fund',
-      amount: 50,
-      date: new Date(2025, 4, 3),
-      status: 'completed'
-    }
-  ];
+  recentContributions: Array<{
+    id: string;
+    communityName: string;
+    amount: number;
+    date: Date;
+    status: string;
+  }> = [];
 
   // Upcoming payouts
-  upcomingPayouts = [
-    {
-      id: '201',
-      communityName: 'Emergency Fund',
-      amount: 600,
-      date: new Date(2025, 4, 10)
-    },
-    {
-      id: '202',
-      communityName: 'Monthly Savings Group',
-      amount: 800,
-      date: new Date(2025, 4, 15)
-    }
-  ];
+  upcomingPayouts: Array<{
+    id: string;
+    communityName: string;
+    amount: number;
+    date: Date;
+  }> = [];
 
   // Notifications
-  notifications = [
-    {
-      id: '301',
-      message: 'Your contribution to Emergency Fund is due tomorrow',
-      type: 'warning',
-      date: new Date(2025, 4, 6)
-    },
-    {
-      id: '302',
-      message: 'You received a payout of $600 from School Fees',
-      type: 'success',
-      date: new Date(2025, 4, 5)
-    },
-    {
-      id: '303',
-      message: 'Monthly Savings Group cycle will complete in 10 days',
-      type: 'info',
-      date: new Date(2025, 4, 4)
-    }
-  ];
+  notifications: Array<{
+    id: string;
+    message: string;
+    date: Date;
+    type: string;
+    read: boolean;
+  }> = [];
 
-  constructor(private authService: AuthService) {}
+  constructor(
+    private authService: AuthService,
+    private walletService: WalletService,
+    private communityService: CommunityService,
+    private contributionService: ContributionService,
+    private payoutService: PayoutService,
+    private userService: UserService,
+    private notificationService: NotificationService
+  ) {}
 
   ngOnInit(): void {
     // Get current user data
@@ -168,42 +139,246 @@ export class DashboardComponent implements OnInit {
       }
     });
   }
-
   loadDashboardData(): void {
-    // In a real implementation, we would fetch data from services
-    // For now, we're using the mock data defined above
+    if (!this.currentUser?.id) {
+      console.error('Cannot load dashboard data: No current user ID');
+      this.isLoading = false;
+      return;
+    }    this.isLoading = true;
     
-    // Example of how to fetch data from services once implemented:
-    /*
-    this.walletService.getWalletBalance(this.currentUser.id).subscribe(balance => {
-      this.walletBalance = balance;
-    });
-    
-    this.communityService.getUserCommunities(this.currentUser.id).subscribe(communities => {
-      this.communities = communities;
-    });
-    
-    this.contributionService.getRecentContributions(this.currentUser.id).subscribe(contributions => {
-      this.recentContributions = contributions;
-    });
-    
-    this.payoutService.getUpcomingPayouts(this.currentUser.id).subscribe(payouts => {
-      this.upcomingPayouts = payouts;
-    });
-    
-    this.userService.getUserNotifications(this.currentUser.id).subscribe(notifications => {
-      this.notifications = notifications;
-    });
-    */
-  }
+    // Create an array to track all active API requests
+    const requests: any[] = [];
 
+    // Get wallet balance
+    const walletRequest = this.walletService.getWalletBalance(this.currentUser.id);
+    requests.push(walletRequest);
+    
+    walletRequest.subscribe({
+      next: (balance) => {
+        console.log('Wallet balance:', balance);
+        this.walletBalance = balance
+      },
+      error: (error) => {
+        console.error('Error fetching wallet balance:', error);
+      }
+    });      
+      // Get user communities
+    const communitiesRequest = this.userService.getUserCommunities(this.currentUser.id);
+    requests.push(communitiesRequest);
+    
+    communitiesRequest.subscribe({
+      next: (communitiesData) => {
+        console.log('User communities:', communitiesData);        // Check if the data is in the format {communities: Array}
+        if (communitiesData && communitiesData.communities && Array.isArray(communitiesData.communities)) {
+          this.communities = communitiesData.communities.map((community: any) => {
+            console.log('Community:', community);
+            return {
+              id: community.id || community._id,
+              name: community.name || 'Unknown Community',
+              description: community.description || 'No description available',
+              isAdmin: community.isAdmin === true,
+              _id: community._id
+            };
+          });
+        } else if (communitiesData && Array.isArray(communitiesData)) {
+          // If the data is a direct array
+          this.communities = communitiesData.map((community: any) => {
+            console.log('Community:', community);
+            return {
+              id: community.id || community._id,
+              name: community.name || 'Unknown Community',
+              description: community.description || 'No description available',
+              isAdmin: community.isAdmin === true,
+              _id: community._id
+            };
+          });
+        }
+        console.log('Processed communities:', this.communities);
+      },
+      error: (error) => {
+        console.error('Error fetching user communities:', error);
+      }
+    });
+    
+    // Get recent contributions
+    const contributionsRequest = this.contributionService.getContributionsWithCommunityDetails(this.currentUser.id);
+    requests.push(contributionsRequest);
+    
+    contributionsRequest.subscribe({
+      next: (contributions) => {
+        if (contributions && Array.isArray(contributions)) {    
+          console.log("Contributions: ", contributions)      // Sort by date (newest first) and limit to last few
+          this.recentContributions = contributions
+            .sort((a: any, b: any) => {
+              // Safe parsing of dates for sorting
+              const dateA = a.date ? new Date(a.date).getTime() : 0;
+              const dateB = b.date ? new Date(b.date).getTime() : 0;
+              return isNaN(dateB) || isNaN(dateA) ? 0 : dateB - dateA;
+            })
+            .slice(0, 5)
+            .map((contribution: any) => {
+              let date: Date;
+              try {
+                date = contribution.date ? new Date(contribution.date) : new Date();
+                if (isNaN(date.getTime())) {
+                  date = new Date(); // Fallback to current date
+                }
+              } catch (error) {
+                console.error('Error parsing contribution date:', error);
+                date = new Date();
+              }
+              
+              return {
+                id: contribution.id || 'unknown-id',
+                communityName: contribution.communityName || 'Unknown Community',
+                amount: Number(contribution.amount) || 0,
+                date: date,
+                status: contribution.status || 'unknown'
+              };
+            });
+        }
+      },
+      error: (error) => {
+        console.error('Error fetching recent contributions:', error);
+      }
+    });
+    
+    // Get upcoming payouts
+    const payoutsRequest = this.userService.getUpcomingPayouts(this.currentUser.id);
+    requests.push(payoutsRequest);
+    
+    payoutsRequest.subscribe({
+      next: (payouts) => {
+        if (payouts && Array.isArray(payouts)) {this.upcomingPayouts = payouts.map((payout: any) => {
+            let date: Date;
+            try {
+              // Try to parse the date
+              const rawDate = payout.scheduledDate || payout.expectedDate;
+              date = rawDate ? new Date(rawDate) : new Date();
+              
+              // Verify the date is valid
+              if (isNaN(date.getTime())) {
+                console.warn(`Invalid date for payout: ${payout.id || payout._id}`);
+                date = new Date(); // Fallback to current date
+              }
+            } catch (error) {
+              console.error('Error parsing payout date:', error);
+              date = new Date(); // Fallback to current date
+            }
+            
+            return {
+              id: payout.id || payout._id || 'unknown-id',
+              communityName: payout.communityName || 'Unknown Community',
+              amount: Number(payout.amount || payout.expectedAmount) || 0,
+              date: date
+            };
+          });
+        }
+      },
+      error: (error) => {
+        console.error('Error fetching upcoming payouts:', error);
+      }
+    });
+      // Get user notifications
+    const notificationsRequest = this.notificationService.loadNotifications(this.currentUser.id);
+    requests.push(notificationsRequest);
+    
+    notificationsRequest.subscribe({
+      next: (notificationsResponse: any) => {
+        if (notificationsResponse) {
+          // If notificationsResponse is an array, use it directly
+          // Otherwise, assume it's an object with a notifications property
+          const notificationsArray = Array.isArray(notificationsResponse) ? 
+            notificationsResponse : 
+            (notificationsResponse.notifications || []);
+              this.notifications = notificationsArray
+            .filter((n: any) => !n.read)
+            .slice(0, 5)
+            .map((notification: any) => {
+              let date: Date;
+              try {
+                // Try to parse the timestamp into a valid Date
+                date = notification.timestamp ? new Date(notification.timestamp) : new Date();
+                // Check if date is valid
+                if (isNaN(date.getTime())) {
+                  console.warn(`Invalid timestamp for notification: ${notification.id}`);
+                  date = new Date(); // Fallback to current date
+                }
+              } catch (error) {
+                console.error('Error converting notification timestamp:', error);
+                date = new Date(); // Fallback to current date
+              }
+              
+              return {
+                id: notification.id || 'unknown-id',
+                message: notification.message || 'No message',
+                date: date,
+                type: this.mapNotificationType(notification.type),
+                read: !!notification.read
+              };
+            });
+        }
+      },      error: (error) => {
+        console.error('Error fetching user notifications:', error);
+      }
+    });
+
+    // Use forkJoin to handle completion of all requests
+    // Using a setTimeout to give a minimum loading experience even if data loads very quickly
+    if (requests.length > 0) {
+      setTimeout(() => {
+        forkJoin(requests).subscribe({
+          complete: () => {
+            this.isLoading = false;
+            console.log('All dashboard data loaded successfully');
+          },
+          error: (error) => {
+            this.isLoading = false;
+            console.error('Error loading some dashboard data:', error);
+          }
+        });
+      }, 500); // minimum loading time of 500ms for better UX
+    } else {
+      this.isLoading = false;
+    }
+  }
+  
+  /**
+   * Maps notification type from backend to frontend display type
+   */
+  private mapNotificationType(type: string): string {
+    switch (type) {
+      case 'payment': return 'success';
+      case 'contribution': return 'info';
+      case 'system': return 'info';
+      case 'community': return 'info';
+      default: return 'info';
+    }
+  }
   // Helper methods for the template
-  formatDate(date: Date): string {
-    return new Intl.DateTimeFormat('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
-    }).format(date);
+  formatDate(date: Date | null | string): string {
+    if (!date) {
+      return 'N/A';
+    }
+    
+    try {
+      // Handle string dates by converting to Date object
+      const dateObj = typeof date === 'string' ? new Date(date) : date;
+      
+      // Validate the date is valid before formatting
+      if (isNaN(dateObj.getTime())) {
+        return 'Invalid date';
+      }
+      
+      return new Intl.DateTimeFormat('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric'
+      }).format(dateObj);
+    } catch (error) {
+      console.error('Error formatting date:', error);
+      return 'Invalid date';
+    }
   }
   
   getNotificationIcon(type: string): string {
@@ -229,10 +404,54 @@ export class DashboardComponent implements OnInit {
   getNotificationClass(type: string): string {
     return `notification-${type}`;
   }
-  
-  getDaysRemaining(date: Date): number {
-    const today = new Date();
-    const timeDiff = date.getTime() - today.getTime();
-    return Math.ceil(timeDiff / (1000 * 3600 * 24));
+    getDaysRemaining(date: Date | null): number {
+    if (!date) {
+      return 0;
+    }
+    
+    try {
+      // Validate the date is valid
+      if (isNaN(date.getTime())) {
+        console.warn('Invalid date passed to getDaysRemaining');
+        return 0;
+      }
+      
+      const today = new Date();
+      const timeDiff = date.getTime() - today.getTime();
+      return Math.max(0, Math.ceil(timeDiff / (1000 * 3600 * 24))); // Ensure we don't return negative days
+    } catch (error) {
+      console.error('Error calculating days remaining:', error);
+      return 0;
+    }
+  }
+
+  /**
+   * Mark all notifications as read
+   */
+  markAllNotificationsAsRead(): void {
+    if (!this.currentUser?.id || this.notifications.length === 0) {
+      return;
+    }
+
+    const markRequests = this.notifications.map(notification => 
+      this.notificationService.markAsRead(this.currentUser!.id, notification.id)
+    );
+    
+    if (markRequests.length === 0) {
+      return;
+    }
+    
+    forkJoin(markRequests).subscribe({
+      next: () => {
+        // After marking all as read, update our local state
+        this.notifications = this.notifications.map(notification => ({
+          ...notification,
+          read: true
+        }));
+      },
+      error: (error) => {
+        console.error('Error marking notifications as read:', error);
+      }
+    });
   }
 }

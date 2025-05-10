@@ -2,10 +2,6 @@
 
 ## Last Updated: May 10, 2025
 
-lets create an API that allow user to download or share community pages. they can download the page as pdf or share it as an image.
-
-lets create an Api that allow user to share contributions for cycle, or for a midcycle,
-
 This document serves as a reference for important information related to the KoloCollect project implementation.
 
 INSTRUCTION!!

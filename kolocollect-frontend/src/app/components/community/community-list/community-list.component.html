@@ -97,8 +97,7 @@
       </mat-card-header>
       <mat-card-content>
         <p class="description">{{ community.description || 'No description provided.' }}</p>
-          <!-- Key stats (always visible) -->
-        <div class="community-stats">
+          <!-- Key stats (always visible) -->        <div class="community-stats">
           <div class="stat">
             <fa-icon [icon]="faMoneyBillWave" class="stat-icon"></fa-icon>
             <span class="label">Min Contribution:</span>
@@ -113,6 +112,11 @@
             <fa-icon [icon]="faShieldAlt" class="stat-icon"></fa-icon>
             <span class="label">Backup Fund:</span>
             <span class="value">{{ community.settings.backupFundPercentage || 0 }}% (€{{ formatBackupFundAmount(community.backupFund) }})</span>
+          </div>
+          <div class="stat">
+            <fa-icon [icon]="faHandHoldingDollar" class="stat-icon"></fa-icon>
+            <span class="label">Total Distributed:</span>
+            <span class="value">{{ formatCurrency(community.totalContribution) }}</span>
           </div>
         </div>
         
