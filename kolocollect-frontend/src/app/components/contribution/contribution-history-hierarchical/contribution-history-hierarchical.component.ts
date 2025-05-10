@@ -12,7 +12,8 @@ import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { finalize } from 'rxjs/operators';
 import { 
   faChevronDown, faChevronRight, faCirclePlus, faCircleMinus, 
-  faHistory, faInfoCircle, faUser, faSpinner 
+  faHistory, faInfoCircle, faUser, faSpinner, faChevronUp, faTimesCircle,
+  faSync, faChartPie, faLayerGroup, faMoneyBillWave, faCheckCircle
 } from '@fortawesome/free-solid-svg-icons';
 
 import { CommunityService } from '../../../services/community.service';
@@ -41,18 +42,23 @@ export class ContributionHistoryHierarchicalComponent implements OnInit {
   contributionHistory: any[] = [];
   expandedCycles: Set<string> = new Set();
   selectedMidcycle: any = null;
+  selectedContribution: any = null;
   isLoading = false;
-  displayedColumns: string[] = ['contributor', 'amount', 'count'];
-  
-  // Font Awesome icons
+  displayedColumns: string[] = ['contributor', 'amount', 'count', 'actions'];
+    // Font Awesome icons
   faChevronDown = faChevronDown;
-  faChevronRight = faChevronRight;
+  faChevronRight = faChevronRight;  faChevronUp = faChevronUp;
   faCirclePlus = faCirclePlus;
   faCircleMinus = faCircleMinus;
   faHistory = faHistory;
-  faInfoCircle = faInfoCircle;
-  faUser = faUser;
+  faInfoCircle = faInfoCircle;  faUser = faUser;
   faSpinner = faSpinner;
+  faTimesCircle = faTimesCircle;
+  faSync = faSync;
+  faChartPie = faChartPie;
+  faLayerGroup = faLayerGroup;
+  faMoneyBillWave = faMoneyBillWave;
+  faCheckCircle = faCheckCircle;
   
   constructor(
     private communityService: CommunityService,
@@ -121,6 +127,11 @@ export class ContributionHistoryHierarchicalComponent implements OnInit {
   selectMidcycle(midcycle: any): void {
     this.selectedMidcycle = midcycle === this.selectedMidcycle ? null : midcycle;
   }
+  
+  viewContributionDetails(contribution: any): void {
+    this.selectedContribution = contribution === this.selectedContribution ? null : contribution;
+  }
+  
   getContributionTotal(midcycle: any): number {
     if (!midcycle.contributions || !midcycle.contributions.length) {
       return 0;
@@ -146,5 +157,55 @@ export class ContributionHistoryHierarchicalComponent implements OnInit {
     
     const completed = cycleData.midcycles.filter((m: any) => m.isComplete).length;
     return `${completed}/${cycleData.midcycles.length} complete`;
+  }
+
+  // Get status text for contribution
+  getContributionStatusText(status: string): string {
+    switch (status) {
+      case 'paid':
+        return 'Paid';
+      case 'pending':
+        return 'Pending';
+      case 'failed':
+        return 'Failed';
+      default:
+        return status || 'Unknown';
+    }
+  }
+  
+  // Get total number of midcycles across all cycles
+  getTotalMidcycles(): number {
+    if (!this.contributionHistory || !this.contributionHistory.length) {
+      return 0;
+    }
+    
+    return this.contributionHistory.reduce((total: number, cycleData: any) => {
+      return total + (cycleData.midcycles?.length || 0);
+    }, 0);
+  }
+  
+  // Get total contribution amount across all cycles and midcycles
+  getTotalContributions(): number {
+    if (!this.contributionHistory || !this.contributionHistory.length) {
+      return 0;
+    }
+    
+    return this.contributionHistory.reduce((total: number, cycleData: any) => {
+      return total + this.getCycleTotal(cycleData);
+    }, 0);
+  }
+  
+  // Get count of completed midcycles
+  getCompletedMidcyclesCount(): number {
+    if (!this.contributionHistory || !this.contributionHistory.length) {
+      return 0;
+    }
+    
+    return this.contributionHistory.reduce((total: number, cycleData: any) => {
+      if (!cycleData.midcycles) return total;
+      
+      const completedInCycle = cycleData.midcycles.filter((m: any) => m.isComplete).length;
+      return total + completedInCycle;
+    }, 0);
   }
 }

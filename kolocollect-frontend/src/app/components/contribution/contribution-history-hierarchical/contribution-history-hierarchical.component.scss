@@ -4,11 +4,52 @@
   margin: 0 auto;
 }
 
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
 .section-title {
   font-size: 24px;
   font-weight: 500;
-  margin-bottom: 24px;
   color: #333;
+  margin: 0;
+}
+
+.refresh-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  background-color: rgba(109, 40, 217, 0.08);
+  
+  fa-icon {
+    font-size: 16px;
+    transition: transform 0.3s ease;
+  }
+  
+  &:hover {
+    background-color: rgba(109, 40, 217, 0.15);
+    
+    fa-icon {
+      transform: rotate(30deg);
+    }
+  }
+  
+  &:active {
+    background-color: rgba(109, 40, 217, 0.25);
+    
+    fa-icon {
+      transform: rotate(180deg);
+    }
+  }
+  
+  &[disabled] {
+    opacity: 0.6;
+  }
 }
 
 .loading-container {
@@ -199,6 +240,23 @@
   padding: 2px 6px;
   border-radius: 12px;
   margin-left: 8px;
+  background-color: #ffd740; /* Default yellow for active */
+  color: #333;
+  
+  &.complete {
+    background-color: #66bb6a; /* Green */
+    color: white;
+  }
+  
+  &.ready {
+    background-color: #42a5f5; /* Blue */
+    color: white;
+  }
+  
+  &.active {
+    background-color: #ffd740; /* Yellow */
+    color: #333;
+  }
   background-color: #ffd740;
   color: #333;
   
@@ -211,6 +269,28 @@
 .midcycle-details {
   padding: 16px;
   background-color: white;
+}
+
+.midcycle-details-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  
+  h4 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 500;
+  }
+  
+  .clear-selection {
+    font-size: 14px;
+    color: #777;
+    
+    &:hover {
+      color: #f44336;
+    }
+  }
 }
 
 .recipient-details {
@@ -351,6 +431,152 @@
   span {
     text-align: center;
   }
+}
+
+.contribution-details {
+  margin-top: 8px;
+  padding: 16px;
+  background-color: #f9f9f9;
+  
+  h4 {
+    margin-bottom: 12px;
+    font-size: 16px;
+    font-weight: 500;
+  }
+}
+
+.transactions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.transaction-item {
+  background-color: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  padding: 12px;
+}
+
+.transaction-header {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  
+  @media (max-width: 768px) {
+    flex-direction: column;
+    gap: 8px;
+  }
+}
+
+.transaction-status {
+  padding: 2px 8px;
+  border-radius: 12px;
+  
+  &.paid {
+    background-color: rgba(102, 187, 106, 0.2);
+    color: #2e7d32;
+  }
+  
+  &.pending {
+    background-color: rgba(255, 215, 64, 0.2);
+    color: #ff8f00;
+  }
+  
+  &.failed {
+    background-color: rgba(244, 67, 54, 0.2);
+    color: #d32f2f;
+  }
+}
+
+.empty-transactions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 16px;
+  color: #777;
+  
+  fa-icon {
+    margin-bottom: 8px;
+    font-size: 20px;
+  }
+}
+
+// Summary cards
+.summary-container {
+  margin-bottom: 24px;
+}
+
+.summary-cards {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  
+  @media (max-width: 1024px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  @media (max-width: 576px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.summary-card {
+  display: flex;
+  justify-content: space-between;
+  padding: 16px;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  transition: transform 0.2s, box-shadow 0.2s;
+  
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+  
+  &:nth-child(1) .summary-icon {
+    color: #6d28d9; // Deep Purple
+  }
+  
+  &:nth-child(2) .summary-icon {
+    color: #10b981; // Emerald Green
+  }
+  
+  &:nth-child(3) .summary-icon {
+    color: #f59e0b; // Amber
+  }
+  
+  &:nth-child(4) .summary-icon {
+    color: #3b82f6; // Blue
+  }
+}
+
+.summary-card-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.summary-number {
+  font-size: 28px;
+  font-weight: 600;
+  color: #333;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.summary-label {
+  font-size: 14px;
+  color: #666;
+}
+
+.summary-icon {
+  display: flex;
+  align-items: center;
+  font-size: 32px;
+  opacity: 0.8;
 }
 
 @media (max-width: 768px) {

@@ -16,6 +16,31 @@ When you are done with any component check for all problems.
 
  ALWAYS GIVE CMD FOR POWERSHELL
 
+## Issues Fixed Today (May 10, 2025)
+
+### 1. Fixed ContributionHistoryHierarchicalComponent duplicate summary section
+
+- **Problem**: The component had duplicate summary sections showing the same statistics twice
+- **Solution**: Removed the duplicate summary container from the HTML template
+- **File**: `contribution-history-hierarchical.component.html`
+
+### 2. Enhanced Refresh Buttons in Contribution History Components
+
+- **Problem**: The refresh buttons in contribution history components weren't clearly identifiable as refresh buttons
+- **Solution**: Added tooltips, improved visual styling, and added animation effects to make them more recognizable
+- **Files**: 
+  - `contribution-history.component.html`
+  - `contribution-history.component.scss`
+  - `contribution-history-hierarchical.component.html`
+  - `contribution-history-hierarchical.component.scss`
+
+**Command to run the application**:
+
+```powershell
+cd c:\Users\shuga\OneDrive\Desktop\PRO\Kolocollect\kolocollect-frontend
+npm start
+```
+
 ## Backend API Structure
 
 ### Authentication Endpoints

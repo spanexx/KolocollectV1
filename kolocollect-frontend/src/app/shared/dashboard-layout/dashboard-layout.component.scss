@@ -34,6 +34,7 @@ $screen-lg: 992px;
   display: flex;
   flex: 1;
   position: relative;
+  gap: 0; /* Remove any gap between sidebar and content */
 }
 
 .main-content {
@@ -41,8 +42,7 @@ $screen-lg: 992px;
   display: flex;
   flex-direction: column;
   padding: 1.5rem;
-  transition: margin-left $transition-duration ease, width $transition-duration ease;
-  margin-left: $sidebar-width;
+  transition: margin-left $transition-duration ease, width $transition-duration ease;  margin-left: 0;
   width: calc(100% - #{$sidebar-width});
   min-height: calc(100vh - #{$header-height});
   
@@ -59,7 +59,7 @@ $screen-lg: 992px;
 }
 
 .sidebar-collapsed .main-content {
-  margin-left: $sidebar-collapsed-width;
+  margin-left: 0;
   width: calc(100% - #{$sidebar-collapsed-width});
 }
 

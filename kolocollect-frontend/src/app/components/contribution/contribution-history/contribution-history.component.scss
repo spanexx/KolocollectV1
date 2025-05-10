@@ -781,3 +781,59 @@ button:focus, mat-card:focus {
     }
   }
 }
+
+.title-with-refresh {
+  display: flex;
+  align-items: center;
+  
+  .refresh-button {
+    margin-right: 0.5rem;
+    background-color: rgba(109, 40, 217, 0.08);
+    color: #6D28D9;
+    transition: all 0.2s ease-in-out;
+    position: relative;
+    
+    &::after {
+      content: 'Refresh';
+      position: absolute;
+      bottom: -20px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 10px;
+      color: #6D28D9;
+      opacity: 0;
+      transition: opacity 0.2s ease-in-out;
+      pointer-events: none;
+    }
+    
+    &:hover {
+      background-color: rgba(109, 40, 217, 0.15);
+      transform: rotate(30deg);
+      
+      &::after {
+        opacity: 1;
+      }
+    }
+    
+    &:active {
+      transform: rotate(180deg);
+    }
+    
+    &[disabled] {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+  }
+}

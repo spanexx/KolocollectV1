@@ -1,5 +1,55 @@
-<div class="contribution-history-container">
-  <h2 class="section-title">Community Contribution History</h2>
+<div class="contribution-history-container">  <div class="section-header">    <h2 class="section-title">Community Contribution History</h2>
+    <button mat-button color="primary" class="refresh-button" (click)="loadContributionHistory()" [disabled]="isLoading"
+           matTooltip="Refresh contribution history" aria-label="Refresh contribution history">
+      <fa-icon [icon]="faSync" [spin]="isLoading"></fa-icon>
+      <span>{{ isLoading ? 'Loading...' : 'Refresh' }}</span>
+    </button>
+  </div>
+  
+  <!-- Summary cards -->
+  <div class="summary-container" *ngIf="!isLoading && contributionHistory && contributionHistory.length > 0">
+    <div class="summary-cards">
+      <mat-card class="summary-card">
+        <div class="summary-card-content">
+          <div class="summary-number">{{ contributionHistory.length }}</div>
+          <div class="summary-label">Total Cycles</div>
+        </div>
+        <div class="summary-icon">
+          <fa-icon [icon]="faChartPie"></fa-icon>
+        </div>
+      </mat-card>
+      
+      <mat-card class="summary-card">
+        <div class="summary-card-content">
+          <div class="summary-number">{{ getTotalMidcycles() }}</div>
+          <div class="summary-label">Total Midcycles</div>
+        </div>
+        <div class="summary-icon">
+          <fa-icon [icon]="faLayerGroup"></fa-icon>
+        </div>
+      </mat-card>
+      
+      <mat-card class="summary-card">
+        <div class="summary-card-content">
+          <div class="summary-number">{{ getTotalContributions() | currency }}</div>
+          <div class="summary-label">Total Contributions</div>
+        </div>
+        <div class="summary-icon">
+          <fa-icon [icon]="faMoneyBillWave"></fa-icon>
+        </div>
+      </mat-card>
+      
+      <mat-card class="summary-card">
+        <div class="summary-card-content">
+          <div class="summary-number">{{ getCompletedMidcyclesCount() }}</div>
+          <div class="summary-label">Completed Payouts</div>
+        </div>
+        <div class="summary-icon">
+          <fa-icon [icon]="faCheckCircle"></fa-icon>
+        </div>
+      </mat-card>
+    </div>
+  </div>
     <!-- Loading spinner -->
   <div class="loading-container" *ngIf="isLoading">
     <fa-icon [icon]="faSpinner" [spin]="true" size="2x"></fa-icon>
@@ -12,8 +62,7 @@
       <fa-icon [icon]="faHistory" class="empty-state-icon" size="2x"></fa-icon>
       <h3>No contribution history found</h3>
       <p>There is no contribution history available for this community yet.</p>
-    </mat-card-content>
-  </mat-card>
+    </mat-card-content>  </mat-card>
   
   <!-- Hierarchical contribution history -->
   <div class="history-container" *ngIf="!isLoading && contributionHistory && contributionHistory.length > 0">
@@ -46,8 +95,10 @@
                 [icon]="selectedMidcycle === midcycle ? faCircleMinus : faCirclePlus"
                 class="midcycle-icon">
               </fa-icon>
-              <span class="midcycle-title">Mid-cycle {{ midcycle.cycleNumber || '' }}</span>
-              <span class="midcycle-status-chip" [class.complete]="midcycle.isComplete">
+              <span class="midcycle-title">Mid-cycle {{ midcycle.cycleNumber || '' }}</span>              <span class="midcycle-status-chip" 
+                [class.complete]="midcycle.isComplete"
+                [class.ready]="!midcycle.isComplete && midcycle.isReady"
+                [class.active]="!midcycle.isComplete && !midcycle.isReady">
                 {{ midcycle.isComplete ? 'Complete' : midcycle.isReady ? 'Ready' : 'Active' }}
               </span>
             </div>
@@ -59,6 +110,13 @@
           
           <!-- Midcycle details (visible when selected) -->
           <div class="midcycle-details" *ngIf="selectedMidcycle === midcycle">
+            <div class="midcycle-details-header">
+              <h4>Midcycle Details</h4>
+              <button mat-icon-button color="primary" class="clear-selection" 
+                      (click)="selectMidcycle(null); $event.stopPropagation()">
+                <fa-icon [icon]="faTimesCircle"></fa-icon>
+              </button>
+            </div>
             <mat-divider></mat-divider>
               <div class="recipient-details" *ngIf="midcycle.nextInLine">
               <h4>Next In Line</h4>
@@ -99,27 +157,16 @@
                     {{ contribution.totalAmount | currency }}
                   </mat-cell>
                 </ng-container>
-                
-                <!-- Count Column -->
-                <ng-container matColumnDef="count">
+                  <!-- Count Column -->                <ng-container matColumnDef="count">
                   <mat-header-cell *matHeaderCellDef>Transactions</mat-header-cell>
                   <mat-cell *matCellDef="let contribution">
                     {{ contribution.contributions?.length || 0 }}
                   </mat-cell>
                 </ng-container>
                 
-                <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
-                <mat-row *matRowDef="let row; columns: displayedColumns;"></mat-row>
-              </mat-table>                <div class="empty-table" *ngIf="!midcycle.contributions || midcycle.contributions.length === 0">
-                <fa-icon [icon]="faInfoCircle"></fa-icon>
-                <span>No contributions found</span>
-              </div>
-            </div>
-            
-            <!-- No next in line message if none exists -->
-            <div class="no-recipient" *ngIf="!midcycle.nextInLine">
-              <fa-icon [icon]="faInfoCircle"></fa-icon>
-              <span>No recipient assigned for this mid-cycle</span>
+                <mat-header-row *matHeaderRowDef="['contributor', 'amount', 'count']"></mat-header-row>
+                <mat-row *matRowDef="let row; columns: ['contributor', 'amount', 'count']"></mat-row>
+              </mat-table>
             </div>
           </div>
         </div>
