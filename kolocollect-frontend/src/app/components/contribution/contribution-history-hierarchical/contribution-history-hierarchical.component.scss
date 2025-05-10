@@ -1,0 +1,373 @@
+.contribution-history-container {
+  padding: 16px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.section-title {
+  font-size: 24px;
+  font-weight: 500;
+  margin-bottom: 24px;
+  color: #333;
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px;
+  
+  .loading-text {
+    margin-top: 16px;
+    color: #666;
+  }
+}
+
+.empty-state-card {
+  text-align: center;
+  padding: 32px;
+  
+  .empty-state-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .empty-state-icon {
+    color: #999;
+    margin-bottom: 16px;
+    font-size: 2.5rem;
+  }
+  
+  h3 {
+    margin-bottom: 8px;
+    color: #555;
+  }
+  
+  p {
+    color: #777;
+  }
+}
+
+.history-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.cycle-container {
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  overflow: hidden;
+  background-color: #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.cycle-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  
+  &:hover {
+    background-color: #f5f5f5;
+  }
+  
+  &.active {
+    background-color: #f0f7ff;
+    border-bottom: 1px solid #e0e0e0;
+  }
+  
+  .cycle-header-left {
+    display: flex;
+    align-items: center;
+    
+    .expand-icon {
+      margin-right: 8px;
+      transition: transform 0.2s;
+    }
+    
+    .cycle-title {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+    }
+  }
+  
+  .cycle-header-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    
+    .midcycles-status {
+      font-size: 14px;
+      color: #666;
+    }
+    
+    .cycle-total {
+      font-weight: 500;
+      color: #333;
+    }
+  }
+}
+
+.cycle-status-chip {
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 16px;
+  margin-left: 8px;
+  background-color: #ffd740;
+  color: #333;
+  
+  &.complete {
+    background-color: #66bb6a;
+    color: white;
+  }
+}
+
+.midcycles-container {
+  padding: 0 16px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.midcycle-item {
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  overflow: hidden;
+  transition: box-shadow 0.2s;
+  
+  &:hover {
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  }
+  
+  &.selected {
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+    border-color: #bbdefb;
+  }
+}
+
+.midcycle-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 16px;
+  cursor: pointer;
+  background-color: #fafafa;
+  
+  .midcycle-header-left {
+    display: flex;
+    align-items: center;
+    
+    .midcycle-icon {
+      margin-right: 8px;
+      font-size: 20px;
+      color: #2196f3;
+    }
+    
+    .midcycle-title {
+      font-weight: 500;
+      font-size: 16px;
+    }
+  }
+  
+  .midcycle-header-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    
+    .midcycle-date {
+      font-size: 14px;
+      color: #777;
+    }
+    
+    .midcycle-total {
+      font-weight: 500;
+      color: #333;
+    }
+  }
+}
+
+.midcycle-status-chip {
+  font-size: 11px;
+  padding: 2px 6px;
+  border-radius: 12px;
+  margin-left: 8px;
+  background-color: #ffd740;
+  color: #333;
+  
+  &.complete {
+    background-color: #66bb6a;
+    color: white;
+  }
+}
+
+.midcycle-details {
+  padding: 16px;
+  background-color: white;
+}
+
+.recipient-details {
+  margin-top: 16px;
+  margin-bottom: 24px;
+  
+  h4 {
+    font-size: 16px;
+    font-weight: 500;
+    margin-bottom: 12px;
+    color: #555;
+  }
+  
+  .recipient-info {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 12px;
+    background-color: #f5f5f5;
+    border-radius: 8px;
+    
+    .recipient-avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: #e0e0e0;
+      
+      img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      
+      mat-icon {
+        font-size: 36px;
+        color: #999;
+      }
+    }
+    
+    .recipient-data {
+      .recipient-name {
+        font-weight: 500;
+        font-size: 16px;
+        color: #333;
+      }
+      
+      .recipient-email {
+        color: #777;
+        font-size: 14px;
+      }
+    }
+  }
+}
+
+.contributions-details {
+  h4 {
+    font-size: 16px;
+    font-weight: 500;
+    margin-bottom: 12px;
+    color: #555;
+  }
+}
+
+.contributions-table {
+  width: 100%;
+  
+  .contributor-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    
+    .contributor-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: #e0e0e0;
+      
+      img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      
+      mat-icon {
+        font-size: 28px;
+        color: #999;
+      }
+    }
+    
+    .contributor-name {
+      font-weight: 500;
+    }
+  }
+}
+
+.empty-table {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 32px;
+  color: #999;
+  background-color: #f9f9f9;
+  border-radius: 4px;
+  
+  mat-icon {
+    font-size: 36px;
+    width: 36px;
+    height: 36px;
+    margin-bottom: 8px;
+  }
+}
+
+.no-recipient {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 16px;
+  margin-top: 16px;
+  background-color: #f9f9f9;
+  border-radius: 4px;
+  border: 1px dashed #ddd;
+  color: #777;
+  
+  fa-icon {
+    font-size: 24px;
+    margin-bottom: 8px;
+    color: #999;
+  }
+  
+  span {
+    text-align: center;
+  }
+}
+
+@media (max-width: 768px) {
+  .cycle-header, .midcycle-header {
+    flex-direction: column;
+    align-items: flex-start;
+    
+    .cycle-header-right, .midcycle-header-right {
+      margin-top: 8px;
+      width: 100%;
+      justify-content: space-between;
+    }
+  }
+  
+  .contributions-table {
+    .mat-header-row, .mat-row {
+      padding: 0 8px;
+    }
+  }
+}

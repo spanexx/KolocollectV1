@@ -178,11 +178,18 @@ export class CommunityService {
   leaveCommunity(communityId: string, userId: string): Observable<any> {
     return this.api.delete<any>(`/communities/${communityId}/leave/${userId}`);
   }
-
   /**
    * Start a new cycle
    */
   startNewCycle(communityId: string): Observable<any> {
     return this.api.post<any>(`/communities/${communityId}/startNewCycle`, {});
+  }
+
+  /**
+   * Get community contribution history in hierarchical format
+   * Groups midcycles by their parent cycles and provides detailed contribution information
+   */
+  getCommunityContributionHistory(communityId: string): Observable<any> {
+    return this.api.get<any>(`/communities/${communityId}/contribution-history`);
   }
 }

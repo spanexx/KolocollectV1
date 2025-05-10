@@ -136,6 +136,11 @@ export class CommunityService {
   startNewCycle(communityId: string): Observable<any> {
     return this.http.post(`${this.apiUrl}/${communityId}/startNewCycle`, {});
   }
+  
+  // New method for getting community contribution history
+  getCommunityContributionHistory(communityId: string): Observable<any> {
+    return this.http.get(`${this.apiUrl}/${communityId}/contribution-history`);
+  }
 }
 ```
 
@@ -236,6 +241,16 @@ export class ContributionService {
   getContributionsByUser(userId: string): Observable<any> {
     return this.http.get(`${this.apiUrl}/user/${userId}`);
   }
+  
+  // New method to get contributions by cycle for a community
+  getContributionsByCycle(communityId: string, cycleId: string): Observable<any> {
+    return this.http.get(`${this.apiUrl}/community/${communityId}/cycle/${cycleId}`);
+  }
+  
+  // New method to get contributions by midcycle for a community
+  getContributionsByMidcycle(communityId: string, midcycleId: string): Observable<any> {
+    return this.http.get(`${this.apiUrl}/community/${communityId}/midcycle/${midcycleId}`);
+  }
 }
 ```
 
@@ -276,6 +291,163 @@ export class UserService {
     return this.http.get(`${this.apiUrl}/${userId}/notifications`);
   }
 }
+```
+
+## New Feature: Enhanced Community Contribution History
+
+### Backend API Endpoint
+
+To implement the enhanced community contribution history display, we'll create a new endpoint that will provide a structured view of contributions organized by cycles and midcycles.
+
+```javascript
+// In controllers/contributionController.js
+
+// Get detailed community contribution history
+exports.getCommunityContributionHistory = async (req, res) => {
+  try {
+    const { communityId } = req.params;
+    
+    // First, find the community and populate cycles and mid-cycles
+    const community = await Community.findById(communityId)
+      .populate('cycles')
+      .populate({
+        path: 'midCycle',
+        populate: {
+          path: 'contributions',
+          populate: [
+            { path: 'user', select: 'name email' },
+            { path: 'contributions' }
+          ]
+        }
+      });
+    
+    if (!community) {
+      return createErrorResponse(res, 404, 'COMMUNITY_NOT_FOUND', 'Community not found');
+    }
+    
+    // Group midcycles by their cycle number
+    const cyclesWithMidcycles = {};
+    
+    // Process cycles
+    if (community.cycles && community.cycles.length > 0) {
+      community.cycles.forEach(cycle => {
+        cyclesWithMidcycles[cycle.cycleNumber] = {
+          cycle: {
+            _id: cycle._id,
+            cycleNumber: cycle.cycleNumber,
+            startDate: cycle.startDate,
+            expectedEndDate: cycle.expectedEndDate,
+            isComplete: cycle.isComplete
+          },
+          midcycles: []
+        };
+      });
+    }
+    
+    // Process midcycles and add them to their parent cycle
+    if (community.midCycle && community.midCycle.length > 0) {
+      community.midCycle.forEach(midcycle => {
+        const cycleNumber = midcycle.cycleNumber;
+        
+        // If we don't have this cycle yet, add it to our structure
+        if (!cyclesWithMidcycles[cycleNumber]) {
+          cyclesWithMidcycles[cycleNumber] = {
+            cycle: {
+              cycleNumber,
+              startDate: midcycle.startDate, // Approximation
+              isComplete: midcycle.isComplete
+            },
+            midcycles: []
+          };
+        }
+        
+        // Format contributions data
+        let enhancedContributions = [];
+        if (midcycle.contributions && midcycle.contributions.length > 0) {
+          enhancedContributions = midcycle.contributions.map(contribution => {
+            // Calculate total contribution amount
+            let totalAmount = 0;
+            if (contribution.contributions && contribution.contributions.length > 0) {
+              totalAmount = contribution.contributions.reduce((sum, contrib) => {
+                const amount = contrib.amount ? 
+                  (typeof contrib.amount === 'object' && contrib.amount.toString ? 
+                    parseFloat(contrib.amount.toString()) : contrib.amount) : 0;
+                return sum + amount;
+              }, 0);
+            }
+            
+            return {
+              _id: contribution._id,
+              user: contribution.user,
+              contributions: contribution.contributions.map(c => ({
+                _id: c._id,
+                amount: typeof c.amount === 'object' ? parseFloat(c.amount.toString()) : c.amount,
+                date: c.date,
+                status: c.status
+              })),
+              totalAmount: totalAmount
+            };
+          });
+        }
+        
+        // Get next in line member details
+        let nextInLineDetails = null;
+        if (midcycle.nextInLine && midcycle.nextInLine.userId) {
+          const nextInLineMember = community.members.find(m => 
+            m.userId && m.userId.equals(midcycle.nextInLine.userId)
+          );
+          
+          if (nextInLineMember) {
+            nextInLineDetails = {
+              userId: nextInLineMember.userId,
+              name: nextInLineMember.name,
+              email: nextInLineMember.email,
+              position: nextInLineMember.position
+            };
+          }
+        }
+        
+        // Add mid-cycle to its parent cycle group
+        cyclesWithMidcycles[cycleNumber].midcycles.push({
+          _id: midcycle._id,
+          cycleNumber: midcycle.cycleNumber,
+          isReady: midcycle.isReady,
+          isComplete: midcycle.isComplete,
+          payoutDate: midcycle.payoutDate,
+          payoutAmount: midcycle.payoutAmount,
+          nextInLine: nextInLineDetails,
+          contributions: enhancedContributions
+        });
+      });
+    }
+    
+    // Convert to array for easier frontend processing
+    const contributionHistory = Object.values(cyclesWithMidcycles);
+    
+    res.status(200).json({
+      status: 'success',
+      message: 'Community contribution history retrieved successfully',
+      data: contributionHistory
+    });
+  } catch (err) {
+    console.error('Error fetching contribution history:', err);
+    return createErrorResponse(
+      res, 
+      500, 
+      'GET_CONTRIBUTION_HISTORY_ERROR', 
+      'Error retrieving contribution history: ' + err.message
+    );
+  }
+};
+```
+
+### Route Configuration
+
+```javascript
+// In routes/communityRoutes.js
+
+// Get community contribution history
+router.get('/:communityId/contribution-history', communityController.getCommunityContributionHistory);
 ```
 
 ## TypeScript Interfaces
@@ -1451,45 +1623,412 @@ export class CommunityListComponent implements OnInit {
 }
 ```
 
-## High Priority Tasks (Added May 9, 2025)
+## Enhanced Community Contribution History Implementation (✅ COMPLETED)
 
-### Issue: Users Cannot See Their Communities in Make Contribution Component
+### Problem Statement
+Currently, the contribution history in the community detail page shows a flat list of mid-cycles without organizing them by their parent cycles. This makes it difficult for users to understand the contribution structure and track the history properly.
 
-**Problem:**
-The current implementation of loading user communities in the make-contribution component cannot correctly identify which communities a user belongs to. This is because:
+### Solution (Implemented)
+Implemented a hierarchical view for the contribution history that:
+1. Groups mid-cycles by their parent cycles
+2. Shows detailed contribution information when a mid-cycle is clicked
+3. Displays next-in-line recipient and individual member contributions for each mid-cycle
 
-1. Communities store references to Member documents in their `members` array
-2. Member documents contain the link between communities and users (with the `userId` field)
-3. When filtering communities to find those where a user is a member, the application cannot access the userId inside the Member document
+### Backend Implementation
 
-**Solution Options:**
+#### 1. New API Endpoint
+Create a dedicated endpoint to retrieve the community contribution history:
 
-1. **Use existing User Communities endpoint:**
-   - The backend already has a `/api/users/:userId/communities` endpoint
-   - Update the frontend to use this endpoint instead of filtering communities locally
+```javascript
+// In controllers/community-history.js
 
-2. **Use Member lookup in Community Service:**
-   - Create a new endpoint in the backend: `GET /api/communities/user/:userId`
-   - This endpoint will find all communities where the user is a member by:
-     - Finding all Member documents with the given userId
-     - Getting the communityId from each Member document
-     - Finding all communities matching these communityIds
+// Get community contribution history
+exports.getCommunityContributionHistory = async (req, res) => {
+  try {
+    const { communityId } = req.params;
+    
+    // First, find the community and populate cycles and mid-cycles
+    const community = await Community.findById(communityId)
+      .populate('cycles')
+      .populate({
+        path: 'midCycle',
+        populate: {
+          path: 'contributions',
+          populate: [
+            { path: 'user', select: 'name email' },
+            { path: 'contributions', 
+              model: 'Contribution', 
+              select: 'amount date status' }
+          ]
+        }
+      });
+    
+    if (!community) {
+      return createErrorResponse(res, 404, 'COMMUNITY_NOT_FOUND', 'Community not found');
+    }
+    
+    // Group midcycles by their cycle number
+    const cyclesWithMidcycles = {};
+    
+    // Process cycles
+    if (community.cycles && community.cycles.length > 0) {
+      community.cycles.forEach(cycle => {
+        cyclesWithMidcycles[cycle.cycleNumber] = {
+          cycle: {
+            _id: cycle._id,
+            cycleNumber: cycle.cycleNumber,
+            startDate: cycle.startDate,
+            expectedEndDate: cycle.expectedEndDate,
+            isComplete: cycle.isComplete
+          },
+          midcycles: []
+        };
+      });
+    }
+    
+    // Process midcycles and add them to their parent cycle
+    if (community.midCycle && community.midCycle.length > 0) {
+      community.midCycle.forEach(midcycle => {
+        const cycleNumber = midcycle.cycleNumber;
+        
+        // If we don't have this cycle yet, add it to our structure
+        if (!cyclesWithMidcycles[cycleNumber]) {
+          cyclesWithMidcycles[cycleNumber] = {
+            cycle: {
+              cycleNumber,
+              startDate: midcycle.startDate, // Approximation
+              isComplete: midcycle.isComplete
+            },
+            midcycles: []
+          };
+        }
+        
+        // Format contributions data
+        let enhancedContributions = [];
+        if (midcycle.contributions && midcycle.contributions.length > 0) {
+          enhancedContributions = midcycle.contributions.map(contribution => {
+            // Calculate total contribution amount
+            let totalAmount = 0;
+            if (contribution.contributions && contribution.contributions.length > 0) {
+              totalAmount = contribution.contributions.reduce((sum, contrib) => {
+                const amount = contrib.amount ? 
+                  (typeof contrib.amount === 'object' && contrib.amount.toString ? 
+                    parseFloat(contrib.amount.toString()) : contrib.amount) : 0;
+                return sum + amount;
+              }, 0);
+            }
+            
+            return {
+              _id: contribution._id,
+              user: contribution.user,
+              contributions: contribution.contributions.map(c => ({
+                _id: c._id,
+                amount: typeof c.amount === 'object' ? parseFloat(c.amount.toString()) : c.amount,
+                date: c.date,
+                status: c.status
+              })),
+              totalAmount: totalAmount
+            };
+          });
+        }
+        
+        // Get next in line member details
+        let nextInLineDetails = null;
+        if (midcycle.nextInLine && midcycle.nextInLine.userId) {
+          const nextInLineMember = community.members.find(m => 
+            m.userId && m.userId.equals(midcycle.nextInLine.userId)
+          );
+          
+          if (nextInLineMember) {
+            nextInLineDetails = {
+              userId: nextInLineMember.userId,
+              name: nextInLineMember.name,
+              email: nextInLineMember.email,
+              position: nextInLineMember.position
+            };
+          }
+        }
+        
+        // Add mid-cycle to its parent cycle group
+        cyclesWithMidcycles[cycleNumber].midcycles.push({
+          _id: midcycle._id,
+          cycleNumber: midcycle.cycleNumber,
+          isReady: midcycle.isReady,
+          isComplete: midcycle.isComplete,
+          payoutDate: midcycle.payoutDate,
+          payoutAmount: midcycle.payoutAmount,
+          nextInLine: nextInLineDetails,
+          contributions: enhancedContributions
+        });
+      });
+    }
+    
+    // Convert to array for easier frontend processing
+    const contributionHistory = Object.values(cyclesWithMidcycles);
+    
+    res.status(200).json({
+      status: 'success',
+      message: 'Community contribution history retrieved successfully',
+      data: contributionHistory
+    });
+  } catch (err) {
+    console.error('Error fetching contribution history:', err);
+    return createErrorResponse(
+      res, 
+      500, 
+      'GET_CONTRIBUTION_HISTORY_ERROR', 
+      'Error retrieving contribution history: ' + err.message
+    );
+  }
+};
+```
 
-3. **Update Community Service to populate members:**
-   - Modify the existing `getAllCommunities` endpoint to accept a `populateMembers=true` parameter
-   - When this parameter is set, fully populate the members array with Member documents
-   - This allows for frontend filtering based on userId
+#### 2. Register the route in communityRoutes.js
 
-**Recommended Approach:**
-Option 1 is recommended as it uses existing endpoints and requires the least changes.
+```javascript
+// In routes/communityRoutes.js
 
-### Implementation Plan
+// Get community contribution history
+router.get('/:communityId/contribution-history', communityHistoryController.getCommunityContributionHistory);
+```
 
-1. **Frontend Updates:**
-   - Update the `loadUserCommunities()` method in the make-contribution component to use the UserService to get the user's communities
-   - Remove the local filtering logic that doesn't work
+### Frontend Implementation
 
-2. **Testing:**
-   - Verify that the user's communities are correctly displayed in the dropdown
-   - Ensure community selection and installment settings work as expected
+#### 1. Update Community Service
+
+Add a new method to the CommunityService to call the new API endpoint:
+
+```typescript
+// In services/community.service.ts
+
+// Get community contribution history
+getCommunityContributionHistory(communityId: string): Observable<any> {
+  return this.http.get(`${this.apiUrl}/${communityId}/contribution-history`);
+}
+```
+
+#### 2. Create a Component for Hierarchical Contribution History
+
+Implement a component to display the hierarchical contribution history:
+
+```typescript
+// In components/contribution/contribution-history-hierarchical/contribution-history-hierarchical.component.ts
+
+@Component({
+  selector: 'app-contribution-history-hierarchical',
+  templateUrl: './contribution-history-hierarchical.component.html',
+  styleUrls: ['./contribution-history-hierarchical.component.scss']
+})
+export class ContributionHistoryHierarchicalComponent implements OnInit {
+  @Input() communityId: string;
+  contributionHistory: any[] = [];
+  expandedCycles: Set<string> = new Set();
+  selectedMidcycle: any = null;
+  isLoading = false;
   
+  constructor(
+    private communityService: CommunityService,
+    private toastService: ToastService
+  ) {}
+  
+  ngOnInit(): void {
+    this.loadContributionHistory();
+  }
+  
+  loadContributionHistory(): void {
+    if (!this.communityId) return;
+    
+    this.isLoading = true;
+    this.communityService.getCommunityContributionHistory(this.communityId)
+      .pipe(finalize(() => this.isLoading = false))
+      .subscribe({
+        next: (response) => {
+          if (response && response.data) {
+            this.contributionHistory = response.data;
+            // Auto-expand current cycle
+            const currentCycle = this.contributionHistory.find(c => !c.cycle.isComplete);
+            if (currentCycle) {
+              this.expandedCycles.add(currentCycle.cycle._id);
+            }
+          }
+        },
+        error: (error) => {
+          this.toastService.error('Failed to load contribution history');
+        }
+      });
+  }
+  
+  toggleCycle(cycleId: string): void {
+    if (this.expandedCycles.has(cycleId)) {
+      this.expandedCycles.delete(cycleId);
+    } else {
+      this.expandedCycles.add(cycleId);
+    }
+  }
+  
+  isCycleExpanded(cycleId: string): boolean {
+    return this.expandedCycles.has(cycleId);
+  }
+  
+  selectMidcycle(midcycle: any): void {
+    this.selectedMidcycle = midcycle;
+  }
+  
+  getContributionTotal(midcycle: any): number {
+    return midcycle.contributions.reduce((total, contribution) => {
+      return total + (contribution.totalAmount || 0);
+    }, 0);
+  }
+}
+```
+
+#### 3. HTML Template for the Component
+
+```html
+<!-- In components/contribution/contribution-history-hierarchical/contribution-history-hierarchical.component.html -->
+
+<div class="contribution-history-container">
+  <mat-progress-spinner *ngIf="isLoading" [diameter]="30" mode="indeterminate"></mat-progress-spinner>
+  
+  <div *ngIf="!isLoading && contributionHistory.length === 0" class="empty-state">
+    No contribution history available
+  </div>
+  
+  <div *ngIf="!isLoading && contributionHistory.length > 0" class="cycles-container">
+    <!-- Cycle accordion -->
+    <mat-accordion>
+      <mat-expansion-panel *ngFor="let cycleData of contributionHistory" 
+                           [expanded]="isCycleExpanded(cycleData.cycle._id)"
+                           (opened)="toggleCycle(cycleData.cycle._id)">
+        <mat-expansion-panel-header>
+          <mat-panel-title>
+            <div class="cycle-header">
+              <span class="cycle-number">Cycle #{{ cycleData.cycle.cycleNumber }}</span>
+              <span class="cycle-status" 
+                    [ngClass]="cycleData.cycle.isComplete ? 'complete' : 'active'">
+                {{ cycleData.cycle.isComplete ? 'Completed' : 'Active' }}
+              </span>
+            </div>
+          </mat-panel-title>
+          <mat-panel-description>
+            {{ cycleData.midcycles.length }} midcycles
+          </mat-panel-description>
+        </mat-expansion-panel-header>
+        
+        <!-- Midcycles list -->
+        <div class="midcycles-list">
+          <mat-card *ngFor="let midcycle of cycleData.midcycles" 
+                    class="midcycle-card"
+                    [ngClass]="{'selected': selectedMidcycle?._id === midcycle._id}"
+                    (click)="selectMidcycle(midcycle)">
+            <mat-card-content>
+              <div class="midcycle-header">
+                <span class="midcycle-number">Midcycle #{{ midcycle.cycleNumber }}</span>
+                <span class="midcycle-status"
+                      [ngClass]="{
+                        'complete': midcycle.isComplete, 
+                        'ready': !midcycle.isComplete && midcycle.isReady,
+                        'pending': !midcycle.isComplete && !midcycle.isReady
+                      }">
+                  {{ midcycle.isComplete ? 'Completed' : midcycle.isReady ? 'Ready' : 'In Progress' }}
+                </span>
+              </div>
+              <div class="midcycle-info">
+                <div>
+                  <strong>Payout Amount:</strong> €{{ midcycle.payoutAmount | number:'1.2-2' }}
+                </div>
+                <div *ngIf="midcycle.payoutDate">
+                  <strong>Payout Date:</strong> {{ midcycle.payoutDate | date }}
+                </div>
+                <div *ngIf="midcycle.nextInLine">
+                  <strong>Next In Line:</strong> {{ midcycle.nextInLine.name }}
+                </div>
+                <div>
+                  <strong>Contributions:</strong> {{ midcycle.contributions.length }}
+                  (€{{ getContributionTotal(midcycle) | number:'1.2-2' }})
+                </div>
+              </div>
+            </mat-card-content>
+          </mat-card>
+        </div>
+      </mat-expansion-panel>
+    </mat-accordion>
+  </div>
+  
+  <!-- Selected midcycle details -->
+  <div *ngIf="selectedMidcycle" class="midcycle-details">
+    <h3>Midcycle {{ selectedMidcycle.cycleNumber }} Details</h3>
+    
+    <div class="next-in-line-section" *ngIf="selectedMidcycle.nextInLine">
+      <h4>Next In Line</h4>
+      <div class="next-in-line-card">
+        <div class="recipient-name">{{ selectedMidcycle.nextInLine.name }}</div>
+        <div class="recipient-email">{{ selectedMidcycle.nextInLine.email }}</div>
+        <div class="recipient-position">Position: {{ selectedMidcycle.nextInLine.position }}</div>
+      </div>
+    </div>
+    
+    <div class="contributions-section">
+      <h4>Contributions</h4>
+      <table mat-table [dataSource]="selectedMidcycle.contributions" class="contributions-table">
+        <!-- Contributor Column -->
+        <ng-container matColumnDef="contributor">
+          <th mat-header-cell *matHeaderCellDef>Contributor</th>
+          <td mat-cell *matCellDef="let contribution">{{ contribution.user.name }}</td>
+        </ng-container>
+        
+        <!-- Amount Column -->
+        <ng-container matColumnDef="amount">
+          <th mat-header-cell *matHeaderCellDef>Total Amount</th>
+          <td mat-cell *matCellDef="let contribution">€{{ contribution.totalAmount | number:'1.2-2' }}</td>
+        </ng-container>
+        
+        <!-- Contributions Count Column -->
+        <ng-container matColumnDef="count">
+          <th mat-header-cell *matHeaderCellDef># Contributions</th>
+          <td mat-cell *matCellDef="let contribution">{{ contribution.contributions.length }}</td>
+        </ng-container>
+        
+        <tr mat-header-row *matHeaderRowDef="['contributor', 'amount', 'count']"></tr>
+        <tr mat-row *matRowDef="let row; columns: ['contributor', 'amount', 'count'];"></tr>
+      </table>
+      
+      <div *ngIf="selectedMidcycle.contributions.length === 0" class="no-contributions">
+        No contributions in this midcycle
+      </div>
+    </div>
+  </div>
+</div>
+```
+
+#### 4. Integration in Community Detail Component
+
+Update the community detail component to use the new hierarchical contribution history component:
+
+```typescript
+// In community-detail.component.html
+
+<mat-tab label="Contribution History">
+  <div class="tab-content">
+    <app-contribution-history-hierarchical [communityId]="community._id">
+    </app-contribution-history-hierarchical>
+  </div>
+</mat-tab>
+```
+
+### Benefits of this Implementation
+
+1. **Improved Organization**: Users can easily see the relationship between cycles and mid-cycles.
+2. **Better Context**: When viewing contribution history, users have clear context of which cycle a mid-cycle belongs to.
+3. **Detailed Information**: Users can view detailed contribution information for each mid-cycle.
+4. **Recipient Transparency**: Next-in-line recipient information is clearly displayed for each mid-cycle.
+5. **Contribution Tracking**: Individual member contributions are clearly displayed with amounts and counts.
+
+### Implementation Timeline
+
+1. Backend implementation: 1 day
+2. Frontend implementation: 2 days
+3. Testing and bug fixes: 1 day
+4. UI/UX refinement: 1 day
+
+Total: 5 days

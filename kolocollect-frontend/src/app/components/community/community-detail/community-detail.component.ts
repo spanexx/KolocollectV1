@@ -17,7 +17,7 @@ import {
   faRightToBracket, faRightFromBracket, faPlay, faCircleExclamation,
   faArrowRight, faMoneyBillTransfer, faCircleInfo, faCheckCircle,
   faTimesCircle, faHourglassHalf, faFireAlt, faSpinner, faChartPie,
-  faArrowsRotate
+  faArrowsRotate, faHistory
 } from '@fortawesome/free-solid-svg-icons';
 import { CommunityService } from '../../../services/community.service';
 import { MidcycleService } from '../../../services/midcycle.service';
@@ -29,6 +29,7 @@ import { catchError, finalize, takeUntil } from 'rxjs/operators';
 import { Subject, throwError } from 'rxjs';
 import { formatDate } from '@angular/common';
 import { JoinCommunityDialogComponent } from '../join-community-dialog/join-community-dialog.component';
+import { ContributionHistoryHierarchicalComponent } from '../../contribution/contribution-history-hierarchical/contribution-history-hierarchical.component';
 import { UserProfileDialogComponent } from '../../profile/user-profile-dialog/user-profile-dialog.component';
 import { User } from '../../../models/user.model';
 import { CustomButtonComponent } from '../../../shared/components/custom-button/custom-button.component';
@@ -50,7 +51,8 @@ import { CustomButtonComponent } from '../../../shared/components/custom-button/
     MatBadgeModule,
     MatDialogModule,
     FontAwesomeModule,
-    CustomButtonComponent
+    CustomButtonComponent,
+    ContributionHistoryHierarchicalComponent
   ],
   templateUrl: './community-detail.component.html',
   styleUrls: ['./community-detail.component.scss']
@@ -68,10 +70,10 @@ export class CommunityDetailComponent implements OnInit, OnDestroy {  // Font Aw
   faArrowRight = faArrowRight;
   faMoneyBillTransfer = faMoneyBillTransfer;  faCircleInfo = faCircleInfo;
   faSpinner = faSpinner;
-  faChartPie = faChartPie;
-  faArrowsRotate = faArrowsRotate;
+  faChartPie = faChartPie;  faArrowsRotate = faArrowsRotate;
   faCheckCircle = faCheckCircle;
   faTimesCircle = faTimesCircle;
+  faHistory = faHistory;
     communityId: string = '';
   community: Community | null = null;
   communitySettings: CommunitySettings | null = null;
@@ -86,6 +88,7 @@ export class CommunityDetailComponent implements OnInit, OnDestroy {  // Font Aw
   payDate!: Date;
   midCycleDetails: MidCycleDetails | null = null;
   loadingMidCycleDetails: boolean = false;
+  contributionHistoryDebug: any = null;
   
   private destroy$ = new Subject<void>();
 
@@ -529,6 +532,23 @@ export class CommunityDetailComponent implements OnInit, OnDestroy {  // Font Aw
 
   setActiveTab(tab: string): void {
     this.activeTab = tab;
+    
+    // If switching to contribution history tab, load the debug data
+    if (tab === 'contributionHistory' && !this.contributionHistoryDebug) {
+      this.communityService.getCommunityContributionHistory(this.communityId)
+        .pipe(
+          takeUntil(this.destroy$)
+        )
+        .subscribe({
+          next: (response) => {
+            this.contributionHistoryDebug = response.data;
+            console.log('Debug contribution history data:', this.contributionHistoryDebug);
+          },
+          error: (error) => {
+            console.error('Error loading contribution history data for debug:', error);
+          }
+        });
+    }
   }
 
   /**

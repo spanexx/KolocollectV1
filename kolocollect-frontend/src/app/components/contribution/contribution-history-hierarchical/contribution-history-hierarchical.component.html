@@ -1,0 +1,129 @@
+<div class="contribution-history-container">
+  <h2 class="section-title">Community Contribution History</h2>
+    <!-- Loading spinner -->
+  <div class="loading-container" *ngIf="isLoading">
+    <fa-icon [icon]="faSpinner" [spin]="true" size="2x"></fa-icon>
+    <span class="loading-text">Loading contribution history...</span>
+  </div>
+  
+  <!-- Empty state -->
+  <mat-card class="empty-state-card" *ngIf="!isLoading && (!contributionHistory || contributionHistory.length === 0)">
+    <mat-card-content class="empty-state-content">
+      <fa-icon [icon]="faHistory" class="empty-state-icon" size="2x"></fa-icon>
+      <h3>No contribution history found</h3>
+      <p>There is no contribution history available for this community yet.</p>
+    </mat-card-content>
+  </mat-card>
+  
+  <!-- Hierarchical contribution history -->
+  <div class="history-container" *ngIf="!isLoading && contributionHistory && contributionHistory.length > 0">
+    <!-- For each cycle -->
+    <div class="cycle-container" *ngFor="let cycleData of contributionHistory; let i = index">      <div class="cycle-header" [class.active]="isCycleExpanded(cycleData.cycle._id)" (click)="toggleCycle(cycleData.cycle._id)">
+        <div class="cycle-header-left">
+          <fa-icon 
+            [icon]="isCycleExpanded(cycleData.cycle._id) ? faChevronDown : faChevronRight" 
+            class="expand-icon">
+          </fa-icon>
+          <h3 class="cycle-title">
+            {{ cycleData.cycle.name || ('Cycle ' + (i + 1)) }}
+            <span class="cycle-status-chip" [class.complete]="cycleData.cycle.isComplete">
+              {{ cycleData.cycle.isComplete ? 'Complete' : 'Active' }}
+            </span>
+          </h3>
+        </div>
+        <div class="cycle-header-right">
+          <span class="midcycles-status">{{ getMidcyclesStatus(cycleData) }}</span>
+          <span class="cycle-total">Total: {{ getCycleTotal(cycleData) | currency }}</span>
+        </div>
+      </div>
+      
+      <!-- Midcycles within this cycle -->
+      <div class="midcycles-container" *ngIf="isCycleExpanded(cycleData.cycle._id)">
+        <div class="midcycle-item" *ngFor="let midcycle of cycleData.midcycles"
+             [class.selected]="selectedMidcycle === midcycle" 
+             (click)="selectMidcycle(midcycle)">          <div class="midcycle-header">            <div class="midcycle-header-left">
+              <fa-icon
+                [icon]="selectedMidcycle === midcycle ? faCircleMinus : faCirclePlus"
+                class="midcycle-icon">
+              </fa-icon>
+              <span class="midcycle-title">Mid-cycle {{ midcycle.cycleNumber || '' }}</span>
+              <span class="midcycle-status-chip" [class.complete]="midcycle.isComplete">
+                {{ midcycle.isComplete ? 'Complete' : midcycle.isReady ? 'Ready' : 'Active' }}
+              </span>
+            </div>
+            <div class="midcycle-header-right">
+              <span class="midcycle-date">{{ midcycle.payoutDate | date:'mediumDate' }}</span>
+              <span class="midcycle-total">Total: {{ getContributionTotal(midcycle) | currency }}</span>
+            </div>
+          </div>
+          
+          <!-- Midcycle details (visible when selected) -->
+          <div class="midcycle-details" *ngIf="selectedMidcycle === midcycle">
+            <mat-divider></mat-divider>
+              <div class="recipient-details" *ngIf="midcycle.nextInLine">
+              <h4>Next In Line</h4>
+              <div class="recipient-info">
+                <div class="recipient-avatar">
+                  <fa-icon [icon]="faUser"></fa-icon>
+                </div>
+                <div class="recipient-data">
+                  <div class="recipient-name">{{ midcycle.nextInLine.name || 'Unknown' }}</div>
+                  <div class="recipient-email" *ngIf="midcycle.nextInLine.email">{{ midcycle.nextInLine.email }}</div>
+                  <div class="recipient-position" *ngIf="midcycle.nextInLine.position">Position: {{ midcycle.nextInLine.position }}</div>
+                </div>
+              </div>
+              <div class="payout-amount" *ngIf="midcycle.payoutAmount">
+                <strong>Payout Amount:</strong> {{ midcycle.payoutAmount | currency }}
+              </div>
+            </div>
+            
+            <div class="contributions-details">
+              <h4>Contributions</h4>              <mat-table [dataSource]="midcycle.contributions || []" class="contributions-table">
+                <!-- Contributor Column -->
+                <ng-container matColumnDef="contributor">
+                  <mat-header-cell *matHeaderCellDef>Contributor</mat-header-cell>
+                  <mat-cell *matCellDef="let contribution">
+                    <div class="contributor-info">
+                      <div class="contributor-avatar">
+                        <fa-icon [icon]="faUser"></fa-icon>
+                      </div>
+                      <div class="contributor-name">{{ contribution.user?.name || 'Unknown' }}</div>
+                    </div>
+                  </mat-cell>
+                </ng-container>
+                
+                <!-- Amount Column -->
+                <ng-container matColumnDef="amount">
+                  <mat-header-cell *matHeaderCellDef>Amount</mat-header-cell>
+                  <mat-cell *matCellDef="let contribution">
+                    {{ contribution.totalAmount | currency }}
+                  </mat-cell>
+                </ng-container>
+                
+                <!-- Count Column -->
+                <ng-container matColumnDef="count">
+                  <mat-header-cell *matHeaderCellDef>Transactions</mat-header-cell>
+                  <mat-cell *matCellDef="let contribution">
+                    {{ contribution.contributions?.length || 0 }}
+                  </mat-cell>
+                </ng-container>
+                
+                <mat-header-row *matHeaderRowDef="displayedColumns"></mat-header-row>
+                <mat-row *matRowDef="let row; columns: displayedColumns;"></mat-row>
+              </mat-table>                <div class="empty-table" *ngIf="!midcycle.contributions || midcycle.contributions.length === 0">
+                <fa-icon [icon]="faInfoCircle"></fa-icon>
+                <span>No contributions found</span>
+              </div>
+            </div>
+            
+            <!-- No next in line message if none exists -->
+            <div class="no-recipient" *ngIf="!midcycle.nextInLine">
+              <fa-icon [icon]="faInfoCircle"></fa-icon>
+              <span>No recipient assigned for this mid-cycle</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

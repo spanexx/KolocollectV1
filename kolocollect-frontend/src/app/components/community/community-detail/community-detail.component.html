@@ -96,14 +96,13 @@
         <div class="tab-button" [class.active]="activeTab === 'members'" (click)="setActiveTab('members')">
           <fa-icon [icon]="faUsers"></fa-icon>
           <span>Members</span>
-        </div>
-        <div class="tab-button" [class.active]="activeTab === 'midcycle'" (click)="setActiveTab('midcycle')">
+        </div>        <div class="tab-button" [class.active]="activeTab === 'midcycle'" (click)="setActiveTab('midcycle')">
           <fa-icon [icon]="faChartPie"></fa-icon>
           <span>Mid-Cycle</span>
         </div>
-        <div class="tab-button" [class.active]="activeTab === 'contributions'" (click)="setActiveTab('contributions')">
-          <fa-icon [icon]="faMoneyBillTransfer"></fa-icon>
-          <span>Contributions</span>
+        <div class="tab-button" [class.active]="activeTab === 'contributionHistory'" (click)="setActiveTab('contributionHistory')">
+          <fa-icon [icon]="faHistory"></fa-icon>
+          <span>Contribution History</span>
         </div>
         <div class="tab-button" [class.active]="activeTab === 'payouts'" (click)="setActiveTab('payouts')">
           <fa-icon [icon]="faDollarSign"></fa-icon>
@@ -527,85 +526,21 @@
             </div>
           </div>
         </div>
-        
-        <!-- Contributions Tab -->
-        <div class="tab-panel" *ngIf="activeTab === 'contributions'">
+          <!-- Removed Contributions Tab --><!-- Contribution History Tab (Hierarchical) -->
+        <div class="tab-panel" *ngIf="activeTab === 'contributionHistory'">
           <div class="tab-content">
             <div class="section-header-with-action">
-              <h2>Contribution History</h2>
+              <h2>Community Contribution History</h2>
               <app-custom-button *ngIf="isMember && !loading" variant="primary" size="medium" 
                 [icon]="faMoneyBillTransfer" 
                 (buttonClick)="navigateToContributionPage()">
                 Make Contribution
               </app-custom-button>
             </div>
-            <div class="custom-card">
-              <div class="card-content">
-                <div *ngIf="!community.cycles || community.cycles.length === 0" class="empty-state">
-                  <fa-icon [icon]="faCalendarDays" class="empty-icon"></fa-icon>
-                  <p>No contribution cycles have been started yet.</p>
-                </div>
-                
-                <div *ngIf="community.cycles && community.cycles.length > 0" class="cycles-list">
-                  <div *ngFor="let cycle of community.cycles" class="cycle-card">
-                    <div class="cycle-card-header">
-                      <h3>Cycle {{ cycle.cycleNumber }}</h3>
-                      <div class="status-chip" [ngClass]="cycle.isComplete ? 'complete-chip' : 'in-progress-chip'">
-                        {{ cycle.isComplete ? 'Complete' : 'In Progress' }}
-                      </div>
-                    </div>
-                    <div class="cycle-dates">
-                      <div>Start Date: {{ formatDate(cycle.startDate || undefined) }}</div>
-                      <div *ngIf="cycle.isComplete">End Date: {{ formatDate(cycle.endDate || undefined) }}</div>
-                    </div>
-                    
-                    <div class="midcycles-container" *ngIf="cycle.midCycles && cycle.midCycles.length > 0">
-                      <h4>Mid-Cycles</h4>
-                      <div class="midcycles-grid">
-                        <div *ngFor="let midCycle of cycle.midCycles" class="midcycle-card" [ngClass]="getMidcycleStatusClass(midCycle)">
-                          <div class="midcycle-header">
-                            <h5>Mid-Cycle {{ midCycle.midCycleNumber }}</h5>
-                            <div class="status-chip" [ngClass]="{
-                              'complete-chip': midCycle.isComplete, 
-                              'ready-chip': midCycle.isReady && !midCycle.isComplete, 
-                              'in-progress-chip': !midCycle.isReady && !midCycle.isComplete
-                            }">
-                              {{ midCycle.isComplete ? 'Complete' : midCycle.isReady ? 'Ready' : 'In Progress' }}
-                            </div>
-                          </div>
-                          
-                          <div class="midcycle-progress">
-                            <div class="progress-bar">
-                              <div class="progress-fill" [style.width.%]="getMidcycleProgress(midCycle)"></div>
-                            </div>
-                            <div class="progress-text">{{ getMidcycleProgress(midCycle) }}% Complete</div>
-                          </div>
-                          
-                          <div class="midcycle-details">
-                            <div *ngIf="midCycle.nextInLine" class="midcycle-item">
-                              <span class="item-label">Next In Line:</span>
-                              <span class="item-value">{{ midCycle.nextInLine.userName }}</span>
-                            </div>
-                            <div class="midcycle-item">
-                              <span class="item-label">Payout Amount:</span>
-                              <span class="item-value">${{ midCycle.payoutAmount || 0 }}</span>
-                            </div>
-                            <div *ngIf="midCycle.payoutDate" class="midcycle-item">
-                              <span class="item-label">Payout Date:</span>
-                              <span class="item-value">{{ formatDate(midCycle.payoutDate || undefined) }}</span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div *ngIf="!cycle.midCycles || cycle.midCycles.length === 0" class="empty-state small">
-                      <fa-icon [icon]="faCircleInfo" class="info-icon"></fa-icon>
-                      <span>No mid-cycles available for this cycle.</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
+            <app-contribution-history-hierarchical [communityId]="communityId"></app-contribution-history-hierarchical>
+            <!-- Debug output -->
+            <div class="debug-section" *ngIf="false">
+              <pre>{{ contributionHistoryDebug | json }}</pre>
             </div>
           </div>
         </div>

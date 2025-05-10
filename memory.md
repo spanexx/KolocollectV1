@@ -2,8 +2,6 @@
 
 ## Last Updated: May 6, 2025
 
-
-
 This document serves as a reference for important information related to the KoloCollect project implementation.
 
 INSTRUCTION!!

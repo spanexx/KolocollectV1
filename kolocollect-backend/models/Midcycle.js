@@ -11,9 +11,11 @@ const MidCycleSchema = new mongoose.Schema({
         paidMembers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }], // Define as an array of ObjectIds
         isComplete: { type: Boolean, default: false },
 
-    }],
-    nextInLine: {
+    }],    nextInLine: {
         userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+        memberReference: { type: mongoose.Schema.Types.ObjectId, ref: 'Member' },
+        userName: { type: String },
+        position: { type: Number }
     },
     defaulters: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
     isComplete: { type: Boolean, default: false },
@@ -51,6 +53,10 @@ MidCycleSchema.statics.getMidcycle = async function(midCycleId) {
             .populate({
                 path: 'nextInLine.userId',
                 select: 'name email'
+            })
+            .populate({
+                path: 'nextInLine.memberReference',
+                select: 'name email position'
             })
             .populate({
                 path: 'defaulters',

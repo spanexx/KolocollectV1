@@ -1,8 +1,20 @@
 # KoloCollect Frontend Implementation Progress
 
-## Last Updated: May 9, 2025
+## Last Updated: May 10, 2025
 
 This document tracks the progress of implementing the frontend for KoloCollect application based on the integration plan in PLAN.md.
+
+## Latest Backend Updates (May 10, 2025)
+
+- [✅] **Enhancement: Improved Community Contribution History API**
+  - Problem: The current way of displaying contribution history only shows mid-cycles without properly organizing by cycles
+  - Solution:
+    1. Created a new API endpoint `/api/communities/:communityId/contribution-history`
+    2. Implemented structured response that groups midcycles by their parent cycles
+    3. Included detailed contribution data with contributor information
+    4. Added calculation of contribution totals for each midcycle
+  - Implementation date: May 10, 2025
+  - Impact: Provides a hierarchical view of contributions organized by cycles and midcycles for better reporting and visualization
 
 ## Latest Backend Updates (May 9, 2025)
 
@@ -26,6 +38,55 @@ This document tracks the progress of implementing the frontend for KoloCollect a
     5. Improved activity log details with more information about the contribution
   - Implementation date: May 9, 2025
   - Impact: Fixes a critical issue with contribution funds not being properly deducted from user wallets
+
+## Latest Frontend Updates (May 10, 2025)
+
+- [✅] **Enhancement: Reorganized Community Contribution History Display**
+  - Problem: The current implementation shows mid-cycles in a flat list without properly organizing them by parent cycles
+  - Solution:
+    1. Created a new hierarchical contribution history component
+    2. Implemented a UI that shows cycles with expandable/collapsible midcycles
+    3. Added detailed view of each midcycle's contributions when selected
+    4. Added calculation of contribution totals for each midcycle and cycle
+    5. Integrated the new component into the community detail page as a separate tab
+  - Implementation date: May 10, 2025
+  - Impact: Provides users with a better organized view of contribution history, making it easier to track contributions across cycles
+    1. Update the community-detail component to use the new contribution history API
+    2. Implement an expandable hierarchical view with cycles and their respective midcycles
+    3. Show contribution details for each midcycle with contributor information
+    4. Add the ability to click on a midcycle to see detailed information about the next-in-line recipient and contributions
+  - Implementation steps:
+    1. Add new method to CommunityService: `getCommunityContributionHistory()`
+    2. Update the contribution history section in the community-detail component
+    3. Implement the expandable UI with cycles and midcycles
+    4. Add detailed contribution information display
+    5. Apply proper styling for the hierarchical view
+  - Target completion: May 12, 2025
+  - Integration with backend: Uses the new `/api/communities/:communityId/contribution-history` endpoint
+
+- [⏳] **Enhancement: Hierarchical Community Contribution History Component**
+  - Problem: The current implementation displays contribution history as a flat list of midcycles without proper organization
+  - Solution:
+    1. Create a new component for hierarchical contribution history display
+    2. Implement expandable/collapsible cycle groups containing their midcycles
+    3. Add detailed midcycle view showing next-in-line recipient and contribution details
+    4. Display contribution totals and statistics for each midcycle
+  - Implementation steps:
+    1. Add new getCommunityContributionHistory() method to CommunityService
+    2. Create ContributionHistoryHierarchicalComponent with accordion-style UI
+    3. Implement midcycle detail view with contributor information
+    4. Add to the community detail component as a new tab or replace existing contribution history
+  - Target completion: May 13, 2025
+  - Integration with backend: Uses the new `/api/communities/:communityId/contribution-history` endpoint
+
+- [⏳] **Task: Integration Testing for Contribution History**
+  - Tests needed:
+    1. Verify correct grouping of midcycles by cycle
+    2. Check accurate calculation of contribution totals
+    3. Ensure next-in-line recipient information is displayed correctly
+    4. Test user interactions (expand/collapse cycles, select midcycle)
+    5. Verify responsive design on different screen sizes
+  - Target completion: May 14, 2025
 
 ## Latest Frontend Updates (May 9, 2025)
 
@@ -74,6 +135,20 @@ This document tracks the progress of implementing the frontend for KoloCollect a
         - Current cycle information
     4. Added route integration for the new mid-cycle endpoint
   - Implementation date: May 9, 2025
+
+## Highest Priority Tasks (May 10, 2025)
+
+- [⏳] **Enhancement: Community Contribution History Interface**
+  - Task: Implement an enhanced, hierarchical view of community contribution history
+  - Priority: High
+  - Required steps:
+    1. Create new backend endpoint for structured contribution history
+    2. Develop expandable/collapsible UI for cycles and midcycles
+    3. Show detailed contribution information for each midcycle
+    4. Add UI to view next-in-line recipient details
+  - Dependencies: Existing contribution and community endpoints
+  - Assigned to: Team
+  - Due date: May 15, 2025
 
 ## Highest Priority Tasks (May 9, 2025)
 
