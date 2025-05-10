@@ -1626,10 +1626,13 @@ export class CommunityListComponent implements OnInit {
 ## Enhanced Community Contribution History Implementation (✅ COMPLETED)
 
 ### Problem Statement
+
 Currently, the contribution history in the community detail page shows a flat list of mid-cycles without organizing them by their parent cycles. This makes it difficult for users to understand the contribution structure and track the history properly.
 
 ### Solution (Implemented)
+
 Implemented a hierarchical view for the contribution history that:
+
 1. Groups mid-cycles by their parent cycles
 2. Shows detailed contribution information when a mid-cycle is clicked
 3. Displays next-in-line recipient and individual member contributions for each mid-cycle
@@ -1637,6 +1640,7 @@ Implemented a hierarchical view for the contribution history that:
 ### Backend Implementation
 
 #### 1. New API Endpoint
+
 Create a dedicated endpoint to retrieve the community contribution history:
 
 ```javascript
