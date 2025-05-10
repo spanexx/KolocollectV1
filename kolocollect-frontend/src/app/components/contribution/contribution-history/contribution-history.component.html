@@ -1,9 +1,14 @@
 <div class="contribution-history-container">
   <div class="header-section">
-    <h1>
-      <fa-icon [icon]="faHistory" class="section-icon"></fa-icon>
-      Contribution History
-    </h1>
+    <div class="title-with-refresh">
+      <h1>
+        <fa-icon [icon]="faHistory" class="section-icon"></fa-icon>
+        Contribution History
+      </h1>
+      <button mat-icon-button class="refresh-button" (click)="loadContributionsHistory()" [disabled]="isLoading" matTooltip="Refresh contributions">
+        <fa-icon [icon]="faArrowsRotate" [spin]="isLoading"></fa-icon>
+      </button>
+    </div>
     <div class="header-actions">
       <button mat-stroked-button class="filter-button">
         <fa-icon [icon]="faFilter" class="button-icon"></fa-icon>
@@ -19,7 +24,6 @@
       </button>
     </div>
   </div>
-  
   <mat-card>
     <mat-card-content>
       <!-- Loading indicator -->

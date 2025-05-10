@@ -1,11 +1,17 @@
 <div class="community-detail-container">
+  <!-- Header with refresh button -->
+  <div class="community-header-action" *ngIf="!loading && !error && community">
+    <button mat-icon-button class="refresh-button" (click)="loadCommunityDetails()" [disabled]="loading" matTooltip="Refresh community data">
+      <fa-icon [icon]="faArrowsRotate" [spin]="loading"></fa-icon>
+    </button>
+  </div>
+
   <div *ngIf="loading" class="loading-spinner">
     <div class="spinner-container">
-      <fa-icon [icon]="faSpinner" [spin]="true" size="2x"></fa-icon>
+      <fa-icon [icon]="faSpinner" [spin]="true" size="1x"></fa-icon>
     </div>
     <p>Loading community details...</p>
   </div>
-  
   <div *ngIf="error" class="error-container">
     <div class="error-card">
       <div class="error-card-content">
@@ -60,24 +66,17 @@
           </div>
           
           <div class="community-actions">
-            <ng-container *ngIf="currentUserId">
-              <app-custom-button *ngIf="!isMember" variant="primary" size="medium" 
+            <ng-container *ngIf="currentUserId">              <app-custom-button *ngIf="!isMember" variant="primary" size="medium" 
                 [icon]="faRightToBracket" [disabled]="loading"
                 (buttonClick)="joinCommunity()">
                 Join Community
               </app-custom-button>
               
-              <app-custom-button *ngIf="isMember" variant="destructive" size="medium" 
-                [icon]="faRightFromBracket" [disabled]="loading"
-                (buttonClick)="leaveCommunity()">
-                Leave Community
-              </app-custom-button>
-              
-              <app-custom-button *ngIf="isAdmin" variant="secondary" size="medium" 
+              <!-- <app-custom-button *ngIf="isAdmin" variant="secondary" size="medium" 
                 [icon]="faPlay" [disabled]="loading" class="ml-2"
                 (buttonClick)="startNewCycle()">
                 Start New Cycle
-              </app-custom-button>
+              </app-custom-button> -->
             </ng-container>
             <app-custom-button *ngIf="!currentUserId" variant="primary" size="medium" 
               [icon]="faRightToBracket" url="/login" 
@@ -242,26 +241,26 @@
                     </div>
                       <!-- Current Mid-Cycle Section -->
                     <div class="current-midcycle-section" *ngIf="midCycleDetails">
-                      <h3 class="midcycle-section-title">Current Mid-Cycle</h3>
-                      <div class="midcycle-card" [ngClass]="{'midcycle-complete': midCycleDetails.isComplete, 'midcycle-ready': midCycleDetails.isReady && !midCycleDetails.isComplete, 'midcycle-in-progress': !midCycleDetails.isReady && !midCycleDetails.isComplete}">
+                      <h3 class="midcycle-section-title">Current Mid-Cycle</h3>                      <div class="midcycle-card" [ngClass]="{'midcycle-complete': midCycleDetails.isComplete, 'midcycle-ready': midCycleDetails.isReady && !midCycleDetails.isComplete, 'midcycle-in-progress': !midCycleDetails.isReady && !midCycleDetails.isComplete}">
                         <div class="midcycle-header">
                           <h5>Mid-Cycle {{ midCycleDetails.midCycleId }}</h5>
                           <div class="status-chip" [ngClass]="{'complete-chip': midCycleDetails.isComplete, 'ready-chip': midCycleDetails.isReady && !midCycleDetails.isComplete, 'in-progress-chip': !midCycleDetails.isReady && !midCycleDetails.isComplete}">
                             {{ midCycleDetails.isComplete ? 'Complete' : midCycleDetails.isReady ? 'Ready for Payout' : 'In Progress' }}
                           </div>
                         </div>
-                        
-                        <div class="midcycle-progress">
-                          <div class="progress-bar">
-                            <div class="progress-fill" [style.width.%]="getContributionProgressPercentage()"></div>
+                          <div class="midcycle-progress vertical-progress">
+                          <div class="progress-content">
+                            <div class="progress-percentage">{{ getContributionProgressPercentage() }}%</div>
+                            <div class="progress-bar-container">
+                              <div class="progress-bar vertical" [style.height.%]="getContributionProgressPercentage()"></div>
+                            </div>
+                            <div class="progress-text">Complete</div>
                           </div>
-                          <div class="progress-text">{{ getContributionProgressPercentage() }}% Complete</div>
                         </div>
                         
-                        <div class="midcycle-details">
-                          <div *ngIf="midCycleDetails.nextInLine" class="midcycle-item">
+                        <div class="midcycle-details">                          <div *ngIf="midCycleDetails?.nextInLine" class="midcycle-item">
                             <span class="item-label">Next In Line:</span>
-                            <span class="item-value">{{ midCycleDetails.nextInLine.name }}</span>
+                            <span class="item-value">{{ midCycleDetails.nextInLine?.name }}</span>
                           </div>
                           <div class="midcycle-item">
                             <span class="item-label">Payout Amount:</span>
@@ -273,7 +272,7 @@
                           </div>
                           <div class="midcycle-item">
                             <span class="item-label">Contributions:</span>
-                            <span class="item-value">{{ midCycleDetails.contributionProgress.made || 0 }}/{{ midCycleDetails.contributionProgress.expected || 0 }}</span>
+                            <span class="item-value">{{ midCycleDetails.contributionProgress?.made || 0 }}/{{ midCycleDetails.contributionProgress?.expected || 0 }}</span>
                           </div>
                         </div>
                           <div class="midcycle-actions" *ngIf="isMember && midCycleDetails.isReady && !isUserContributedToCurrentMidcycle()">
@@ -305,10 +304,9 @@
               <!-- Mid-Cycle Summary Section -->
             <div class="section" *ngIf="community">
               <h2>Mid-Cycle Summary</h2>
-              <div class="custom-card">
-                <div class="card-content" *ngIf="loadingMidCycleDetails">
-                  <div class="loading-spinner">
-                    <fa-icon [icon]="faSpinner" [spin]="true"></fa-icon>
+              <div class="custom-card">                <div class="card-content" *ngIf="loadingMidCycleDetails">
+                  <div class="loading-indicator">
+                    <fa-icon [icon]="faCircleInfo"></fa-icon>
                     <span>Loading mid-cycle details...</span>
                   </div>
                 </div>
@@ -321,26 +319,30 @@
                     <div class="midcycle-stat">
                       <div class="stat-label">Completed</div>
                       <div class="stat-value">{{ getMidCycleSummary().completed }}</div>
-                    </div>
-                    <div class="midcycle-stat">
+                    </div>                    <div class="midcycle-stat">
                       <div class="stat-label">Active</div>
                       <div class="stat-value">{{ midCycleDetails && !midCycleDetails.isComplete ? 1 : 0 }}</div>
                     </div>
                     <div class="midcycle-stat">
                       <div class="stat-label">Total Distributed</div>
                       <div class="stat-value">${{ getMidCycleSummary().distributed }}</div>
+                    </div>                  </div>                    <div class="midcycle-progress vertical-progress">
+                      <h4 class="progress-title">Contribution Progress</h4>
+                      <div class="progress-content">
+                        <div class="progress-percentage">{{ getContributionProgressPercentage() }}%</div>
+                        <div class="progress-bar-container">
+                          <div class="progress-bar vertical" [style.height.%]="getContributionProgressPercentage()"></div>
+                        </div>
+                        <div class="progress-info-item">
+                          <fa-icon [icon]="faUsers"></fa-icon>
+                          <span>{{ midCycleDetails.contributionProgress?.made || 0 }}/{{ midCycleDetails.contributionProgress?.expected || 0 }} Contributions</span>
+                        </div>
+                        <div class="progress-info-item status" [ngClass]="{'status-complete': getContributionProgressPercentage() === 100, 'status-progress': getContributionProgressPercentage() < 100}">
+                          <fa-icon [icon]="getContributionProgressPercentage() === 100 ? faCheckCircle : faCircleInfo"></fa-icon>
+                          <span>{{ getContributionProgressPercentage() === 100 ? 'Complete' : 'In Progress' }}</span>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                    <div class="midcycle-progress">
-                    <div class="progress-label">Contribution Progress</div>
-                    <div class="progress-bar-container">
-                      <div class="progress-bar" [style.width.%]="getContributionProgressPercentage()"></div>
-                    </div>
-                    <div class="progress-stats">
-                      <span>{{ getContributionProgressPercentage() }}% Complete</span>
-                      <span>{{ midCycleDetails.contributionProgress.made || 0 }}/{{ midCycleDetails.contributionProgress.expected || 0 }} Contributions</span>
-                    </div>
-                  </div>
                 </div>
               </div>
             </div>
@@ -380,6 +382,14 @@
                 </div>
               </div>
             </div>
+                  <!-- Leave Community Button at the bottom of the page -->
+    <div class="leave-community-container" *ngIf="isMember">
+      <app-custom-button variant="destructive" size="medium" 
+        [icon]="faRightFromBracket" [disabled]="loading"
+        (buttonClick)="leaveCommunity()">
+        Leave Community
+      </app-custom-button>
+    </div>
           </div>
         </div>
         
@@ -388,11 +398,10 @@
           <div class="tab-content">
             <div class="section">
               <h2>Current Mid-Cycle</h2>
-              
-              <div class="custom-card" *ngIf="loadingMidCycleDetails">
+                <div class="custom-card" *ngIf="loadingMidCycleDetails">
                 <div class="card-content">
-                  <div class="loading-spinner">
-                    <fa-icon [icon]="faSpinner" [spin]="true"></fa-icon>
+                  <div class="loading-indicator">
+                    <fa-icon [icon]="faCircleInfo"></fa-icon>
                     <span>Loading mid-cycle details...</span>
                   </div>
                 </div>
@@ -414,7 +423,7 @@
                     <div class="cycle-info-grid">
                       <div class="info-item">
                         <div class="info-label">Cycle Number</div>
-                        <div class="info-value">{{ midCycleDetails.currentCycle?.cycleNumber || 1 }}</div>
+                        <div class="info-value">{{ midCycleDetails.currentCycle?.cycleNumber || 0 }}</div>
                       </div>
                       <div class="info-item">
                         <div class="info-label">Start Date</div>
@@ -438,32 +447,23 @@
                     <div class="status-badge" [ngClass]="{'ready': midCycleDetails.isReady, 'in-progress': !midCycleDetails.isReady && !midCycleDetails.isComplete, 'completed': midCycleDetails.isComplete}">
                       {{ midCycleDetails.isComplete ? 'Completed' : (midCycleDetails.isReady ? 'Ready for Payout' : 'In Progress') }}
                     </div>
-                  </div>
-                  <div class="card-content">
-                    <div class="progress-container">
-                      <h4>Contribution Progress</h4>
-                      <div class="progress-bar-container">
-                        <div class="progress-bar" [style.width.%]="getContributionProgressPercentage()"></div>
-                        <div class="progress-text">{{ getContributionProgressPercentage() }}%</div>
+                  </div>                  <div class="card-content">                    <div class="midcycle-progress vertical-progress">
+                      <h4 class="progress-title">Contribution Progress</h4>
+                      <div class="progress-content">
+                        <div class="progress-percentage">{{ getContributionProgressPercentage() }}%</div>
+                        <div class="progress-bar-container">
+                          <div class="progress-bar vertical" [style.height.%]="getContributionProgressPercentage()"></div>
+                        </div>
+                        <div class="progress-info-item">
+                          <fa-icon [icon]="faUsers"></fa-icon>
+                          <span>{{ midCycleDetails.contributionProgress?.made || 0 }}/{{ midCycleDetails.contributionProgress?.expected || 0 }} Contributions</span>
+                        </div>
+                        <div class="progress-info-item status" [ngClass]="{'status-complete': getContributionProgressPercentage() === 100, 'status-progress': getContributionProgressPercentage() < 100}">
+                          <fa-icon [icon]="getContributionProgressPercentage() === 100 ? faCheckCircle : faCircleInfo"></fa-icon>
+                          <span>{{ getContributionProgressPercentage() === 100 ? 'Complete' : 'In Progress' }}</span>
+                        </div>
                       </div>
-                      <div class="progress-details">
-                        <span>{{ midCycleDetails && midCycleDetails.contributionProgress ? midCycleDetails.contributionProgress.made : 0 }}/{{ midCycleDetails && midCycleDetails.contributionProgress ? midCycleDetails.contributionProgress.expected : 0 }} Contributions Made</span>
-                      </div>
-                    </div>
-                    
-                    <!-- Admin Payout Action -->
-                    <div class="admin-actions" *ngIf="isAdmin && midCycleDetails.isReady && !midCycleDetails.isComplete">
-                      <div class="action-notice">
-                        <fa-icon [icon]="faCircleInfo" class="info-icon"></fa-icon>
-                        <span>As the administrator, you can now distribute payouts for this mid-cycle</span>
-                      </div>
-                      <app-custom-button variant="primary" size="medium" 
-                        [icon]="faDollarSign" [disabled]="loading"
-                        (buttonClick)="distributePayouts()">
-                        Distribute Payouts
-                      </app-custom-button>
-                    </div>
-                    
+                    </div>                    
                     <div class="next-payout-info" *ngIf="midCycleDetails.nextInLine">
                       <h4>Next Payout Information</h4>
                       <div class="payout-grid">
@@ -478,8 +478,20 @@
                         <div class="payout-item">
                           <div class="payout-label">Scheduled Date</div>
                           <div class="payout-value">{{ midCycleDetails.payoutDate | date:'mediumDate' }}</div>
-                        </div>
+                        </div>                      </div>
+                    </div>
+                    
+                    <!-- Admin Payout Action -->
+                    <div class="admin-actions" *ngIf="isAdmin && midCycleDetails.isReady && !midCycleDetails.isComplete">
+                      <div class="action-notice">
+                        <fa-icon [icon]="faCircleInfo" class="info-icon"></fa-icon>
+                        <span>As the administrator, you can now distribute payouts for this mid-cycle</span>
                       </div>
+                      <app-custom-button variant="primary" size="medium" 
+                        [icon]="faDollarSign" [disabled]="loading"
+                        (buttonClick)="distributePayouts()">
+                        Distribute Payouts
+                      </app-custom-button>
                     </div>
                   </div>
                 </div>
@@ -643,8 +655,8 @@
               </div>
             </div>
           </div>
-        </div>
-      </div>
+        </div>      </div>
     </div>
+
   </ng-container>
 </div>

@@ -25,11 +25,11 @@ import {
   faCheckCircle,
   faHourglassHalf,
   faTimesCircle,
-  faSpinner,
-  faFilter,
+  faSpinner,  faFilter,
   faDownload,
   faPlus,
-  faExclamationCircle
+  faExclamationCircle,
+  faArrowsRotate
 } from '@fortawesome/free-solid-svg-icons';
 import { finalize } from 'rxjs';
 
@@ -60,10 +60,10 @@ export class ContributionHistoryComponent implements OnInit {
   faHourglassHalf = faHourglassHalf;
   faTimesCircle = faTimesCircle;
   faSpinner = faSpinner;
-  faFilter = faFilter;
-  faDownload = faDownload;
+  faFilter = faFilter;  faDownload = faDownload;
   faPlus = faPlus;
   faExclamationCircle = faExclamationCircle;
+  faArrowsRotate = faArrowsRotate;
 
   // Table related properties
   displayedColumns: string[] = ['date', 'community', 'cycle', 'amount', 'status'];

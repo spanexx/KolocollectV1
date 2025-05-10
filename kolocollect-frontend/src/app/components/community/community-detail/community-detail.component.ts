@@ -16,7 +16,8 @@ import {
   faUser, faUsers, faCalendarDays, faDollarSign, faPiggyBank, 
   faRightToBracket, faRightFromBracket, faPlay, faCircleExclamation,
   faArrowRight, faMoneyBillTransfer, faCircleInfo, faCheckCircle,
-  faTimesCircle, faHourglassHalf, faFireAlt, faSpinner, faChartPie
+  faTimesCircle, faHourglassHalf, faFireAlt, faSpinner, faChartPie,
+  faArrowsRotate
 } from '@fortawesome/free-solid-svg-icons';
 import { CommunityService } from '../../../services/community.service';
 import { MidcycleService } from '../../../services/midcycle.service';
@@ -68,6 +69,7 @@ export class CommunityDetailComponent implements OnInit, OnDestroy {  // Font Aw
   faMoneyBillTransfer = faMoneyBillTransfer;  faCircleInfo = faCircleInfo;
   faSpinner = faSpinner;
   faChartPie = faChartPie;
+  faArrowsRotate = faArrowsRotate;
   faCheckCircle = faCheckCircle;
   faTimesCircle = faTimesCircle;
     communityId: string = '';
@@ -144,6 +146,7 @@ export class CommunityDetailComponent implements OnInit, OnDestroy {  // Font Aw
             m.userId === this.currentUserId || m.userId === this.currentUser?.id
           );
           this.isMember = !!member;
+          console.log('Current user is a member:', this.isMember);
         }
         
         // Check if current user is the admin

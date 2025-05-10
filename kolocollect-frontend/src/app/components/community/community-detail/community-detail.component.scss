@@ -19,6 +19,48 @@ $accent-light: #FCD34D; // Light amber
 
 $destructive-color: #EF4444; // Red
 $destructive-dark: #DC2626; // Darker red
+$destructive-light: #FCA5A5; // Light red
+
+$neutral-200: #E5E7EB; // Light gray for borders
+$neutral-400: #9CA3AF; // Medium gray for disabled text
+
+// Refresh button header styles
+.community-header-action {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  z-index: 10;
+  
+  .refresh-button {
+    background-color: white;
+    border: 1px solid $primary-light;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease;
+    
+    &:hover {
+      background-color: $primary-light;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+      transform: rotate(30deg);
+    }
+    
+    &:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+    
+    fa-icon {
+      color: $primary-color;
+      font-size: 1.2rem;
+    }
+  }
+}
 $destructive-light: #FECACA; // Light red
 
 $neutral-100: #F3F4F6;
@@ -37,9 +79,44 @@ $neutral-900: #111827;
   margin: 0 auto;
   padding: 1rem;
   font-family: 'Inter', sans-serif;
+  position: relative;
   
   @media (max-width: 768px) {
     padding: 0.5rem;
+  }
+}
+
+// Community header action with refresh button
+.community-header-action {
+  display: flex;
+  justify-content: flex-end;
+  padding: 0.75rem 1rem 0;
+  position: relative;
+  z-index: 10;
+
+  .refresh-button {
+    background-color: rgba(255, 255, 255, 0.9);
+    color: $primary-color;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    transition: all 0.2s ease;
+    
+    &:hover {
+      background-color: $primary-color;
+      color: white;
+      transform: rotate(15deg);
+    }
+    
+    &:disabled {
+      color: $neutral-400;
+      background-color: $neutral-200;
+      cursor: not-allowed;
+    }
   }
 }
 
@@ -68,6 +145,25 @@ $neutral-900: #111827;
     margin-top: 1rem;
     font-size: 1rem;
     color: $neutral-600;
+  }
+}
+
+.loading-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  color: $neutral-600;
+  
+  fa-icon {
+    margin-right: 0.75rem;
+    font-size: 1.25rem;
+    color: $accent-color;
+  }
+  
+  span {
+    font-size: 1rem;
+    font-weight: 500;
   }
 }
 
@@ -1696,5 +1792,143 @@ app-custom-button {
   
   p {
     margin-top: 1rem;
+  }
+}
+
+// Vertical progress styling for midcycle
+.midcycle-progress.vertical-progress {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background-color: rgba(243, 244, 246, 0.6);
+  border-radius: 0.75rem;
+  
+  .progress-title {
+    text-align: center;
+    margin: 0 0 1rem 0;
+    font-weight: 600;
+    color: $neutral-800;
+    font-size: 1.1rem;
+  }
+  
+  .progress-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  
+  .progress-percentage {
+    font-size: 2rem;
+    font-weight: 700;
+    color: $primary-color;
+    line-height: 1;
+    margin-bottom: 0.5rem;
+  }
+  
+  .progress-bar-container {
+    width: 100%;
+    height: 0.5rem;
+    background-color: $neutral-200;
+    border-radius: 0.25rem;
+    overflow: hidden;
+    margin-bottom: 0.5rem;
+    
+    .progress-bar {
+      height: 100%;
+      background-color: $primary-color;
+      border-radius: 0.25rem;
+    }
+  }
+  
+  .progress-info-item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: $neutral-700;
+    width: 100%;
+    padding: 0.5rem 0;
+    
+    &:first-of-type {
+      border-bottom: 1px solid $neutral-200;
+    }
+    
+    fa-icon {
+      margin-right: 0.5rem;
+      color: $accent-color;
+    }
+    
+    &.status {
+      &.status-complete {
+        color: $secondary-color;
+        
+        fa-icon {
+          color: $secondary-color;
+        }
+      }
+      
+      &.status-progress {
+        color: $primary-color;
+        
+        fa-icon {
+          color: $primary-color;
+        }
+      }
+    }
+  }
+}
+.community-header-action {
+  display: flex;
+  justify-content: flex-end;
+  padding: 0.75rem 1rem 0;
+  position: relative;
+  z-index: 10;
+
+  .refresh-button {
+    background-color: rgba(255, 255, 255, 0.9);
+    color: $primary-color;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    transition: all 0.2s ease;
+    
+    &:hover {
+      background-color: $primary-color;
+      color: white;
+      transform: rotate(15deg);
+    }
+    
+    &:disabled {
+      color: $neutral-400;
+      background-color: $neutral-200;
+      cursor: not-allowed;
+    }
+  }
+}
+
+/* Styles for leave community button */
+.leave-community-container {
+  display: flex;
+  justify-content: center;
+  padding: 1.5rem 0;
+  margin-top: 2rem;
+  border-top: 1px solid $neutral-200;
+  
+  ::ng-deep app-custom-button {
+    .danger {
+      background-color: $destructive-light;
+      color: $destructive-dark;
+      border: 1px solid $destructive-color;
+      
+      &:hover {
+        background-color: $destructive-color;
+        color: white;
+      }
+    }
   }
 }

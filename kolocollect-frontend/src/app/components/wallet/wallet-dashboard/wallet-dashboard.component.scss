@@ -8,6 +8,33 @@
   }
 }
 
+// Wallet header with refresh button
+.wallet-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  
+  h1 {
+    font-size: 1.75rem;
+    font-weight: 600;
+    margin: 0;
+    color: #333;
+  }
+  
+  .refresh-button {
+    color: #6D28D9;
+    
+    &:hover {
+      background-color: rgba(109, 40, 217, 0.1);
+    }
+    
+    &[disabled] {
+      color: #9CA3AF;
+    }
+  }
+}
+
 // Loading state styling
 .loading-container {
   display: flex;

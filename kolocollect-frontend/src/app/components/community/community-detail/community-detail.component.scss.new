@@ -1,0 +1,55 @@
+// filepath: c:\Users\shuga\OneDrive\Desktop\PRO\Kolocollect\kolocollect-frontend\src\app\components\community\community-detail\community-detail.component.scss
+
+// CSS Variables for animations
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+// Colors from design system
+$primary-color: #6D28D9; // Deep Purple
+$primary-dark: #5B21B6; // Darker purple
+$primary-light: #C4B5FD; // Light purple
+
+$secondary-color: #10B981; // Emerald Green
+$secondary-dark: #059669; // Darker green
+$secondary-light: #A7F3D0; // Light green
+
+$accent-color: #F59E0B; // Amber
+$accent-dark: #D97706; // Darker amber
+$accent-light: #FCD34D; // Light amber
+
+$destructive-color: #EF4444; // Red
+$destructive-dark: #DC2626; // Darker red
+
+// Original styles (keeping the original content)
+// ...existing CSS...
+
+// Community header action with refresh button
+.community-header-action {
+  display: flex;
+  justify-content: flex-end;
+  padding: 1rem;
+  
+  .refresh-button {
+    color: $primary-color;
+    transition: all 0.2s ease;
+    
+    &:hover {
+      background-color: rgba($primary-color, 0.1);
+    }
+    
+    &[disabled] {
+      color: #9CA3AF;
+    }
+  }
+}
+
+// Leave community button container at the bottom
+.leave-community-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 2rem;
+  padding: 1.5rem;
+  border-top: 1px solid #E5E7EB;
+}

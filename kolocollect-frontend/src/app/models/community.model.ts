@@ -124,7 +124,7 @@ export interface MidCycleDetails {
   defaulters: string[];
   midCycleJoiners: any[];
   contributionsToNextInLine: Record<string, number>;
-  contributionProgress: {
+  contributionProgress?: {
     percentage: number;
     made: number;
     expected: number;

@@ -129,7 +129,6 @@ export class CommunityListComponent implements OnInit {
         this.loadingService.stop('load-communities');
       })
     ).subscribe((response: any) => {
-      console.log('Community List Response:', response);
       this.communities = response.data || [];
       this.totalCount = response.pagination?.totalItems || 0;
       
@@ -143,27 +142,22 @@ export class CommunityListComponent implements OnInit {
   }  loadUserCommunities(): void {
     // Check if user is logged in
     const currentUser = this.authService.currentUserValue;
-    console.log('Current user:', currentUser);
     
     if (!currentUser) {
-      console.log('No user logged in, skipping community load');
       return;
     }
 
     this.loadingService.start('user-communities');
-    console.log('Fetching communities for user ID:', currentUser.id);
     
     this.userService.getUserCommunities(currentUser.id).pipe(
       catchError(error => {
-        console.error('Error loading user communities:', error);
         return of({ communities: [] }); // Return empty array on error
       }),
       finalize(() => {
         this.loadingService.stop('user-communities');
       })
     ).subscribe(response => {
-      console.log('User communities API response:', response);
-      console.log('API response structure:', JSON.stringify(response, null, 2));
+
       
       // Reset user communities
       this.userCommunities = [];
@@ -172,18 +166,14 @@ export class CommunityListComponent implements OnInit {
       if (response && response.communities) {
         // Handle different response structures
         if (Array.isArray(response.communities)) {
-          console.log('Communities is an array, using directly');
           this.userCommunities = response.communities.map((comm: any) => {
             const id = comm.id || comm._id || comm.communityId || (comm.community && (comm.community._id || comm.community.id));
-            console.log('Extracted community ID:', id, 'from:', comm);
             return id;
           }).filter((id: string) => id); // Filter out any undefined IDs
         } 
         else if (response.communities.communities && Array.isArray(response.communities.communities)) {
-          console.log('Communities is nested in communities.communities');
           this.userCommunities = response.communities.communities.map((comm: any) => {
             const id = comm.id || comm._id || comm.communityId || (comm.community && (comm.community._id || comm.community.id));
-            console.log('Extracted community ID:', id, 'from:', comm);
             return id;
           }).filter((id: string) => id); // Filter out any undefined IDs
         }
@@ -192,13 +182,11 @@ export class CommunityListComponent implements OnInit {
           this.userCommunities = [];
         }
       } else {
-        console.log('No communities found in response');
         this.userCommunities = [];      }
 
       // Add admin's communities
       if (this.authService.currentUserValue && this.communities.length > 0) {
         const userId = this.authService.currentUserValue.id;
-        console.log('Looking for communities where user is admin:', userId);
         
         // Find communities where the user is admin
         const adminCommunities = this.communities
@@ -206,12 +194,10 @@ export class CommunityListComponent implements OnInit {
           .map(community => community._id);
         
         if (adminCommunities.length > 0) {
-          console.log('Found admin communities:', adminCommunities);
           this.userCommunities.push(...adminCommunities);
         }
       }
       
-      console.log('Final userCommunities array after adding admin communities:', this.userCommunities);
     });
   }
   /**
@@ -220,13 +206,9 @@ export class CommunityListComponent implements OnInit {
    */  
   isUserMemberOfCommunity(communityId: string): boolean {
     if (!communityId || !this.userCommunities || this.userCommunities.length === 0) {
-      console.log(`Cannot check membership for community ${communityId}: no user communities loaded`);
       return false;
     }
-    
-    // Debugging the problem with communities not matching
-    console.log(`Checking if user is member of community: ${communityId}`);
-    console.log(`Available user communities:`, this.userCommunities);
+ 
 
     const isMember = this.userCommunities.some((userCommunity: any) => {
       // Handle when userCommunity is an object
@@ -237,7 +219,6 @@ export class CommunityListComponent implements OnInit {
       return userCommunity === communityId;
     });
 
-    console.log(`Is user member of ${communityId}: ${isMember}`);
     return isMember;
   }
 

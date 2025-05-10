@@ -1305,7 +1305,9 @@ exports.getCurrentMidCycleDetails = async (req, res) => {
         select: 'userId name email status position penalty missedContributions'
       });
     
-    if (!community) return createErrorResponse(res, 404, 'COMMUNITY_NOT_FOUND', 'Community not found');    // Find the active mid-cycle
+    if (!community) return createErrorResponse(res, 404, 'COMMUNITY_NOT_FOUND', 'Community not found');
+    
+    // Find the active mid-cycle
     const activeMidCycle = await MidCycle.findOne({
       _id: { $in: community.midCycle },
       isComplete: false
@@ -1318,14 +1320,25 @@ exports.getCurrentMidCycleDetails = async (req, res) => {
     });
 
     if (!activeMidCycle) {
-      return createErrorResponse(res, 404, 'NO_ACTIVE_MIDCYCLE', 'No active mid-cycle found for this community.');
+      // Return a structured response instead of an error when no active mid-cycle exists
+      return res.status(200).json({
+        message: 'No active mid-cycle found for this community',
+        midCycleExists: false,
+        summary: {
+          totalMidCycles: community.midCycle.length,
+          completedMidCycles: community.midCycle.filter(mc => mc.isComplete).length,
+          totalDistributed: community.totalDistributed || 0,
+        }
+      });
     }
 
     // Get the current cycle
     const currentCycle = await Cycle.findOne({
       _id: { $in: community.cycles },
       isComplete: false
-    });    // Calculate mid-cycle statistics
+    });
+    
+    // Calculate mid-cycle statistics
     const totalMidCycles = community.midCycle.length;
     const completedMidCycles = community.midCycle.filter(mc => mc.isComplete).length;
     
@@ -1403,9 +1416,11 @@ exports.getCurrentMidCycleDetails = async (req, res) => {
         paidMembers: currentCycle.paidMembers ? currentCycle.paidMembers.length : 0,
         totalMembers: community.members.filter(m => m.status === 'active').length
       } : null
-    });
-  } catch (err) {
-    console.error('Error fetching mid-cycle details:', err);
+    });  } catch (err) {
+    // Only log if it's not a missing cycle or mid-cycle error
+    if (!err.message || (!err.message.includes('cycle') && !err.message.includes('mid-cycle'))) {
+      console.error('Error fetching mid-cycle details:', err);
+    }
     return createErrorResponse(res, 500, 'GET_MIDCYCLE_DETAILS_ERROR', 'Server error while fetching mid-cycle details: ' + err.message);
   }
 };

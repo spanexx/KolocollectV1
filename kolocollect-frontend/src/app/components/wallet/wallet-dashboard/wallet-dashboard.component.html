@@ -1,4 +1,12 @@
 <div class="wallet-dashboard-container">
+  <!-- Header with refresh button -->
+  <div class="wallet-header">
+    <h1>Wallet Dashboard</h1>
+    <button mat-icon-button class="refresh-button" (click)="loadWalletData()" [disabled]="isLoading" matTooltip="Refresh wallet data">
+      <fa-icon [icon]="faArrowsRotate" [spin]="isLoading"></fa-icon>
+    </button>
+  </div>
+
   <!-- Loading indicator -->
   <div *ngIf="isLoading" class="loading-container">
     <mat-spinner diameter="40"></mat-spinner>
