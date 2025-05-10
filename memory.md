@@ -1,6 +1,10 @@
 # KoloCollect Implementation Memory
 
-## Last Updated: May 6, 2025
+## Last Updated: May 10, 2025
+
+lets create an API that allow user to download or share community pages. they can download the page as pdf or share it as an image.
+
+lets create an Api that allow user to share contributions for cycle, or for a midcycle,
 
 This document serves as a reference for important information related to the KoloCollect project implementation.
 
@@ -180,4 +184,11 @@ When you are done with any component check for all problems.
 - Unit tests for services and component logic
 - Component tests for rendering
 - Integration tests for feature flows
-  
+
+_______________________________________________________
+
+This Platform will ultimately be a loan shark that will turn out to be an investment platform.
+imaagine if users can verify to loan people their backup fund.
+They would each access a person applying for loan, and the system will loan the user the money from the backupfund.
+For the investment part, the system will create assets that communities can decide to invest in or buy a share in.
+More to this later.

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, DestroyRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { ErrorComponent } from '../../shared/error/error.component';
@@ -32,20 +32,21 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 export class ErrorPageComponent implements OnInit {
   errorCode: '404' | '500' | '403' | 'offline' | 'generic' = 'generic';
   errorMessage: string = '';
+  private destroyRef = inject(DestroyRef);
   
   constructor(private errorPageService: ErrorPageService) {}
   
   ngOnInit(): void {
     // Subscribe to error code changes
     this.errorPageService.errorCode$.pipe(
-      takeUntilDestroyed()
+      takeUntilDestroyed(this.destroyRef)
     ).subscribe(code => {
       this.errorCode = code as '404' | '500' | '403' | 'offline' | 'generic';
     });
     
     // Subscribe to error message changes
     this.errorPageService.errorMessage$.pipe(
-      takeUntilDestroyed()
+      takeUntilDestroyed(this.destroyRef)
     ).subscribe(message => {
       this.errorMessage = message;
     });

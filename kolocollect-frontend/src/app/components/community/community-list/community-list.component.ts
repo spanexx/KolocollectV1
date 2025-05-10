@@ -12,6 +12,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { catchError, finalize, throwError, forkJoin, of } from 'rxjs';
 import { Community, CommunityListResponse, MidCycle } from '../../../models/community.model';
 import { JoinCommunityDialogComponent } from '../join-community-dialog/join-community-dialog.component';
+import { MidcycleService } from '../../../services/midcycle.service';
 
 // Angular Material imports
 import { MatCardModule } from '@angular/material/card';
@@ -40,8 +41,11 @@ import {
   faUserPlus,
   faSpinner,
   faClock,
-  faHandHoldingDollar
+  faHandHoldingDollar,
+  faChevronDown,
+  faChevronUp
 } from '@fortawesome/free-solid-svg-icons';
+import { MemberService } from '../../../services/member.service';
 
 @Component({
   selector: 'app-community-list',
@@ -78,8 +82,9 @@ export class CommunityListComponent implements OnInit {
   faEye = faEye;
   faUserPlus = faUserPlus;
   faSpinner = faSpinner;
-  faClock = faClock;
-  faHandHoldingDollar = faHandHoldingDollar; // New icon for contribute button
+  faClock = faClock;  faHandHoldingDollar = faHandHoldingDollar; // New icon for contribute button
+  faChevronDown = faChevronDown;
+  faChevronUp = faChevronUp;
   
   communities: Community[] = [];
   totalCount: number = 0;
@@ -90,35 +95,37 @@ export class CommunityListComponent implements OnInit {
   isLoading: boolean = false;
   error: string | null = null;
   userCommunities: string[] = []; // IDs of communities the user is a member of
-  
-  constructor(
+  expandedCommunities: {[communityId: string]: boolean} = {}; // Track which communities are expanded
+    constructor(
     private communityService: CommunityService,
     private userService: UserService,
+    private memberService: MemberService,
     private loadingService: LoadingService,
     private toastService: ToastService,
     private router: Router,
     private authService: AuthService,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private midcycleService: MidcycleService
   ) {}
 
   ngOnInit(): void {
     this.loadCommunities();
     this.loadUserCommunities();
   }
-
   loadCommunities(): void {
     this.isLoading = true;
     this.error = null;
     this.loadingService.start('load-communities');
+
+    // Reset active member counts cache when loading new communities
+    this.activeMemberCounts = {};
 
     // Build filter parameters
     const params = {
       page: this.pageIndex + 1,  // API uses 1-based pagination
       limit: this.pageSize,
       ...this.filterOptions
-    };
-
-    this.communityService.filterCommunities(params).pipe(
+    };    this.communityService.filterCommunities(params).pipe(
       catchError(error => {
         this.error = error.message || 'Failed to load communities';
         this.toastService.error('Error loading communities');
@@ -130,6 +137,7 @@ export class CommunityListComponent implements OnInit {
       })
     ).subscribe((response: any) => {
       this.communities = response.data || [];
+      console.log('Communities:', this.communities);
       this.totalCount = response.pagination?.totalItems || 0;
       
       if (this.communities.length === 0 && this.totalCount > 0) {
@@ -137,7 +145,20 @@ export class CommunityListComponent implements OnInit {
         // we might be on a page with no data, so go back to first page
         this.pageIndex = 0;
         this.loadCommunities();
+        return;
       }
+      
+      // Pre-fetch data for all loaded communities
+      this.communities.forEach(community => {
+        // Pre-fetch active member counts
+        this.getActiveMemberCount(community);
+        
+        // Check midcycle readiness status
+        this.checkMidcycleReadiness(community);
+      });
+      this.communities.forEach(community => {
+        this.getActiveMemberCount(community);
+      });
     });
   }  loadUserCommunities(): void {
     // Check if user is logged in
@@ -327,11 +348,44 @@ export class CommunityListComponent implements OnInit {
     this.pageIndex = event.pageIndex;
     this.pageSize = event.pageSize;
     this.loadCommunities();
-  }
+  }  /**
+   * Cache for active member counts to avoid repeated API calls
+   */
+  private activeMemberCounts: { [communityId: string]: number } = {};
 
+  /**
+   * Get the count of active members for a community
+   * Uses cached value if available, otherwise calls the API
+   */
   getActiveMemberCount(community: Community): number {
-    if (!community.members) return 0;
-    return community.members.filter(member => member).length;
+    // If we have a cached value, return it immediately
+    if (this.activeMemberCounts[community._id]) {
+      return this.activeMemberCounts[community._id];
+    }
+
+    // Default to 0 until we get data from the API
+    this.activeMemberCounts[community._id] = 0;
+    
+    // Call the API to get the actual count
+    this.memberService.getActiveMemberCount(community._id).pipe(
+      catchError(error => {
+        // Log error but don't crash the UI
+        console.error('Error fetching active member count:', error);
+        return of({ status: 'error', data: { communityId: community._id, activeMembers: 0 } });
+      })
+    ).subscribe(response => {
+      if (response && response.data) {
+        this.activeMemberCounts[community._id] = response.data.activeMembers;
+      }
+    });
+    
+    return this.activeMemberCounts[community._id];
+  }
+  
+  isCommunityFull(community: Community): boolean {
+    if (!community.settings || !community.settings.maxMembers) return false;
+    const activeMemberCount = this.getActiveMemberCount(community);
+    return activeMemberCount >= community.settings.maxMembers;
   }
 
   formatContributionFrequency(frequency: string | undefined): string {
@@ -351,8 +405,71 @@ export class CommunityListComponent implements OnInit {
     } catch (error) {
       return 'Invalid date';
     }
+  }  /**
+   * Cache for midcycle readiness status to avoid repeated API calls
+   */
+  private midcycleReadinessCache: { [midcycleId: string]: boolean } = {};
+
+  /**
+   * Check if a midcycle is ready using the API
+   * This provides a more accurate readiness status beyond what's in the community data
+   */
+  checkMidcycleReadiness(community: Community): void {
+    if (!community.midCycle || !Array.isArray(community.midCycle) || community.midCycle.length === 0) {
+      return;
+    }
+    
+    const activeMidCycle = community.midCycle.find((mc: MidCycle) => !mc.isComplete);
+    if (!activeMidCycle || !activeMidCycle.id) {
+      return;
+    }
+
+    // If we already checked this midcycle, don't check again
+    if (this.midcycleReadinessCache[activeMidCycle.id] !== undefined) {
+      return;
+    }
+
+    // Set default value until we get a response
+    this.midcycleReadinessCache[activeMidCycle.id] = activeMidCycle.isReady;
+    
+    this.midcycleService.checkMidCycleReadiness(community._id, activeMidCycle.id).subscribe({
+      next: (response) => {
+        if (response && response.data) {
+          this.midcycleReadinessCache[activeMidCycle.id] = response.data.isReady;
+        }
+      },
+      error: (error) => {
+        console.error('Error checking midcycle readiness:', error);
+      }
+    });
   }
 
+  /**
+   * Get the readiness status of a midcycle
+   * This uses cached values from the API if available
+   */
+  isMidcycleReady(community: Community): boolean {
+    if (!community.midCycle || !Array.isArray(community.midCycle) || community.midCycle.length === 0) {
+      return false;
+    }
+    
+    const activeMidCycle = community.midCycle.find((mc: MidCycle) => !mc.isComplete);
+    if (!activeMidCycle || !activeMidCycle.id) {
+      return false;
+    }
+
+    // Try to get the cached readiness from our API check
+    if (this.midcycleReadinessCache[activeMidCycle.id] !== undefined) {
+      return this.midcycleReadinessCache[activeMidCycle.id];
+    }
+
+    // If no cache, use the value from the community data
+    return activeMidCycle.isReady;
+  }
+
+  /**
+   * Get the mid-cycle status for display 
+   */
   getMidCycleStatus(community: Community): string {
     if (!community.midCycle || !Array.isArray(community.midCycle) || community.midCycle.length === 0) {
       return 'No active mid-cycle';
@@ -363,9 +480,14 @@ export class CommunityListComponent implements OnInit {
       return 'No active mid-cycle';
     }
     
-    return activeMidCycle.isReady ? 'Ready for payout' : 'Collecting contributions';
+    // Check if we have a cached readiness status from the API
+    if (activeMidCycle.id && this.midcycleReadinessCache[activeMidCycle.id] !== undefined) {
+      return this.midcycleReadinessCache[activeMidCycle.id] ? 'Ready' : 'Status: Collecting contributions';
+    }
+    
+    // Otherwise, use the midcycle's isReady property
+    return activeMidCycle.isReady ? 'Ready' : 'Status: Collecting contributions';
   }
-
   joinCommunity(communityId: string): void {
     if (!this.authService.currentUserValue) {
       this.toastService.error('You must be logged in to join a community');
@@ -378,6 +500,12 @@ export class CommunityListComponent implements OnInit {
     
     if (!community) {
       this.toastService.error('Community not found');
+      return;
+    }
+    
+    // Check if community is full
+    if (this.isCommunityFull(community)) {
+      this.toastService.error('This community is already full');
       return;
     }
 
@@ -410,5 +538,35 @@ export class CommunityListComponent implements OnInit {
     this.router.navigate(['/contributions/make'], {
       queryParams: { communityId: communityId }
     });
+  }
+
+  /**
+   * Format backup fund amount with proper decimal places
+   * @param backupFund The backup fund amount to format
+   */  formatBackupFundAmount(backupFund: number | undefined): string {
+    if (backupFund === undefined || backupFund === null) {
+      return '0.00';
+    }
+    return backupFund.toFixed(2);
+  }
+  
+  /**
+   * Toggle the expanded state of a community card
+   * @param communityId The ID of the community to toggle
+   */
+  toggleCommunityDetails(communityId: string, event: Event): void {
+    event.preventDefault(); // Prevent event bubbling
+    event.stopPropagation(); // Prevent event bubbling
+    
+    // Toggle the expansion state
+    this.expandedCommunities[communityId] = !this.expandedCommunities[communityId];
+  }
+  
+  /**
+   * Check if a community card is expanded
+   * @param communityId The ID of the community to check
+   */
+  isCommunityExpanded(communityId: string): boolean {
+    return this.expandedCommunities[communityId] === true;
   }
 }

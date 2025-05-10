@@ -11,13 +11,18 @@ import { MatDividerModule } from '@angular/material/divider';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatBadgeModule } from '@angular/material/badge';
 import { MatDialogModule, MatDialog } from '@angular/material/dialog';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
+import { MatRadioModule } from '@angular/material/radio';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { 
   faUser, faUsers, faCalendarDays, faDollarSign, faPiggyBank, 
   faRightToBracket, faRightFromBracket, faPlay, faCircleExclamation,
   faArrowRight, faMoneyBillTransfer, faCircleInfo, faCheckCircle,
   faTimesCircle, faHourglassHalf, faFireAlt, faSpinner, faChartPie,
-  faArrowsRotate, faHistory
+  faArrowsRotate, faHistory, faVoteYea as faBallotCheck, faPlus, faMinus
 } from '@fortawesome/free-solid-svg-icons';
 import { CommunityService } from '../../../services/community.service';
 import { MidcycleService } from '../../../services/midcycle.service';
@@ -52,7 +57,13 @@ import { CustomButtonComponent } from '../../../shared/components/custom-button/
     MatDialogModule,
     FontAwesomeModule,
     CustomButtonComponent,
-    ContributionHistoryHierarchicalComponent
+    ContributionHistoryHierarchicalComponent,
+    FormsModule,
+    ReactiveFormsModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSelectModule,
+    MatRadioModule
   ],
   templateUrl: './community-detail.component.html',
   styleUrls: ['./community-detail.component.scss']
@@ -70,11 +81,12 @@ export class CommunityDetailComponent implements OnInit, OnDestroy {  // Font Aw
   faArrowRight = faArrowRight;
   faMoneyBillTransfer = faMoneyBillTransfer;  faCircleInfo = faCircleInfo;
   faSpinner = faSpinner;
-  faChartPie = faChartPie;  faArrowsRotate = faArrowsRotate;
-  faCheckCircle = faCheckCircle;
-  faTimesCircle = faTimesCircle;
+  faChartPie = faChartPie;  faArrowsRotate = faArrowsRotate;  faCheckCircle = faCheckCircle;  faTimesCircle = faTimesCircle;
   faHistory = faHistory;
-    communityId: string = '';
+  faBallotCheck = faBallotCheck;
+  faPlus = faPlus;
+  faMinus = faMinus;
+  communityId: string = '';
   community: Community | null = null;
   communitySettings: CommunitySettings | null = null;
   error: string = '';
@@ -89,6 +101,32 @@ export class CommunityDetailComponent implements OnInit, OnDestroy {  // Font Aw
   midCycleDetails: MidCycleDetails | null = null;
   loadingMidCycleDetails: boolean = false;
   contributionHistoryDebug: any = null;
+  votes: any[] = [];
+  loadingVotes: boolean = false;
+  
+  // Predefined vote topics
+  voteTopics = [
+    { value: 'positioningMode', label: 'Positioning Mode', 
+      description: 'Choose how member positions are determined in the community',
+      options: ['Random', 'Fixed'] },
+    { value: 'lockPayout', label: 'Lock Payout', 
+      description: 'Decide if payouts should be locked or unlocked', 
+      options: ['true', 'false'] },
+    { value: 'paymentPlan', label: 'Payment Plan', 
+      description: 'Set the default payment plan type for members', 
+      options: ['Incremental', 'Full'] },
+    { value: 'backupFundPercentage', label: 'Backup Fund Percentage', 
+      description: 'Change the percentage of contributions that go to backup fund', 
+      options: ['5', '10', '15', '20', '25'] },
+    { value: 'minContribution', label: 'Minimum Contribution', 
+      description: 'Set the minimum contribution amount', 
+      options: ['20', '30', '50', '100'] },
+  ];
+  
+  newVote = {
+    topic: '',
+    options: ['', ''] // Start with two blank options
+  };
   
   private destroy$ = new Subject<void>();
 
@@ -101,16 +139,18 @@ export class CommunityDetailComponent implements OnInit, OnDestroy {  // Font Aw
     private toastService: ToastService,
     private loadingService: LoadingService,
     private dialog: MatDialog
-  ) { }
-
-  ngOnInit(): void {
+  ) { }  ngOnInit(): void {
     this.currentUser = this.authService.currentUserValue;
     this.currentUserId = this.currentUser?.id;
+    
+    // Always start with the overview tab
+    this.activeTab = 'overview';
     
     this.route.params.subscribe(params => {
       this.communityId = params['id'];
       if (this.communityId) {
         this.loadCommunityDetails();
+        this.loadVotes();
       }
     });
 
@@ -120,6 +160,7 @@ export class CommunityDetailComponent implements OnInit, OnDestroy {  // Font Aw
     this.destroy$.next();
     this.destroy$.complete();
   }
+  
   loadCommunityDetails(): void {
     this.loading = true;
     this.loadingService.start('load-community-details');
@@ -144,12 +185,16 @@ export class CommunityDetailComponent implements OnInit, OnDestroy {  // Font Aw
         // After loading community, fetch mid-cycle details
         this.loadMidCycleDetails();
         // Check if current user is a member
-        if (this.currentUserId && this.community?.members) {
-          const member = this.community.members.find(m => 
+        if (this.currentUserId && this.community?.members) {          const member = this.community.members.find(m => 
             m.userId === this.currentUserId || m.userId === this.currentUser?.id
           );
           this.isMember = !!member;
           console.log('Current user is a member:', this.isMember);
+          
+          // Ensure non-members are redirected to overview tab
+          if (!this.isMember && this.activeTab !== 'overview') {
+            this.activeTab = 'overview';
+          }
         }
         
         // Check if current user is the admin
@@ -159,6 +204,9 @@ export class CommunityDetailComponent implements OnInit, OnDestroy {  // Font Aw
 
         // Load active midcycle details
         this.loadActiveMidcycleDetails();
+        
+        // Load votes for the community
+        this.loadVotes();
       });
   }
 
@@ -194,21 +242,25 @@ export class CommunityDetailComponent implements OnInit, OnDestroy {  // Font Aw
       return;
     }
     
-    
-    this.midcycleService.getMidCycleById(this.communityId, midcycleId)
+      this.midcycleService.getMidCycleById(this.communityId, midcycleId)
       .pipe(
         takeUntil(this.destroy$),
         catchError(error => {
           console.error('Failed to load midcycle details:', error);
+          // Don't show an error toast as this might confuse users
+          // Just log the error and continue
           return throwError(() => error);
         })
-      )
-      .subscribe(response => {
-        console.log('Midcycle details response:', response.data);
-
-        this.payDate = response.data.payoutDate;
+      )      .subscribe({
+        next: (response) => {
+          console.log('Midcycle details response:', response.data);
+          if (response && response.data) {
+            this.payDate = response.data.payoutDate;
+          } else {
+            console.warn('Midcycle details response has no data');
+            return;
+          }
         
-        if (response && response.data) {
           if (!this.community) {
             return;
           }
@@ -228,7 +280,9 @@ export class CommunityDetailComponent implements OnInit, OnDestroy {  // Font Aw
             // Add new midcycle
             this.community.midCycle.push(response.data);
           }
-          
+        },
+        error: (error) => {
+          console.error('Error processing midcycle data:', error);
         }
       });
   }
@@ -531,6 +585,13 @@ export class CommunityDetailComponent implements OnInit, OnDestroy {  // Font Aw
   }
 
   setActiveTab(tab: string): void {
+    // If not a member and trying to access a restricted tab, redirect to overview
+    if (!this.isMember && tab !== 'overview') {
+      this.toastService.info('You must be a community member to view this section');
+      this.activeTab = 'overview';
+      return;
+    }
+    
     this.activeTab = tab;
     
     // If switching to contribution history tab, load the debug data
@@ -629,5 +690,227 @@ export class CommunityDetailComponent implements OnInit, OnDestroy {  // Font Aw
           this.loadCommunityDetails(); // Refresh community details
         });
     }
+  }
+
+  /**
+   * Load votes for the current community
+   */
+  loadVotes(): void {
+    this.loadingVotes = true;
+    this.communityService.getVotes(this.communityId)
+      .pipe(
+        takeUntil(this.destroy$),
+        catchError(error => {
+          this.toastService.error(error?.error?.message || 'Failed to load community votes');
+          return throwError(() => error);
+        }),
+        finalize(() => {
+          this.loadingVotes = false;
+        })
+      )
+      .subscribe(response => {
+        this.votes = response.votes || [];
+      });
+  }
+  /**
+   * Creates a new vote in the community
+   */
+  createNewVote(): void {
+    if (!this.isAdmin) {
+      this.toastService.error('Only administrators can create votes');
+      return;
+    }
+
+    if (!this.newVote.topic) {
+      this.toastService.error('Please select a vote topic');
+      return;
+    }
+
+    // Get the selected topic's predefined options if using a predefined topic
+    const selectedTopic = this.voteTopics.find(topic => topic.value === this.newVote.topic);
+    
+    let cleanedOptions: string[];
+    
+    // If using a predefined topic, use its options
+    if (selectedTopic) {
+      cleanedOptions = selectedTopic.options;
+    } else {
+      // If custom topic, validate user-entered options
+      if (this.newVote.options.some(option => !option.trim())) {
+        this.toastService.error('Please provide all options without empty values');
+        return;
+      }
+      
+      // Filter out empty options
+      cleanedOptions = this.newVote.options.filter(option => option.trim());
+      
+      if (cleanedOptions.length < 2) {
+        this.toastService.error('Please provide at least 2 voting options');
+        return;
+      }
+    }    // Get the display name for the toast message
+    const topicDisplayName = selectedTopic?.label || this.newVote.topic;
+    
+    const voteData = {
+      topic: this.newVote.topic, // Use the backend-compatible topic value
+      options: cleanedOptions
+    };
+
+    this.communityService.createVote(this.communityId, voteData)
+      .pipe(
+        takeUntil(this.destroy$),
+        catchError(error => {
+          this.toastService.error(error?.error?.message || 'Failed to create vote');
+          return throwError(() => error);
+        })
+      )      .subscribe(response => {
+        this.toastService.success(`Vote '${topicDisplayName}' created successfully`);
+        this.newVote = { topic: '', options: ['', ''] }; // Reset the form
+        this.loadVotes(); // Reload votes
+      });
+  }
+  /**
+   * Adds a new option field to the vote form
+   * Only used for custom topics as predefined topics have fixed options
+   */
+  addVoteOption(): void {
+    // Check if a predefined topic is selected
+    const isPredefinedTopic = this.voteTopics.some(topic => topic.value === this.newVote.topic);
+    
+    if (isPredefinedTopic) {
+      this.toastService.info('Predefined topics have fixed options');
+      return;
+    }
+    
+    this.newVote.options.push('');
+  }
+
+  /**
+   * Removes an option field from the vote form
+   * Only used for custom topics as predefined topics have fixed options
+   */
+  removeVoteOption(index: number): void {
+    // Check if a predefined topic is selected
+    const isPredefinedTopic = this.voteTopics.some(topic => topic.value === this.newVote.topic);
+    
+    if (isPredefinedTopic) {
+      this.toastService.info('Predefined topics have fixed options');
+      return;
+    }
+    
+    if (this.newVote.options.length > 2) {
+      this.newVote.options.splice(index, 1);
+    } else {
+      this.toastService.error('A minimum of 2 options is required');
+    }
+  }
+  
+  /**
+   * Gets the options for the currently selected vote topic
+   */
+  getOptionsForSelectedTopic(): string[] {
+    const selectedTopic = this.voteTopics.find(topic => topic.value === this.newVote.topic);
+    return selectedTopic ? selectedTopic.options : this.newVote.options;
+  }
+  
+  /**
+   * Handles changes when the vote topic is selected
+   * Updates options based on the selected topic
+   */
+  onVoteTopicChange(): void {
+    const selectedTopic = this.voteTopics.find(topic => topic.value === this.newVote.topic);
+    if (selectedTopic) {
+      // For predefined topics, we don't need custom options
+      this.newVote.options = ['', ''];  // Keep the structure but don't use these values
+    }
+  }
+
+  /**
+   * Get the number of votes for a specific option
+   */  getVoteCount(vote: any, option: string): number {
+    if (!vote.votes || !Array.isArray(vote.votes)) return 0;
+    return vote.votes.filter((v: { choice: string }) => v.choice === option).length;
+  }
+
+  /**
+   * Get the percentage of votes for a specific option
+   */
+  getVotePercentage(vote: any, option: string): number {
+    if (!vote.votes || !Array.isArray(vote.votes) || vote.votes.length === 0) return 0;
+    const count = this.getVoteCount(vote, option);
+    return Math.round((count / vote.votes.length) * 100);
+  }
+
+  /**
+   * Check if the current user has already voted
+   */
+  hasUserVoted(vote: any): boolean {
+    if (!this.currentUserId || !vote.votes || !Array.isArray(vote.votes)) return false;
+    return vote.votes.some((v: { userId: string }) => v.userId === this.currentUserId);
+  }
+
+  /**
+   * Get the current user's vote choice
+   */
+  getUserVoteChoice(vote: any): string | null {
+    if (!this.currentUserId || !vote.votes || !Array.isArray(vote.votes)) return null;
+    const userVote = vote.votes.find((v: { userId: string; choice: string }) => v.userId === this.currentUserId);
+    return userVote ? userVote.choice : null;
+  }
+
+  /**
+   * Cast a vote for an option
+   */
+  castVote(voteId: string, choice: string): void {
+    if (!this.currentUserId) {
+      this.toastService.error('Please log in to cast a vote');
+      return;
+    }
+
+    if (!this.isMember) {
+      this.toastService.error('Only community members can vote');
+      return;
+    }
+
+    const voteData = {
+      userId: this.currentUserId,
+      choice
+    };
+
+    this.communityService.castVote(this.communityId, voteId, voteData)
+      .pipe(
+        takeUntil(this.destroy$),
+        catchError(error => {
+          this.toastService.error(error?.error?.message || 'Failed to cast vote');
+          return throwError(() => error);
+        })
+      )
+      .subscribe(response => {
+        this.toastService.success('Vote cast successfully');
+        this.loadVotes(); // Reload votes to reflect changes
+      });
+  }
+
+  /**
+   * Get the display label for a vote topic
+   */
+  getTopicDisplayLabel(topicValue: string): string {
+    const topic = this.voteTopics.find(t => t.value === topicValue);
+    return topic ? topic.label : topicValue;
+  }
+
+  /**
+   * Get the description of a vote topic by value
+   */
+  getVoteTopicDescription(topicValue: string): string {
+    const topic = this.voteTopics.find(t => t.value === topicValue);
+    return topic ? topic.description : '';
+  }
+
+  /**
+   * Check if the selected topic is predefined
+   */
+  isPredefinedTopic(topicValue: string): boolean {
+    return this.voteTopics.some(t => t.value === topicValue);
   }
 }

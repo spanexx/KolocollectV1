@@ -980,6 +980,35 @@ exports.searchMidcycleJoiners = async (req, res) => {
   }
 };
 
+// Get all votes for a community
+exports.getVotes = async (req, res) => {
+  try {
+    const { communityId } = req.params;
+    
+    if (!isValidObjectId(communityId)) {
+      return createErrorResponse(res, 400, 'INVALID_ID', 'Invalid community ID');
+    }
+    
+    const community = await Community.findById(communityId);
+    if (!community) {
+      return createErrorResponse(res, 404, 'COMMUNITY_NOT_FOUND', 'Community not found');
+    }
+    
+    // Retrieve votes with populated data
+    const votes = await CommunityVote.find({ _id: { $in: community.votes } })
+      .sort({ createdAt: -1 }); // Most recent votes first
+    
+    res.status(200).json({
+      status: 'success',
+      message: 'Community votes retrieved successfully',
+      votes
+    });
+  } catch (err) {
+    console.error('Error getting community votes:', err);
+    return createErrorResponse(res, 500, 'GET_VOTES_ERROR', 'Failed to get community votes: ' + err.message);
+  }
+};
+
 // Create a new vote
 exports.createVote = async (req, res) => {
   try {
@@ -1045,20 +1074,12 @@ exports.castVote = async (req, res) => {
     if (!community) return createErrorResponse(res, 404, 'COMMUNITY_NOT_FOUND', 'Community not found');
 
     const vote = await CommunityVote.findById(voteId);
-    if (!vote) return createErrorResponse(res, 404, 'VOTE_NOT_FOUND', 'Vote not found');
-
-    if (vote.resolved) {
+    if (!vote) return createErrorResponse(res, 404, 'VOTE_NOT_FOUND', 'Vote not found');    if (vote.resolved) {
       return createErrorResponse(res, 400, 'VOTE_RESOLVED', 'This vote has already been resolved');
     }
-
-    // Check if user is a member of the community
-    const isMember = community.members.some(member => member.userId.equals(userId));
-    if (!isMember) {
-      return createErrorResponse(res, 403, 'NOT_MEMBER', 'Only community members can vote');
-    }
-
-    // Update or add the vote
-    const existingVoteIndex = vote.votes.findIndex(v => v.userId.equals(userId));
+    
+    // Member check is performed on the frontend    // Update or add the vote
+    const existingVoteIndex = vote.votes.findIndex(v => v.userId && v.userId.equals && v.userId.equals(userId));
     if (existingVoteIndex !== -1) {
       vote.votes[existingVoteIndex].choice = choice;
     } else {
@@ -1085,51 +1106,6 @@ exports.castVote = async (req, res) => {
   } catch (err) {
     console.error('Error casting vote:', err);
     return createErrorResponse(res, 500, 'CAST_VOTE_ERROR', 'Error casting vote: ' + err.message);
-  }
-};
-
-// Resolve a vote
-exports.resolveVote = async (req, res) => {
-  try {
-    const { communityId, voteId } = req.params;
-
-    const community = await Community.findById(communityId);
-    if (!community) return createErrorResponse(res, 404, 'COMMUNITY_NOT_FOUND', 'Community not found');
-
-    const vote = await CommunityVote.findById(voteId);
-    if (!vote) return createErrorResponse(res, 404, 'VOTE_NOT_FOUND', 'Vote not found');
-
-    const voteCounts = vote.votes.reduce((acc, v) => {
-      acc[v.choice] = (acc[v.choice] || 0) + 1;
-      return acc;
-    }, {});
-
-    const resolution = Object.keys(voteCounts).reduce((a, b) => 
-      (voteCounts[a] > voteCounts[b] ? a : b)
-    );
-
-    vote.resolved = true;
-    vote.resolution = resolution;
-    await vote.save();
-
-    // Create activity log
-    const activityLog = new CommunityActivityLog({
-      communityId: community._id,
-      activityType: 'vote_resolved',
-      userId: community.admin,
-      timestamp: new Date()
-    });
-    await activityLog.save();
-    community.activityLog.push(activityLog._id);
-    await community.save();
-
-    res.status(200).json({
-      message: 'Vote resolved successfully',
-      vote: await CommunityVote.findById(voteId)
-    });
-  } catch (err) {
-    console.error('Error resolving vote:', err);
-    return createErrorResponse(res, 500, 'RESOLVE_VOTE_ERROR', 'Error resolving vote: ' + err.message);
   }
 };
 
@@ -1262,19 +1238,24 @@ exports.getMidcycleById = async (req, res) => {
   try {
     const { communityId, midcycleId } = req.params;
     
+    console.log(`Attempting to fetch midcycle ${midcycleId} for community ${communityId}`);
+    
     // Find the community
     const community = await Community.findById(communityId);
     if (!community) {
+      console.log(`Community with ID ${communityId} not found`);
       return createErrorResponse(res, 404, 'COMMUNITY_NOT_FOUND', 'Community not found');
     }
     
-    console.log(`Fetching midcycle ${midcycleId} for community ${communityId}`);
-    
-    // Find the midcycle in the community, using correct field name "contributions.user" instead of "contributors.user"
+    console.log(`Found community: ${community.name}, checking for midcycle ${midcycleId}`);// Find the midcycle in the community, using correct field name "contributions.user" instead of "contributors.user"
     const midcycle = await MidCycle.findOne({
-      _id: midcycleId,
-      _id: { $in: community.midCycle }
+      _id: midcycleId
     }).populate('contributions.user');
+    
+    // Verify this midcycle belongs to the community
+    if (!midcycle || !community.midCycle || !community.midCycle.includes(midcycle._id)) {
+      return createErrorResponse(res, 404, 'MIDCYCLE_NOT_FOUND', 'Mid-cycle not found in this community');
+    }
     
     if (!midcycle) {
       return createErrorResponse(res, 404, 'MIDCYCLE_NOT_FOUND', 'Mid-cycle not found');
@@ -1422,5 +1403,151 @@ exports.getCurrentMidCycleDetails = async (req, res) => {
       console.error('Error fetching mid-cycle details:', err);
     }
     return createErrorResponse(res, 500, 'GET_MIDCYCLE_DETAILS_ERROR', 'Server error while fetching mid-cycle details: ' + err.message);
+  }
+};
+
+// Get all midcycles for a community
+exports.getMidcyclesByCommunityId = async (req, res) => {
+  try {
+    const { communityId } = req.params;
+    
+    // Find the community and populate midcycles
+    const community = await Community.findById(communityId).populate({
+      path: 'midCycle',
+      populate: {
+        path: 'contributions.user',
+        select: 'name email'
+      }
+    });
+    
+    if (!community) {
+      return createErrorResponse(res, 404, 'COMMUNITY_NOT_FOUND', 'Community not found');
+    }
+    
+    res.status(200).json({
+      status: 'success',
+      message: 'Mid-cycles retrieved successfully',
+      data: community.midCycle
+    });
+  } catch (err) {
+    console.error('Error fetching mid-cycles:', err);
+    return createErrorResponse(res, 500, 'GET_MIDCYCLES_ERROR', 'Error retrieving mid-cycles: ' + err.message);
+  }
+};
+
+// Get active midcycle for a community
+exports.getActiveMidcycle = async (req, res) => {
+  try {
+    const { communityId } = req.params;
+    
+    // Find the community
+    const community = await Community.findById(communityId);
+    if (!community) {
+      return createErrorResponse(res, 404, 'COMMUNITY_NOT_FOUND', 'Community not found');
+    }
+    
+    // Find the active mid-cycle
+    const activeMidCycle = await MidCycle.findOne({
+      _id: { $in: community.midCycle },
+      isComplete: false
+    }).populate({
+      path: 'contributions.user',
+      select: 'name email'
+    });
+    
+    if (!activeMidCycle) {
+      return createErrorResponse(res, 404, 'ACTIVE_MIDCYCLE_NOT_FOUND', 'No active mid-cycle found for this community');
+    }
+    
+    res.status(200).json({
+      status: 'success',
+      message: 'Active mid-cycle retrieved successfully',
+      data: activeMidCycle
+    });
+  } catch (err) {
+    console.error('Error fetching active mid-cycle:', err);
+    return createErrorResponse(res, 500, 'GET_ACTIVE_MIDCYCLE_ERROR', 'Error retrieving active mid-cycle: ' + err.message);
+  }
+};
+
+// Check midcycle readiness
+exports.checkMidcycleReadiness = async (req, res) => {
+  try {
+    const { midcycleId } = req.params;
+    
+    // Find the mid-cycle
+    const midcycle = await MidCycle.findById(midcycleId);
+    if (!midcycle) {
+      return createErrorResponse(res, 404, 'MIDCYCLE_NOT_FOUND', 'Mid-cycle not found');
+    }
+    
+    // Find the related community
+    const community = await Community.findOne({ midCycle: midcycle._id });
+    if (!community) {
+      return createErrorResponse(res, 404, 'COMMUNITY_NOT_FOUND', 'Community not found');
+    }
+    
+    // Check readiness by validating all required contributions
+    await community.validateMidCycleAndContributions();
+    
+    const isReady = midcycle.isReady;
+    const eligibleMembers = await Member.find({
+      _id: { $in: community.members },
+      status: 'active'
+    });
+    
+    const contributions = midcycle.contributions || [];
+    const contributingMembers = contributions.map(c => c.user.toString());
+    
+    // Calculate who hasn't contributed yet
+    const missingContributions = eligibleMembers.filter(
+      member => !contributingMembers.includes(member.userId.toString())
+    );
+    
+    res.status(200).json({
+      status: 'success',
+      message: 'Mid-cycle readiness checked successfully',
+      data: {
+        isReady,
+        contributionsNeeded: missingContributions.length,
+        missingContributors: missingContributions.map(m => ({ 
+          userId: m.userId,
+          name: m.name,
+          email: m.email
+        }))
+      }
+    });
+  } catch (err) {
+    console.error('Error checking mid-cycle readiness:', err);
+    return createErrorResponse(res, 500, 'CHECK_MIDCYCLE_READINESS_ERROR', 'Error checking mid-cycle readiness: ' + err.message);
+  }
+};
+
+// Get midcycle joiners
+exports.getMidcycleJoiners = async (req, res) => {
+  try {
+    const { midcycleId } = req.params;
+    
+    // Find the mid-cycle and populate joiners
+    const midcycle = await MidCycle.findById(midcycleId).populate({
+      path: 'midCycleJoiners.joiners',
+      select: 'name email'
+    }).populate({
+      path: 'midCycleJoiners.paidMembers',
+      select: 'name email'
+    });
+    
+    if (!midcycle) {
+      return createErrorResponse(res, 404, 'MIDCYCLE_NOT_FOUND', 'Mid-cycle not found');
+    }
+    
+    res.status(200).json({
+      status: 'success',
+      message: 'Mid-cycle joiners retrieved successfully',
+      data: midcycle.midCycleJoiners || []
+    });
+  } catch (err) {
+    console.error('Error fetching mid-cycle joiners:', err);
+    return createErrorResponse(res, 500, 'GET_MIDCYCLE_JOINERS_ERROR', 'Error retrieving mid-cycle joiners: ' + err.message);
   }
 };

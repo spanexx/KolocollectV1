@@ -87,6 +87,12 @@ export class CommunityService {
   reactivateMember(communityId: string, userId: string): Observable<any> {
     return this.api.post<any>(`/communities/member/reactivate/${communityId}/${userId}`, {});
   }
+  /**
+   * Get votes for a community
+   */
+  getVotes(communityId: string): Observable<any> {
+    return this.api.get<any>(`/communities/${communityId}/votes`);
+  }
 
   /**
    * Create a new vote
@@ -143,25 +149,30 @@ export class CommunityService {
   paySecondInstallment(communityId: string, userId: string, paymentData: any): Observable<any> {
     return this.api.post<any>(`/communities/${communityId}/members/${userId}/paySecondInstallment`, paymentData);
   }
-
   /**
-   * Back payment distribute
+   * Back payment distribute (using midcycle service instead)
+   * @deprecated Use MidcycleService.backPaymentDistribute instead
    */
   backPaymentDistribute(communityId: string, midCycleJoinersId: string, data: any): Observable<any> {
+    console.warn('This method is deprecated. Please use MidcycleService.backPaymentDistribute instead.');
     return this.api.post<any>(`/communities/${communityId}/midcycle_joiners/${midCycleJoinersId}/back_payments`, data);
   }
 
   /**
    * Get detailed information about the current mid-cycle
+   * @deprecated Use MidcycleService.getCurrentMidCycleDetails instead
    */
   getCurrentMidCycleDetails(communityId: string): Observable<any> {
+    console.warn('This method is deprecated. Please use MidcycleService.getCurrentMidCycleDetails instead.');
     return this.api.get<any>(`/communities/${communityId}/current-midcycle`);
   }
 
   /**
    * Search mid-cycle joiners
+   * @deprecated Use MidcycleService.searchMidcycleJoiners instead
    */
   searchMidcycleJoiners(communityId: string, midCycleJoinersId: string): Observable<any> {
+    console.warn('This method is deprecated. Please use MidcycleService.searchMidcycleJoiners instead.');
     return this.api.get<any>(`/communities/${communityId}/midcycle_joiners/${midCycleJoinersId}`);
   }
 

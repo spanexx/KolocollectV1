@@ -18,6 +18,7 @@ router.get('/:communityId/midcycles/:midcycleId', communityController.getMidcycl
 router.get('/:communityId/current-midcycle', communityController.getCurrentMidCycleDetails); // Get current mid-cycle details
 router.get('/:communityId/midcycle-contributions', communityController.getMidCycleContributions); // Get mid-cycle contributions
 router.get('/:communityId/contribution-history', communityHistoryController.getCommunityContributionHistory); // Get contribution history in hierarchical format
+router.get('/:communityId/votes', communityController.getVotes); // Get all votes for a community
 
 // Protected routes (auth required)
 router.use(authMiddleware);
@@ -40,6 +41,9 @@ router.post('/payouts/distribute/:communityId', communityController.distributePa
 
 // Route to reactivate a member
 router.post('/member/reactivate/:communityId/:userId', communityController.reactivateMember);
+
+// Route to get all votes for a community
+router.get('/:communityId/votes', communityController.getVotes);
 
 // Route to create a new vote
 router.post('/:communityId/votes', communityController.createVote);

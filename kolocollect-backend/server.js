@@ -9,6 +9,8 @@ const communityRoutes = require('./routes/communityRoutes');
 const payoutRoutes = require('./routes/payoutRoutes');
 const walletRoutes = require('./routes/walletRoutes');
 const stripeRoutes = require('./routes/stripeRoutes');
+const memberRoutes = require('./routes/memberRoutes');
+const midcycleRoutes = require('./routes/midcycleRoutes');
 const webhookMiddleware = require('./middlewares/webhookMiddleware');
 
 // Import all separated models
@@ -16,7 +18,7 @@ const Community = require('./models/Community');
 const CommunityVote = require('./models/CommunityVote');
 const CommunityActivityLog = require('./models/CommunityActivityLog');
 const Cycle = require('./models/Cycle');
-const MidCycle = require('./models/Midcycle');
+const MidcycleModel = require('./models/Midcycle');
 const Member = require('./models/Member');
 const schedulePayouts = require('./utils/scheduler');
 
@@ -45,6 +47,8 @@ app.use('/api/payouts', payoutRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/wallet', walletRoutes);
 app.use('/api/stripe', stripeRoutes);
+app.use('/api/members', memberRoutes);
+app.use('/api/midcycles', midcycleRoutes);
 
 app.use(
   '/webhook',

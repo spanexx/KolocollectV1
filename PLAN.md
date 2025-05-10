@@ -1,5 +1,50 @@
 # Frontend Integration Plan
 
+## Latest Plan Update (May 10, 2025)
+
+### Member Service Implementation Plan
+
+#### Overview
+
+Currently, the Kolocollect application is treating community members as simple objects within the community data structure, but they are actually references to Member documents. This leads to improper handling in the frontend components, specifically in the `getActiveMemberCount` function of the community-list component.
+
+This plan outlines how to properly create APIs for the Member schema, establish a Member service, and integrate these properly with the community list component.
+
+#### Backend Changes
+
+1. **Create Member Controller**
+   - Implement RESTful APIs to handle member operations
+   - Include endpoints for:
+     - Get all members
+     - Get members by community ID
+     - Get member by ID
+     - Update member status
+     - Get active member count by community ID
+
+2. **Create Member Routes**
+   - Define routes for the member controller endpoints
+   - Implement proper middleware for authentication and validation
+
+#### Frontend Changes
+
+1. **Create Member Model**
+   - Ensure the frontend Member model aligns with the backend model
+   - Define proper interfaces for API responses
+
+2. **Implement Member Service**
+   - Create a service to interact with the Member APIs
+   - Include methods for:
+     - Getting all members
+     - Getting members by community ID
+     - Getting member by ID
+     - Updating member status
+     - Getting active member count
+
+3. **Update Community List Component**
+   - Refactor `getActiveMemberCount` to use the Member service
+   - Update `isCommunityFull` to use the new service
+   - Remove console.log statements and improve error handling
+
 ## Overview
 
 This document outlines the plan for integrating the frontend with the existing backend APIs for the KoloCollect application. Based on our analysis of the backend codebase, we'll create a systematic approach to developing frontend components that interact with these APIs.

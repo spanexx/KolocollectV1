@@ -79,20 +79,25 @@
   </div>
   
   <!-- Communities grid -->
-  <div *ngIf="!isLoading && communities && communities.length > 0" class="communities-grid">
-    <mat-card class="community-card" *ngFor="let community of communities">
+  <div *ngIf="!isLoading && communities && communities.length > 0" class="communities-grid">    <mat-card class="community-card" *ngFor="let community of communities">
+      <div class="member-count-edge-badge">
+        <fa-icon [icon]="faUsers" class="edge-badge-icon"></fa-icon>
+        <span class="edge-badge-text">{{ getActiveMemberCount(community) }}</span>
+      </div>      
       <mat-card-header>
-        <div class="card-icon-container">
-          <fa-icon [icon]="faUserFriends" class="card-icon small-icon"></fa-icon>
-        </div>
-        <mat-card-title>{{ community.name }}</mat-card-title>
+              
+        <mat-card-title>
+          {{ community.name }}
+          <span *ngIf="isCommunityFull(community)" class="full-badge">FULL</span>
+          <span *ngIf="isMidcycleReady(community)" class="ready-badge">READY</span>
+        </mat-card-title>
         <mat-card-subtitle>
-          <fa-icon [icon]="faUsers" class="info-icon"></fa-icon>
-          {{ getActiveMemberCount(community) }} / {{ community.settings.maxMembers || 0 }} Members
+          <span class="max-members">Max: {{ community.settings.maxMembers || 0 }} Members</span>
         </mat-card-subtitle>
       </mat-card-header>
       <mat-card-content>
         <p class="description">{{ community.description || 'No description provided.' }}</p>
+          <!-- Key stats (always visible) -->
         <div class="community-stats">
           <div class="stat">
             <fa-icon [icon]="faMoneyBillWave" class="stat-icon"></fa-icon>
@@ -107,43 +112,60 @@
           <div class="stat">
             <fa-icon [icon]="faShieldAlt" class="stat-icon"></fa-icon>
             <span class="label">Backup Fund:</span>
-            <span class="value">{{ community.settings.backupFundPercentage || 0 }}%</span>
+            <span class="value">{{ community.settings.backupFundPercentage || 0 }}% (€{{ formatBackupFundAmount(community.backupFund) }})</span>
           </div>
+        </div>
+        
+        <!-- Toggle button for additional details -->
+        <button 
+          class="detail-toggle-button" 
+          (click)="toggleCommunityDetails(community._id, $event)"
+          [attr.aria-label]="isCommunityExpanded(community._id) ? 'Hide details' : 'Show more details'"
+          [attr.aria-expanded]="isCommunityExpanded(community._id)">
+          <span>{{ isCommunityExpanded(community._id) ? 'Show Less' : 'Show More Details' }}</span>
+          <fa-icon 
+            [icon]="isCommunityExpanded(community._id) ? faChevronUp : faChevronDown"
+            class="toggle-icon">
+          </fa-icon>
+        </button>
+        
+        <!-- Additional details (expandable) -->
+        <div class="additional-details" *ngIf="isCommunityExpanded(community._id)">
           <div class="stat next-payout">
             <span class="label">Next Payout:</span>
             <span class="value">{{ getNextPayoutDate(community) }}</span>
           </div>
-        </div>
-
-        <!-- Mid-cycle information section -->
-        <div class="midcycle-info" *ngIf="community.midCycle && community.midCycle.length > 0">
-          <h4>
-            <fa-icon [icon]="faClock" class="midcycle-icon"></fa-icon>
-            Mid-Cycle Status
-          </h4>
-          <div class="midcycle-details">
-            <div class="midcycle-stat">
-              <span class="label">Status:</span>
-              <span class="value" 
-                [ngClass]="{
-                  'ready': getMidCycleStatus(community).includes('Ready'), 
-                  'collecting': getMidCycleStatus(community).includes('Collecting')
-                }">
-                <fa-icon [icon]="getMidCycleStatus(community).includes('Ready') ? faShieldAlt : faSpinner" 
-                         [spin]="getMidCycleStatus(community).includes('Collecting')"></fa-icon>
-                {{ getMidCycleStatus(community) }}
-              </span>
-            </div>
-            <div class="midcycle-stat" *ngIf="community.payoutDetails?.nextRecipient">
-              <span class="label">Next In Line:</span>
-              <span class="value recipient">{{ community.payoutDetails?.nextRecipient }}</span>
-            </div>
-            <div class="midcycle-stat" *ngIf="community.payoutDetails?.payoutAmount">
-              <span class="label">Payout Amount:</span>
-              <span class="value amount">€{{ community.payoutDetails?.payoutAmount }}</span>
+          
+          <!-- Mid-cycle information section -->
+          <div class="midcycle-info" *ngIf="community.midCycle && community.midCycle.length > 0">
+            <h4>
+              <fa-icon [icon]="faClock" class="midcycle-icon"></fa-icon>
+              Mid-Cycle Status
+            </h4>
+            <div class="midcycle-details">
+              <div class="midcycle-stat">
+                <span class="label">Status:</span>                <span class="value" 
+                  [ngClass]="{
+                    'ready': isMidcycleReady(community), 
+                    'collecting': !isMidcycleReady(community)
+                  }">
+                  <fa-icon [icon]="isMidcycleReady(community) ? faShieldAlt : faSpinner" 
+                           [spin]="!isMidcycleReady(community)"></fa-icon>
+                  {{ getMidCycleStatus(community) }}
+                </span>
+              </div>
+              <div class="midcycle-stat" *ngIf="community.payoutDetails?.nextRecipient">
+                <span class="label">Next In Line:</span>
+                <span class="value recipient">{{ community.payoutDetails?.nextRecipient }}</span>
+              </div>
+              <div class="midcycle-stat" *ngIf="community.payoutDetails?.payoutAmount">
+                <span class="label">Payout Amount:</span>
+                <span class="value amount">€{{ community.payoutDetails?.payoutAmount }}</span>
+              </div>
             </div>
           </div>
-        </div>      </mat-card-content>
+        </div>
+      </mat-card-content>
       <mat-card-actions>
         <a class="custom-button primary-button" [routerLink]="['/communities', community._id]">
           <fa-icon [icon]="faEye" class="button-icon"></fa-icon>
@@ -156,11 +178,13 @@
             <fa-icon [icon]="faHandHoldingDollar" class="button-icon"></fa-icon>
             Contribute
           </button>
-        </ng-container>
-        <ng-container *ngIf="!isUserMemberOfCommunity(community._id)">
-          <button class="custom-button accent-button" (click)="joinCommunity(community._id)">
+        </ng-container>        <ng-container *ngIf="!isUserMemberOfCommunity(community._id)">
+          <button class="custom-button accent-button" 
+                  (click)="joinCommunity(community._id)" 
+                  [disabled]="isCommunityFull(community)" 
+                  [title]="isCommunityFull(community) ? 'This community is full' : 'Join this community'">
             <fa-icon [icon]="faUserPlus" class="button-icon"></fa-icon>
-            Join
+            {{ isCommunityFull(community) ? 'Full' : 'Join' }}
           </button>
         </ng-container>
       </mat-card-actions>
