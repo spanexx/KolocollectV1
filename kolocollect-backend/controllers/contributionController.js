@@ -155,11 +155,9 @@ exports.getContributionsByUser = async (req, res) => {
 
     // Return empty array instead of 404 when no contributions are found
     if (!contributions.length) {
-      console.log('No contributions found for user ID:', userId);
       return res.status(200).json([]);
     }
 
-    console.log('Contributions found for user ID:', userId, contributions);
     res.status(200).json(contributions);
   } catch (err) {
     console.error('Error fetching user contributions:', err);

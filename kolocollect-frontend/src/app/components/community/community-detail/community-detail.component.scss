@@ -1951,382 +1951,56 @@ app-custom-button {
   }
 }
 
-/* Styles for leave community button */
-.leave-community-container {
-  display: flex;
-  justify-content: center;
-  padding: 1.5rem 0;
-  margin-top: 2rem;
-  border-top: 1px solid $neutral-200;
-  
-  ::ng-deep app-custom-button {
-    .danger {
-      background-color: $destructive-light;
-      color: $destructive-dark;
-      border: 1px solid $destructive-color;
-      
-      &:hover {
-        background-color: $destructive-color;
-        color: white;
-      }
-    }
-  }
+// Share button styles
+.share-button {
+  color: #6D28D9;
 }
 
-/* Styles for Votes tab */
-.vote-create-section {
-  margin-bottom: 2rem;
-  padding: 1.5rem;
-  background-color: $neutral-100;
-  border-radius: 0.5rem;
+.menu-icon {
+  margin-right: 8px;
+  width: 16px;
+}
+
+// Cycle header with actions
+.cycle-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
   
-  h3 {
-    font-size: 1.25rem;
+  .cycle-number {
     font-weight: 600;
-    margin-bottom: 1rem;
-    color: $neutral-800;
+    font-size: 1.1rem;
   }
   
-  .vote-form {
-    .form-group {
-      margin-bottom: 1.25rem;
-      
-      label {
-        display: block;
-        font-size: 0.875rem;
-        font-weight: 500;
-        margin-bottom: 0.5rem;
-        color: $neutral-700;
-      }
-      
-      .form-control {
-        width: 100%;
-        padding: 0.625rem;
-        font-size: 0.875rem;
-        border: 1px solid $neutral-300;
-        border-radius: 0.375rem;
-        background-color: white;
-        
-        &:focus {
-          outline: none;
-          border-color: $primary-color;
-          box-shadow: 0 0 0 2px rgba($primary-color, 0.2);
-        }
-      }
-      
-      .topic-description {
-        margin-top: 0.5rem;
-        padding: 0.625rem;
-        background-color: rgba($primary-light, 0.2);
-        border-radius: 0.375rem;
-        
-        p {
-          margin: 0;
-          font-size: 0.8125rem;
-          color: $neutral-700;
-        }
-      }
-    }
-    
-    .options-container {
-      margin-bottom: 1.25rem;
-      
-      label {
-        display: block;
-        font-size: 0.875rem;
-        font-weight: 500;
-        margin-bottom: 0.5rem;
-        color: $neutral-700;
-      }
-      
-      .option-row {
-        display: flex;
-        align-items: center;
-        margin-bottom: 0.625rem;
-        
-        .form-control {
-          flex: 1;
-        }
-        
-        .option-button {
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          width: 2rem;
-          height: 2rem;
-          margin-left: 0.5rem;
-          border: none;
-          border-radius: 0.375rem;
-          cursor: pointer;
-          
-          &.remove {
-            background-color: $destructive-light;
-            color: $destructive-dark;
-            
-            &:hover {
-              background-color: $destructive-color;
-              color: white;
-            }
-          }
-        }
-      }
-      
-      .option-button.add {
-        display: flex;
-        align-items: center;
-        padding: 0.5rem 1rem;
-        background-color: $primary-light;
-        color: $primary-dark;
-        border: none;
-        border-radius: 0.375rem;
-        font-size: 0.875rem;
-        font-weight: 500;
-        cursor: pointer;
-        
-        &:hover {
-          background-color: $primary-color;
-          color: white;
-        }
-        
-        fa-icon {
-          margin-right: 0.5rem;
-        }
-      }
-      
-      .predefined-options {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.625rem;
-        margin-bottom: 0.5rem;
-        
-        .option-badge {
-          display: inline-block;
-          padding: 0.5rem 1rem;
-          background-color: $primary-light;
-          color: $primary-dark;
-          border-radius: 2rem;
-          font-size: 0.875rem;
-          font-weight: 500;
-        }
-        
-        .option-helper-text {
-          width: 100%;
-          margin: 0.5rem 0 0;
-          font-size: 0.8125rem;
-          color: $neutral-600;
-          font-style: italic;
-        }
-      }
-    }
-    
-    .form-actions {
-      display: flex;
-      justify-content: flex-end;
-    }
+  .cycle-actions {
+    margin-left: auto;
   }
 }
 
-.votes-list {
+// Midcycle actions
+.midcycle-actions {
   display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
-  margin-top: 2rem;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 12px;
   
-  .vote-item {
-    padding: 1.5rem;
-    border-radius: 0.5rem;
-    background-color: white;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-    
-    .vote-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 1.25rem;
-      
-      h3 {
-        margin: 0;
-        font-size: 1.125rem;
-        font-weight: 600;
-        color: $neutral-800;
-      }
-      
-      .vote-status {
-        display: inline-block;
-        padding: 0.25rem 0.75rem;
-        border-radius: 1rem;
-        font-size: 0.75rem;
-        font-weight: 500;
-        text-transform: uppercase;
-        background-color: $accent-light;
-        color: $accent-dark;
-        
-        &.resolved {
-          background-color: $secondary-light;
-          color: $secondary-dark;
-        }
-      }
-    }
-    
-    .vote-options {
-      display: flex;
-      flex-direction: column;
-      gap: 1rem;
-      margin-bottom: 1.5rem;
-      
-      .option-item {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 1rem;
-        background-color: $neutral-100;
-        border-radius: 0.5rem;
-        
-        .option-details {
-          display: flex;
-          flex-direction: column;
-          gap: 0.25rem;
-          
-          .option-text {
-            font-weight: 500;
-            color: $neutral-800;
-          }
-          
-          .option-count {
-            font-size: 0.8125rem;
-            color: $neutral-600;
-          }
-        }
-        
-        .progress-container {
-          flex: 1;
-          margin: 0 1rem;
-          height: 0.5rem;
-          background-color: $neutral-200;
-          border-radius: 1rem;
-          overflow: hidden;
-          position: relative;
-          
-          .progress-bar {
-            height: 100%;
-            background-color: $primary-color;
-          }
-          
-          .progress-text {
-            position: absolute;
-            right: 0.25rem;
-            top: -1.25rem;
-            font-size: 0.75rem;
-            font-weight: 500;
-            color: $neutral-600;
-          }
-        }
-        
-        .vote-button {
-          padding: 0.5rem 1rem;
-          background-color: $primary-color;
-          color: white;
-          border: none;
-          border-radius: 0.375rem;
-          font-size: 0.875rem;
-          font-weight: 500;
-          cursor: pointer;
-          
-          &:hover {
-            background-color: $primary-dark;
-          }
-        }
-        
-        .user-voted {
-          display: flex;
-          align-items: center;
-          gap: 0.375rem;
-          padding: 0.5rem 1rem;
-          background-color: $secondary-light;
-          color: $secondary-dark;
-          border-radius: 0.375rem;
-          font-size: 0.875rem;
-          font-weight: 500;
-        }
-      }
-    }
-    
-    .vote-footer {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding-top: 1rem;
-      border-top: 1px solid $neutral-200;
-      
-      .vote-stats {
-        display: flex;
-        gap: 1.5rem;
-        
-        span {
-          font-size: 0.8125rem;
-          color: $neutral-600;
-        }
-      }
-      
-      .vote-actions {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-        
-        .resolution {
-          font-size: 0.8125rem;
-          font-weight: 500;
-          color: $neutral-700;
-        }
-        
-        .applied-status {
-          display: inline-block;
-          padding: 0.25rem 0.5rem;
-          border-radius: 0.25rem;
-          font-size: 0.75rem;
-          font-weight: 500;
-          background-color: $neutral-200;
-          color: $neutral-600;
-          
-          &.applied {
-            background-color: $secondary-light;
-            color: $secondary-dark;
-          }
-        }
-      }
-    }
+  .share-button {
+    margin-left: auto;
   }
 }
 
-// Make sure tab content adapts to mobile screens
-@media (max-width: 768px) {
-  .vote-options {
-    .option-item {
-      grid-template-columns: 1fr !important;
-      grid-template-rows: auto auto auto;
-      gap: 0.75rem !important;
-      
-      .vote-button, .user-voted {
-        justify-self: flex-start;
-        grid-row: 3;
-      }
-    }
-  }
-  
-  .vote-footer {
-    flex-direction: column;
-    gap: 0.75rem;
-    align-items: flex-start !important;
-    
-    .vote-stats {
-      flex-direction: column;
-      gap: 0.25rem !important;
-    }
-    
-    .vote-actions {
-      flex-direction: column;
-      gap: 0.25rem !important;
-      align-items: flex-start !important;
-    }
-  }
+// Social media icons colors
+.twitter-icon {
+  color: #1DA1F2;
+}
+
+.facebook-icon {
+  color: #4267B2;
+}
+
+.whatsapp-icon {
+  color: #25D366;
 }

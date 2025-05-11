@@ -24,10 +24,12 @@
         font-size: 1.75rem;
       }
     }
-    
-    .actions {
+      .actions {
       .custom-button {
         padding: 0.75rem 1.5rem;
+        font-weight: 600;
+        font-size: 1rem;
+        min-width: 180px;
         
         .button-icon {
           margin-right: 0.625rem;
@@ -75,16 +77,18 @@
     background-color: #F9FAFB;
     border-radius: 10px;
     padding: 1rem;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-    
-    .search-box {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);    .search-box {
       display: flex;
       flex: 1;
       margin-right: 1rem;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
       
       mat-form-field {
-        flex-grow: 1;
+        flex: 1;
         margin-right: 1rem;
+        min-width: 200px;
         
         ::ng-deep .mat-mdc-text-field-wrapper {
           background-color: white;
@@ -109,28 +113,72 @@
       .search-icon {
         margin-right: 0.5rem;
         color: #6D28D9;
-      }
-      
-      .custom-button {
+      }      .custom-button {
         margin-left: 0.5rem;
         min-width: 120px;
+        background-color: #6D28D9;
+        color: white;
+        padding: 0.6rem 1rem;
+        border-radius: 8px;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        
+        &:hover {
+          background-color: darken(#6D28D9, 5%);
+          transform: translateY(-2px);
+          box-shadow: 0 4px 6px rgba(109, 40, 217, 0.25);
+        }
+        
+        fa-icon {
+          margin-right: 8px;
+        }
         
         @media (max-width: 576px) {
           min-width: 100px;
+        }
+      }
+      
+      .custom-button.filter-button {
+        background-color: #10B981;
+        color: white;
+        min-width: 100px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        font-weight: 500;
+        transition: all 0.2s ease;
+        
+        &:hover {
+          background-color: darken(#10B981, 5%);
+          transform: translateY(-2px);
+          box-shadow: 0 4px 6px rgba(16, 185, 129, 0.25);
+        }
+        
+        &.active {
+          background-color: #6D28D9;
+          color: white;
+          box-shadow: 0 4px 6px rgba(109, 40, 217, 0.25);
+          
+          &:hover {
+            background-color: darken(#6D28D9, 5%);
+            box-shadow: 0 4px 8px rgba(109, 40, 217, 0.3);
+          }
+        }
+        
+        fa-icon {
+          margin-right: 8px;
+        }
+        
+        @media (max-width: 576px) {
+          min-width: 80px;
         }
       }
     }
     
     .filter-options {
       display: flex;
-      
-      .custom-button.filter-button {
-        min-width: 100px;
-        
-        @media (max-width: 576px) {
-          min-width: 80px;
-        }
-      }
     }
     
     @media (max-width: 768px) {
@@ -257,9 +305,9 @@
       }
       
       &:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 15px 20px -5px rgba(0, 0, 0, 0.15);
-        border-color: rgba(109, 40, 217, 0.2);
+        // transform: translateY(-5px);
+        box-shadow: 0 15px 20px -5px rgba(33, 33, 33, 0.15);
+        border-color: rgba(57, 5, 141, 0.2);
       }
       
       mat-card-header {
@@ -577,8 +625,7 @@
           padding: 0.5rem 1rem 1rem;
         }
       }
-      
-      mat-card-actions {
+        mat-card-actions {
         display: flex;
         padding: 0.75rem 1.25rem 1.25rem;
         gap: 0.75rem;
@@ -588,6 +635,7 @@
           flex: 1;
           min-width: 0;
           padding: 0.625rem;
+          text-decoration: none;
           
           @media (max-width: 400px) {
             font-size: 0.85rem;
@@ -656,152 +704,269 @@
   }
 }
 
-/* Custom button styles */
+// Filter panel styles
+.search-filter-section {
+  margin-bottom: 16px;
+
+  .search-box {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    
+    mat-form-field {
+      flex: 1;
+      min-width: 200px;
+    }
+    
+    .filter-button {
+      background-color: #6D28D9;
+      color: white;
+      
+      &:hover {
+        background-color: darken(#6D28D9, 10%);
+      }
+    }
+  }
+}
+
+// Animated filter panel
+.filter-panel {
+  max-height: 0;
+  overflow: hidden;
+  transition: all 0.3s ease-in-out;
+  margin-bottom: 0;
+  background-color: #f9fafb;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  opacity: 0;
+  transform: translateY(-10px);
+  
+  &.expanded {
+    max-height: 800px; // Adjust based on your filter's height
+    margin-bottom: 24px;
+    opacity: 1;
+    transform: translateY(0);
+    border: 1px solid rgba(107, 114, 128, 0.1);
+  }
+  
+  // Custom styling for the filter panel contents
+  ::ng-deep {
+    .filter-container {
+      border-radius: 0;
+      box-shadow: none;
+      margin-bottom: 0;
+      
+      .filter-header {
+        border-radius: 8px 8px 0 0;
+      }
+    }
+  }
+}
+
+// Remove old filter sidebar styles
+.main-content-area {
+  display: block;
+}
+
+.filter-sidebar {
+  display: none;
+}
+
+.filter-toggle-mobile {
+  display: none;
+}
+
+// Add more spacing to the community cards for better breathing room
+.communities-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+  gap: 24px;
+  margin-top: 24px;
+}
+
+@media (max-width: 768px) {
+  .search-filter-section .search-box {
+    flex-direction: column;
+    align-items: stretch;
+    
+    .filter-button {
+      margin-top: 8px;
+    }
+  }
+}
+
+// Consistent button styles for all buttons in the community list
 .custom-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 0.7rem 1.5rem;
-  font-size: 0.95rem;
-  font-weight: 600;
-  border-radius: 0.6rem;
-  cursor: pointer;
-  transition: all 0.25s ease-in-out;
-  text-decoration: none;
-  border: none;
-  letter-spacing: 0.02em;
-  position: relative;
-  overflow: hidden;
+  padding: 0.625rem 1.25rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(255, 255, 255, 0);
-    transition: background-color 0.25s ease;
-  }
+  border: none;
+  cursor: pointer;
+  white-space: nowrap;
+  text-decoration: none; /* Remove underline from anchor buttons */
   
   &:hover {
-    box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
     transform: translateY(-2px);
-    
-    &::before {
-      background-color: rgba(255, 255, 255, 0.1);
-    }
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
   }
   
   &:active {
     transform: translateY(0);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
   }
   
-  &:focus {
-    outline: 2px solid rgba(109, 40, 217, 0.4);
-    outline-offset: 2px;
-  }
-  
-  .button-icon {
-    margin-right: 0.625rem;
-    font-size: 1rem;
-    position: relative;
-    z-index: 1;
-  }
-  
-  // Text inside button needs to be above the overlay
-  span {
-    position: relative;
-    z-index: 1;
+  fa-icon {
+    margin-right: 8px;
+    font-size: 0.9rem;
   }
   
   &.primary-button {
-    background-color: #6D28D9; // Primary color
+    background-color: #6D28D9;
     color: white;
-    background-image: linear-gradient(135deg, #6D28D9, #7c3aed);
     
     &:hover {
-      background-image: linear-gradient(135deg, #5b21b6, #6d28d9);
+      background-color: darken(#6D28D9, 5%);
+      box-shadow: 0 4px 8px rgba(109, 40, 217, 0.25);
     }
+  }
+    &.success-button {
+    background-color: rgba(198, 203, 201, 0.85); /* More transparent background */
+    color: rgb(43, 33, 33);
+    backdrop-filter: blur(2px); /* Subtle blur effect */
+    // opacity: 0.7; /* More transparent */
     
-    &:active {
-      background-image: linear-gradient(135deg, #4c1d95, #5b21b6);
+    &:hover {
+      background-color: rgba(16, 185, 129, 0.95); /* Less transparent on hover */
+      box-shadow: 0 4px 8px rgba(16, 185, 129, 0.25);
     }
   }
   
   &.accent-button {
-    background-color: #F59E0B; // Accent color
+    background-color: #F59E0B;
     color: white;
-    background-image: linear-gradient(135deg, #F59E0B, #fbbf24);
     
     &:hover {
-      background-image: linear-gradient(135deg, #d97706, #f59e0b);
-    }
-    
-    &:active {
-      background-image: linear-gradient(135deg, #b45309, #d97706);
-    }
-  }
-  
-  &.filter-button {
-    background-color: #F3F4F6;
-    color: #4B5563;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-    padding: 0.625rem 1.25rem;
-    
-    &:hover {
-      background-color: #E5E7EB;
-      color: #1F2937;
-    }
-    
-    &:active {
-      background-color: #D1D5DB;
+      background-color: darken(#F59E0B, 5%);
+      box-shadow: 0 4px 8px rgba(245, 158, 11, 0.25);
     }
   }
   
   &:disabled {
     opacity: 0.6;
     cursor: not-allowed;
-    box-shadow: none;
-    pointer-events: none;
-    background-image: none !important;
-    background-color: #D1D5DB;
-    color: #6B7280;
+    transform: none !important;
+    box-shadow: none !important;
   }
-  
-  // Make buttons responsive
-  @media (max-width: 480px) {
-    padding: 0.625rem 1.25rem;
-    font-size: 0.875rem;
-    
-    .button-icon {
-      margin-right: 0.5rem;
-      font-size: 0.875rem;
+}
+
+// Custom styles for specific buttons
+
+// Create Community button in header
+.header-section {
+  .actions {
+    .custom-button.primary-button {
+      background: linear-gradient(135deg, #7C3AED, #6D28D9);
+      box-shadow: 0 3px 8px rgba(109, 40, 217, 0.3);
+      border-radius: 10px;
+      padding: 0.7rem 1.5rem;
+      font-weight: 600;
+      
+      &:hover {
+        background: linear-gradient(135deg, #8B5CF6, #7C3AED);
+        transform: translateY(-3px);
+        box-shadow: 0 6px 12px rgba(109, 40, 217, 0.4);
+      }
+      
+      .button-icon {
+        font-size: 1rem;
+      }
     }
   }
 }
 
-/* Custom divider styles */
-.custom-divider {
-  height: 1px;
-  background-color: #E5E7EB;
-  margin: 8px 0;
+// Search and filter buttons
+.search-filter-section {
+  .search-box {
+    .custom-button.primary-button {
+      background: linear-gradient(135deg, #7C3AED, #6D28D9);
+      border-radius: 8px;
+      padding: 0.5rem 1.25rem;
+      
+      &:hover {
+        background: linear-gradient(135deg, #8B5CF6, #7C3AED);
+        box-shadow: 0 4px 8px rgba(109, 40, 217, 0.3);
+      }
+      
+      fa-icon {
+        margin-right: 0;
+      }
+    }
+  }
 }
 
-:host ::ng-deep {
-  .menu-section-title {
-    font-weight: 600;
-    color: #3f51b5;
-    font-size: 0.9rem;
-    pointer-events: none;
-    opacity: 0.9;
-    padding: 4px 16px;
-    margin-top: 8px;
+// Card action buttons (View, Contribute, Join)
+.communities-grid {
+  .community-card {
+    mat-card-actions {
+      display: flex;
+      gap: 10px;
+      padding: 16px;
+      
+      .custom-button {
+        flex: 1;
+        font-weight: 600;
+        border-radius: 8px;
+        padding: 0.7rem 1rem;
+        
+        &.primary-button {
+          background: linear-gradient(135deg, #7C3AED, #6D28D9);
+          
+          &:hover {
+            background: linear-gradient(135deg, #8B5CF6, #7C3AED);
+            box-shadow: 0 4px 8px rgba(109, 40, 217, 0.3);
+          }
+        }
+          &.success-button {
+          background: linear-gradient(135deg, rgba(208, 211, 210, 0.85), rgba(193, 198, 196, 0.85));
+          backdrop-filter: blur(2px); /* Subtle blur effect */
+          
+          &:hover {
+            background: linear-gradient(135deg, rgba(243, 248, 246, 0.95), rgba(209, 240, 230, 0.95));
+            // box-shadow: 0 4px 8px rgba(16, 185, 129, 0.3);
+          }
+        }
+        
+        &.accent-button {
+          background: linear-gradient(135deg, #F59E0B, #D97706);
+          
+          &:hover {
+            background: linear-gradient(135deg, #FBBF24, #F59E0B);
+            box-shadow: 0 4px 8px rgba(245, 158, 11, 0.3);
+          }
+        }
+      }
+    }
+  }
+}
+
+// Base button styles
+.custom-button {
+  // ...existing code...
+  
+  // Remove underlines from anchor buttons
+  &[href], &.primary-button[href], &[routerLink] {
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
   }
   
-  mat-divider {
-    margin: 8px 0;
-  }
+  // ...existing code...
 }

@@ -1,9 +1,42 @@
-<div class="community-detail-container">
-  <!-- Header with refresh button -->
+<div class="community-detail-container">  <!-- Header with refresh button and sharing options -->
   <div class="community-header-action" *ngIf="!loading && !error && community">
     <button mat-icon-button class="refresh-button" (click)="loadCommunityDetails()" [disabled]="loading" matTooltip="Refresh community data">
       <fa-icon [icon]="faArrowsRotate" [spin]="loading"></fa-icon>
     </button>
+    
+    <button mat-icon-button [matMenuTriggerFor]="shareMenu" class="share-button" matTooltip="Share or Export Community">
+      <fa-icon [icon]="faShare"></fa-icon>
+    </button>
+    
+    <mat-menu #shareMenu="matMenu" class="share-menu">
+      <button mat-menu-item (click)="exportCommunityAsPdf()">
+        <fa-icon [icon]="faFilePdf" class="menu-icon"></fa-icon>
+        <span>Export as PDF</span>
+      </button>
+      <button mat-menu-item [matMenuTriggerFor]="shareSubmenu">
+        <fa-icon [icon]="faShare" class="menu-icon"></fa-icon>
+        <span>Share Community</span>
+      </button>
+    </mat-menu>
+    
+    <mat-menu #shareSubmenu="matMenu">
+      <button mat-menu-item (click)="shareCommunityViaLink()">
+        <fa-icon [icon]="faLink" class="menu-icon"></fa-icon>
+        <span>Copy Link</span>
+      </button>
+      <button mat-menu-item (click)="openSocialShareUrl('twitter')">
+        <fa-icon [icon]="faTwitter" class="menu-icon twitter-icon"></fa-icon>
+        <span>Twitter</span>
+      </button>
+      <button mat-menu-item (click)="openSocialShareUrl('facebook')">
+        <fa-icon [icon]="faFacebook" class="menu-icon facebook-icon"></fa-icon>
+        <span>Facebook</span>
+      </button>
+      <button mat-menu-item (click)="openSocialShareUrl('whatsapp')">
+        <fa-icon [icon]="faWhatsapp" class="menu-icon whatsapp-icon"></fa-icon>
+        <span>WhatsApp</span>
+      </button>
+    </mat-menu>
   </div>
 
   <div *ngIf="loading" class="loading-spinner">
@@ -72,11 +105,11 @@
                 Join Community
               </app-custom-button>
               
-              <!-- <app-custom-button *ngIf="isAdmin" variant="secondary" size="medium" 
+              <app-custom-button *ngIf="isAdmin" variant="secondary" size="medium" 
                 [icon]="faPlay" [disabled]="loading" class="ml-2"
                 (buttonClick)="startNewCycle()">
                 Start New Cycle
-              </app-custom-button> -->
+              </app-custom-button>
             </ng-container>
             <app-custom-button *ngIf="!currentUserId" variant="primary" size="medium" 
               [icon]="faRightToBracket" url="/login" 
@@ -196,6 +229,43 @@
                       <div class="status-chip" [ngClass]="getCurrentCycle()?.isComplete ? 'complete-chip' : 'in-progress-chip'">
                         {{ getCurrentCycle()?.isComplete ? 'Complete' : 'In Progress' }}
                       </div>
+                      
+                      <!-- Add cycle share/export buttons -->
+                      <div class="cycle-actions" *ngIf="getCurrentCycle()">
+                        <button mat-icon-button [matMenuTriggerFor]="cycleMenu" matTooltip="Share or Export Cycle">
+                          <fa-icon [icon]="faShare"></fa-icon>
+                        </button>
+                        
+                        <mat-menu #cycleMenu="matMenu">
+                          <button mat-menu-item (click)="exportCycleAsPdf(getCurrentCycle()!)">
+                            <fa-icon [icon]="faFilePdf" class="menu-icon"></fa-icon>
+                            <span>Export as PDF</span>
+                          </button>
+                          <button mat-menu-item [matMenuTriggerFor]="shareCycleSubmenu">
+                            <fa-icon [icon]="faShare" class="menu-icon"></fa-icon>
+                            <span>Share Cycle</span>
+                          </button>
+                        </mat-menu>
+                        
+                        <mat-menu #shareCycleSubmenu="matMenu">
+                          <button mat-menu-item (click)="shareCycle(getCurrentCycle()!, 'link')">
+                            <fa-icon [icon]="faLink" class="menu-icon"></fa-icon>
+                            <span>Copy Link</span>
+                          </button>
+                          <button mat-menu-item (click)="shareCycle(getCurrentCycle()!, 'social'); openCycleSocialShareUrl('twitter')">
+                            <fa-icon [icon]="faTwitter" class="menu-icon twitter-icon"></fa-icon>
+                            <span>Twitter</span>
+                          </button>
+                          <button mat-menu-item (click)="shareCycle(getCurrentCycle()!, 'social'); openCycleSocialShareUrl('facebook')">
+                            <fa-icon [icon]="faFacebook" class="menu-icon facebook-icon"></fa-icon>
+                            <span>Facebook</span>
+                          </button>
+                          <button mat-menu-item (click)="shareCycle(getCurrentCycle()!, 'social'); openCycleSocialShareUrl('whatsapp')">
+                            <fa-icon [icon]="faWhatsapp" class="menu-icon whatsapp-icon"></fa-icon>
+                            <span>WhatsApp</span>
+                          </button>
+                        </mat-menu>
+                      </div>
                     </div>
                     
                     <div class="cycle-dates">
@@ -233,7 +303,45 @@
                           </div>
                         </div>
                         
-                        <div class="midcycle-details">                          <div *ngIf="midCycleDetails?.nextInLine" class="midcycle-item">
+                        <div class="midcycle-details">
+                          <!-- Add midcycle share/export buttons -->
+                          <div class="midcycle-actions" *ngIf="getCurrentMidcycle()">
+                            <button mat-icon-button [matMenuTriggerFor]="midcycleMenu" matTooltip="Share or Export Midcycle" class="share-button">
+                              <fa-icon [icon]="faShare"></fa-icon>
+                            </button>
+                            
+                            <mat-menu #midcycleMenu="matMenu">
+                              <button mat-menu-item (click)="exportMidcycleAsPdf(getCurrentMidcycle()!)">
+                                <fa-icon [icon]="faFilePdf" class="menu-icon"></fa-icon>
+                                <span>Export as PDF</span>
+                              </button>
+                              <button mat-menu-item [matMenuTriggerFor]="shareMidcycleSubmenu">
+                                <fa-icon [icon]="faShare" class="menu-icon"></fa-icon>
+                                <span>Share Mid-cycle</span>
+                              </button>
+                            </mat-menu>
+                            
+                            <mat-menu #shareMidcycleSubmenu="matMenu">
+                              <button mat-menu-item (click)="shareMidcycle(getCurrentMidcycle()!, 'link')">
+                                <fa-icon [icon]="faLink" class="menu-icon"></fa-icon>
+                                <span>Copy Link</span>
+                              </button>
+                              <button mat-menu-item (click)="shareMidcycle(getCurrentMidcycle()!, 'social'); openMidcycleSocialShareUrl('twitter')">
+                                <fa-icon [icon]="faTwitter" class="menu-icon twitter-icon"></fa-icon>
+                                <span>Twitter</span>
+                              </button>
+                              <button mat-menu-item (click)="shareMidcycle(getCurrentMidcycle()!, 'social'); openMidcycleSocialShareUrl('facebook')">
+                                <fa-icon [icon]="faFacebook" class="menu-icon facebook-icon"></fa-icon>
+                                <span>Facebook</span>
+                              </button>
+                              <button mat-menu-item (click)="shareMidcycle(getCurrentMidcycle()!, 'social'); openMidcycleSocialShareUrl('whatsapp')">
+                                <fa-icon [icon]="faWhatsapp" class="menu-icon whatsapp-icon"></fa-icon>
+                                <span>WhatsApp</span>
+                              </button>
+                            </mat-menu>
+                          </div>
+                          
+                          <div *ngIf="midCycleDetails?.nextInLine" class="midcycle-item">
                             <span class="item-label">Next In Line:</span>
                             <span class="item-value">{{ midCycleDetails.nextInLine?.name }}</span>
                           </div>

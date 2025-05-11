@@ -16,19 +16,25 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatRadioModule } from '@angular/material/radio';
+import { MatMenuModule } from '@angular/material/menu';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { 
   faUser, faUsers, faCalendarDays, faDollarSign, faPiggyBank, 
   faRightToBracket, faRightFromBracket, faPlay, faCircleExclamation,
   faArrowRight, faMoneyBillTransfer, faCircleInfo, faCheckCircle,
   faTimesCircle, faHourglassHalf, faFireAlt, faSpinner, faChartPie,
-  faArrowsRotate, faHistory, faVoteYea as faBallotCheck, faPlus, faMinus
+  faArrowsRotate, faHistory, faVoteYea as faBallotCheck, faPlus, faMinus,
+  faShare, faDownload, faFilePdf, faEnvelope, faLink
 } from '@fortawesome/free-solid-svg-icons';
+import { 
+  faTwitter, faFacebook, faWhatsapp 
+} from '@fortawesome/free-brands-svg-icons';
 import { CommunityService } from '../../../services/community.service';
 import { MidcycleService } from '../../../services/midcycle.service';
 import { ToastService } from '../../../services/toast.service';
 import { AuthService } from '../../../services/auth.service';
 import { LoadingService } from '../../../services/loading.service';
+import { SharingService, ShareMethod } from '../../../services/sharing.service';
 import { Community, Member, MidCycle, Cycle, CommunitySettings, MidCycleDetails } from '../../../models/community.model';
 import { catchError, finalize, takeUntil } from 'rxjs/operators';
 import { Subject, throwError } from 'rxjs';
@@ -41,8 +47,7 @@ import { CustomButtonComponent } from '../../../shared/components/custom-button/
 
 @Component({
   selector: 'app-community-detail',
-  standalone: true,
-  imports: [
+  standalone: true,  imports: [
     CommonModule,
     RouterModule,
     MatCardModule,
@@ -55,6 +60,7 @@ import { CustomButtonComponent } from '../../../shared/components/custom-button/
     MatChipsModule,
     MatBadgeModule,
     MatDialogModule,
+    MatMenuModule,
     FontAwesomeModule,
     CustomButtonComponent,
     ContributionHistoryHierarchicalComponent,
@@ -79,13 +85,27 @@ export class CommunityDetailComponent implements OnInit, OnDestroy {  // Font Aw
   faPlay = faPlay;
   faCircleExclamation = faCircleExclamation;
   faArrowRight = faArrowRight;
-  faMoneyBillTransfer = faMoneyBillTransfer;  faCircleInfo = faCircleInfo;
+  faMoneyBillTransfer = faMoneyBillTransfer;
+  faCircleInfo = faCircleInfo;
   faSpinner = faSpinner;
-  faChartPie = faChartPie;  faArrowsRotate = faArrowsRotate;  faCheckCircle = faCheckCircle;  faTimesCircle = faTimesCircle;
+  faChartPie = faChartPie;
+  faArrowsRotate = faArrowsRotate;
+  faCheckCircle = faCheckCircle;
+  faTimesCircle = faTimesCircle;
   faHistory = faHistory;
   faBallotCheck = faBallotCheck;
   faPlus = faPlus;
   faMinus = faMinus;
+  // Sharing icons
+  faShare = faShare;
+  faDownload = faDownload;
+  faFilePdf = faFilePdf;
+  faEnvelope = faEnvelope;
+  faLink = faLink;
+  faTwitter = faTwitter;
+  faFacebook = faFacebook;
+  faWhatsapp = faWhatsapp;
+
   communityId: string = '';
   community: Community | null = null;
   communitySettings: CommunitySettings | null = null;
@@ -104,6 +124,11 @@ export class CommunityDetailComponent implements OnInit, OnDestroy {  // Font Aw
   votes: any[] = [];
   loadingVotes: boolean = false;
   
+  // Social media sharing links
+  socialLinks: { twitter: string; facebook: string; whatsapp: string; } | null = null;
+  cycleSocialLinks: { twitter: string; facebook: string; whatsapp: string; } | null = null;
+  midCycleSocialLinks: { twitter: string; facebook: string; whatsapp: string; } | null = null;
+
   // Predefined vote topics
   voteTopics = [
     { value: 'positioningMode', label: 'Positioning Mode', 
@@ -128,8 +153,8 @@ export class CommunityDetailComponent implements OnInit, OnDestroy {  // Font Aw
     options: ['', ''] // Start with two blank options
   };
   
+  // Sharing links storage
   private destroy$ = new Subject<void>();
-
   constructor(
     private route: ActivatedRoute,
     private router: Router,
@@ -138,8 +163,9 @@ export class CommunityDetailComponent implements OnInit, OnDestroy {  // Font Aw
     private authService: AuthService,
     private toastService: ToastService,
     private loadingService: LoadingService,
+    private sharingService: SharingService,
     private dialog: MatDialog
-  ) { }  ngOnInit(): void {
+  ) { }ngOnInit(): void {
     this.currentUser = this.authService.currentUserValue;
     this.currentUserId = this.currentUser?.id;
     
@@ -912,5 +938,315 @@ export class CommunityDetailComponent implements OnInit, OnDestroy {  // Font Aw
    */
   isPredefinedTopic(topicValue: string): boolean {
     return this.voteTopics.some(t => t.value === topicValue);
+  }
+
+  /**
+   * Export the community as PDF
+   */
+  exportCommunityAsPdf(): void {
+    if (!this.community || !this.communityId) {
+      this.toastService.error('Community information not available');
+      return;
+    }
+
+    this.loadingService.start('exportPdf');
+    this.sharingService.exportCommunityAsPdf(this.communityId)
+      .pipe(
+        catchError((error) => {
+          this.toastService.error('Failed to generate PDF. Please try again.');
+          return throwError(() => error);
+        }),
+        finalize(() => this.loadingService.stop('exportPdf'))
+      )
+      .subscribe(blob => {
+        const communityName = this.community?.name || 'community';
+        const safeFileName = communityName.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+        this.sharingService.downloadPdf(blob, `${safeFileName}.pdf`);
+        this.toastService.success('PDF exported successfully!');
+      });
+  }
+
+  /**
+   * Export a cycle as PDF
+   * @param cycle The cycle to export
+   */
+  exportCycleAsPdf(cycle: Cycle): void {
+    if (!this.communityId || !cycle.id) {
+      this.toastService.error('Cycle information not available');
+      return;
+    }
+
+    this.loadingService.start('exportCyclePdf');
+    this.sharingService.exportCycleAsPdf(this.communityId, cycle.id)
+      .pipe(
+        catchError((error) => {
+          this.toastService.error('Failed to generate cycle PDF. Please try again.');
+          return throwError(() => error);
+        }),
+        finalize(() => this.loadingService.stop('exportCyclePdf'))
+      )
+      .subscribe(blob => {
+        const cycleNumber = cycle.cycleNumber || 'unknown';
+        this.sharingService.downloadPdf(blob, `cycle_${cycleNumber}_report.pdf`);
+        this.toastService.success('Cycle PDF exported successfully!');
+      });
+  }
+
+  /**
+   * Export a midcycle as PDF
+   * @param midcycle The midcycle to export
+   */
+  exportMidcycleAsPdf(midcycle: MidCycle): void {
+    if (!this.communityId || !midcycle.id) {
+      this.toastService.error('Mid-cycle information not available');
+      return;
+    }
+
+    this.loadingService.start('exportMidcyclePdf');
+    this.sharingService.exportMidcycleAsPdf(this.communityId, midcycle.id)
+      .pipe(
+        catchError((error) => {
+          this.toastService.error('Failed to generate mid-cycle PDF. Please try again.');
+          return throwError(() => error);
+        }),
+        finalize(() => this.loadingService.stop('exportMidcyclePdf'))
+      )
+      .subscribe(blob => {
+        this.sharingService.downloadPdf(blob, `midcycle_report_${midcycle.id}.pdf`);
+        this.toastService.success('Mid-cycle PDF exported successfully!');
+      });
+  }
+
+  /**
+   * Share the community via email
+   * @param recipients Array of email addresses to share with
+   */
+  shareCommunityViaEmail(recipients: string[]): void {
+    if (!this.communityId) {
+      this.toastService.error('Community information not available');
+      return;
+    }
+
+    this.loadingService.start('shareCommunityEmail');
+    this.sharingService.shareCommunity(this.communityId, {
+      shareMethod: 'email',
+      recipients
+    })
+      .pipe(
+        catchError((error) => {
+          this.toastService.error('Failed to share community. Please try again.');
+          return throwError(() => error);
+        }),
+        finalize(() => this.loadingService.stop('shareCommunityEmail'))
+      )
+      .subscribe(response => {
+        if (response.status === 'success') {
+          this.toastService.success('Community shared via email successfully!');
+        } else {
+          this.toastService.error(response.message || 'Failed to share community');
+        }
+      });
+  }
+
+  /**
+   * Share the community via link
+   * @returns The share link
+   */
+  shareCommunityViaLink(): void {
+    if (!this.communityId) {
+      this.toastService.error('Community information not available');
+      return;
+    }
+
+    this.loadingService.start('shareCommunityLink');
+    this.sharingService.shareCommunity(this.communityId, {
+      shareMethod: 'link'
+    })
+      .pipe(
+        catchError((error) => {
+          this.toastService.error('Failed to generate share link. Please try again.');
+          return throwError(() => error);
+        }),
+        finalize(() => this.loadingService.stop('shareCommunityLink'))
+      )
+      .subscribe(response => {
+        if (response.status === 'success' && response.data?.shareUrl) {
+          // Copy to clipboard
+          navigator.clipboard.writeText(response.data.shareUrl)
+            .then(() => this.toastService.success('Share link copied to clipboard!'))
+            .catch(() => this.toastService.warning('Failed to copy link. URL: ' + response.data?.shareUrl));
+        } else {
+          this.toastService.error(response.message || 'Failed to generate share link');
+        }
+      });
+  }
+
+  /**
+   * Share the community on social media
+   * @param platform The social media platform to share on
+   */
+  shareCommunityViaSocial(): void {
+    if (!this.communityId) {
+      this.toastService.error('Community information not available');
+      return;
+    }
+
+    this.loadingService.start('shareCommunitySocial');
+    this.sharingService.shareCommunity(this.communityId, {
+      shareMethod: 'social'
+    })
+      .pipe(
+        catchError((error) => {
+          this.toastService.error('Failed to generate social share links. Please try again.');
+          return throwError(() => error);
+        }),
+        finalize(() => this.loadingService.stop('shareCommunitySocial'))
+      )
+      .subscribe(response => {
+        if (response.status === 'success' && response.data?.socialLinks) {
+          // Store social media links for use in template
+          this.socialLinks = response.data.socialLinks;
+          this.toastService.success('Social media links generated!');
+        } else {
+          this.toastService.error(response.message || 'Failed to generate social share links');
+        }
+      });
+  }
+
+  /**
+   * Open a social media share URL
+   * @param platform The platform (twitter, facebook, whatsapp)
+   */
+  openSocialShareUrl(platform: 'twitter' | 'facebook' | 'whatsapp'): void {
+    if (!this.socialLinks) {
+      this.shareCommunityViaSocial();
+      return;
+    }
+
+    const url = this.socialLinks[platform];
+    if (url) {
+      window.open(url, '_blank');
+    }
+  }
+
+  /**
+   * Share a cycle
+   * @param cycle The cycle to share
+   * @param method The share method
+   * @param recipients Optional recipients for email sharing
+   */
+  shareCycle(cycle: Cycle, method: ShareMethod, recipients?: string[]): void {
+    if (!this.communityId || !cycle.id) {
+      this.toastService.error('Cycle information not available');
+      return;
+    }
+
+    this.loadingService.start('shareCycle');
+    this.sharingService.shareCycle(this.communityId, cycle.id, {
+      shareMethod: method,
+      recipients
+    })
+      .pipe(
+        catchError((error) => {
+          this.toastService.error('Failed to share cycle. Please try again.');
+          return throwError(() => error);
+        }),
+        finalize(() => this.loadingService.stop('shareCycle'))
+      )
+      .subscribe(response => {
+        if (response.status === 'success') {
+          if (method === 'email') {
+            this.toastService.success('Cycle shared via email successfully!');
+          } else if (method === 'link' && response.data?.shareUrl) {
+            // Copy to clipboard
+            navigator.clipboard.writeText(response.data.shareUrl)
+              .then(() => this.toastService.success('Cycle share link copied to clipboard!'))
+              .catch(() => this.toastService.warning('Failed to copy link. URL: ' + response.data?.shareUrl));
+          } else if (method === 'social' && response.data?.socialLinks) {
+            this.cycleSocialLinks = response.data.socialLinks;
+            this.toastService.success('Cycle social media links generated!');
+          }
+        } else {
+          this.toastService.error(response.message || 'Failed to share cycle');
+        }
+      });
+  }
+
+  /**
+   * Open a social media share URL for cycle
+   * @param platform The platform (twitter, facebook, whatsapp)
+   */
+  openCycleSocialShareUrl(platform: 'twitter' | 'facebook' | 'whatsapp'): void {
+    if (!this.cycleSocialLinks) {
+      // If we don't have links yet, need to generate them first
+      // For simplicity, this would require additional UI to select which cycle
+      this.toastService.info('Please use the share button on the specific cycle first');
+      return;
+    }
+
+    const url = this.cycleSocialLinks[platform];
+    if (url) {
+      window.open(url, '_blank');
+    }
+  }
+  
+  /**
+   * Share a midcycle
+   * @param midcycle The midcycle to share
+   * @param method The share method
+   * @param recipients Optional recipients for email sharing
+   */
+  shareMidcycle(midcycle: MidCycle, method: ShareMethod, recipients?: string[]): void {
+    if (!this.communityId || !midcycle.id) {
+      this.toastService.error('Midcycle information not available');
+      return;
+    }
+
+    this.loadingService.start('shareMidcycle');
+    this.sharingService.shareMidcycle(this.communityId, midcycle.id, {
+      shareMethod: method,
+      recipients
+    })
+      .pipe(
+        catchError((error) => {
+          this.toastService.error('Failed to share midcycle. Please try again.');
+          return throwError(() => error);
+        }),
+        finalize(() => this.loadingService.stop('shareMidcycle'))
+      )
+      .subscribe(response => {
+        if (response.status === 'success') {
+          if (method === 'email') {
+            this.toastService.success('Midcycle shared via email successfully!');
+          } else if (method === 'link' && response.data?.shareUrl) {
+            // Copy to clipboard
+            navigator.clipboard.writeText(response.data.shareUrl)
+              .then(() => this.toastService.success('Midcycle share link copied to clipboard!'))
+              .catch(() => this.toastService.warning('Failed to copy link. URL: ' + response.data?.shareUrl));
+          } else if (method === 'social' && response.data?.socialLinks) {
+            this.midCycleSocialLinks = response.data.socialLinks;
+            this.toastService.success('Midcycle social media links generated!');
+          }
+        } else {
+          this.toastService.error(response.message || 'Failed to share midcycle');
+        }
+      });
+  }
+
+  /**
+   * Open a social media share URL for midcycle
+   * @param platform The platform (twitter, facebook, whatsapp)
+   */
+  openMidcycleSocialShareUrl(platform: 'twitter' | 'facebook' | 'whatsapp'): void {
+    if (!this.midCycleSocialLinks) {
+      // If we don't have links yet, need to generate them first
+      this.toastService.info('Please use the share button on the specific midcycle first');
+      return;
+    }
+
+    const url = this.midCycleSocialLinks[platform];
+    if (url) {
+      window.open(url, '_blank');
+    }
   }
 }

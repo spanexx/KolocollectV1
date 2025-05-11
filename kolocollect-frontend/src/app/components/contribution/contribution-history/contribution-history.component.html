@@ -13,11 +13,17 @@
       <button mat-stroked-button class="filter-button">
         <fa-icon [icon]="faFilter" class="button-icon"></fa-icon>
         Filter
-      </button>
-      <button mat-stroked-button class="export-button">
+      </button>      <button mat-stroked-button class="export-button" [matMenuTriggerFor]="exportMenu">
         <fa-icon [icon]="faDownload" class="button-icon"></fa-icon>
         Export
       </button>
+      
+      <mat-menu #exportMenu="matMenu" class="export-menu">
+        <button mat-menu-item (click)="exportContributionHistoryAsPdf()">
+          <fa-icon [icon]="faFilePdf" class="menu-icon"></fa-icon>
+          <span>Export All as PDF</span>
+        </button>
+      </mat-menu>
       <button mat-raised-button color="primary" (click)="makeContribution()">
         <fa-icon [icon]="faPlus" class="button-icon"></fa-icon>
         Make Contribution
@@ -106,6 +112,52 @@
                 <fa-icon [icon]="getStatusIcon(contribution.status)" class="status-icon"></fa-icon>
                 {{ contribution.status | titlecase }}
               </span>
+            </td>
+          </ng-container>
+            <!-- Actions Column -->
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef>Actions</th>
+            <td mat-cell *matCellDef="let contribution">
+              <span class="mobile-label">Actions:</span>
+              <div class="action-buttons">
+                <button mat-icon-button [matMenuTriggerFor]="actionMenu" aria-label="Show contribution options">
+                  <mat-icon>more_vert</mat-icon>
+                </button>
+                <mat-menu #actionMenu="matMenu">
+                  <button mat-menu-item (click)="viewContributionDetails(contribution)">
+                    <fa-icon [icon]="faReceipt" class="menu-icon"></fa-icon>
+                    <span>View Details</span>
+                  </button>
+                  <button mat-menu-item (click)="exportContributionAsPdf(contribution)">
+                    <fa-icon [icon]="faFilePdf" class="menu-icon"></fa-icon>
+                    <span>Export as PDF</span>
+                  </button>
+                  <button mat-menu-item [matMenuTriggerFor]="shareMenu" (click)="selectContribution(contribution)">
+                    <fa-icon [icon]="faShare" class="menu-icon"></fa-icon>
+                    <span>Share</span>
+                  </button>
+                </mat-menu>
+                
+                <!-- Share submenu -->
+                <mat-menu #shareMenu="matMenu">
+                  <button mat-menu-item (click)="shareContributionViaLink(selectedContribution!)">
+                    <fa-icon [icon]="faLink" class="menu-icon"></fa-icon>
+                    <span>Copy Link</span>
+                  </button>
+                  <button mat-menu-item (click)="openSocialShareUrl('twitter')">
+                    <fa-icon [icon]="faTwitter" class="menu-icon twitter-icon"></fa-icon>
+                    <span>Twitter</span>
+                  </button>
+                  <button mat-menu-item (click)="openSocialShareUrl('facebook')">
+                    <fa-icon [icon]="faFacebook" class="menu-icon facebook-icon"></fa-icon>
+                    <span>Facebook</span>
+                  </button>
+                  <button mat-menu-item (click)="openSocialShareUrl('whatsapp')">
+                    <fa-icon [icon]="faWhatsapp" class="menu-icon whatsapp-icon"></fa-icon>
+                    <span>WhatsApp</span>
+                  </button>
+                </mat-menu>
+              </div>
             </td>
           </ng-container>          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
           <tr mat-row *matRowDef="let row; columns: displayedColumns;" 

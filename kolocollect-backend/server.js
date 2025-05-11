@@ -11,6 +11,7 @@ const walletRoutes = require('./routes/walletRoutes');
 const stripeRoutes = require('./routes/stripeRoutes');
 const memberRoutes = require('./routes/memberRoutes');
 const midcycleRoutes = require('./routes/midcycleRoutes');
+const sharingRoutes = require('./routes/sharingRoutes');
 const webhookMiddleware = require('./middlewares/webhookMiddleware');
 
 // Import all separated models
@@ -49,6 +50,7 @@ app.use('/api/wallet', walletRoutes);
 app.use('/api/stripe', stripeRoutes);
 app.use('/api/members', memberRoutes);
 app.use('/api/midcycles', midcycleRoutes);
+app.use('/api/sharing', sharingRoutes);
 
 app.use(
   '/webhook',

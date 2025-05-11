@@ -837,3 +837,42 @@ button:focus, mat-card:focus {
     }
   }
 }
+
+// Menu icons
+.menu-icon {
+  margin-right: 8px;
+  width: 16px;
+  font-size: 16px;
+}
+
+.action-buttons {
+  display: flex;
+  justify-content: flex-end;
+  
+  .mat-icon-button {
+    color: #6D28D9;
+  }
+}
+
+// Social media icons colors
+.twitter-icon {
+  color: #1DA1F2;
+}
+
+.facebook-icon {
+  color: #4267B2;
+}
+
+.whatsapp-icon {
+  color: #25D366;
+}
+
+// Share menu styles
+::ng-deep .share-menu {
+  min-width: 180px;
+  
+  .mat-menu-item {
+    height: 40px;
+    line-height: 40px;
+  }
+}

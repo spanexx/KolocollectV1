@@ -1,0 +1,129 @@
+<div class="filter-container">
+  <div class="filter-header">
+    <div class="filter-title">
+      <fa-icon [icon]="faFilter"></fa-icon> 
+      Filter Communities
+    </div>
+    <button mat-button (click)="resetFilters()" [disabled]="isLoading" class="reset-button">
+      <fa-icon [icon]="faArrowsRotate"></fa-icon>
+      Reset
+    </button>
+  </div>
+
+  <form [formGroup]="filterForm" class="filter-form compact-layout">
+    <!-- Status Filter -->
+    <div class="filter-section">
+      <h4><fa-icon [icon]="faBan"></fa-icon> Status</h4>
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-select formControlName="status">
+          <mat-option value="active">Active Communities</mat-option>
+          <mat-option value="all">All Communities</mat-option>
+          <mat-option value="pending">Pending First Cycle</mat-option>
+          <mat-option value="completed">Completed Communities</mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+    
+    <mat-divider></mat-divider>
+    
+    <!-- Contribution Amount Filter -->
+    <div class="filter-section">
+      <h4><fa-icon [icon]="faCoins"></fa-icon> Contribution Amount</h4>
+      <div class="range-container">
+        <span>Min: €{{ filterForm.get('minContributionMin')?.value }}</span>
+        <span>Max: €{{ filterForm.get('minContributionMax')?.value }}</span>
+      </div>
+      <div class="slider-container">
+        <mat-slider min="0" [max]="maxMinContribution" class="full-width">
+          <input matSliderStartThumb formControlName="minContributionMin">
+          <input matSliderEndThumb formControlName="minContributionMax">
+        </mat-slider>
+      </div>
+    </div>
+    
+    <mat-divider></mat-divider>
+    
+    <!-- Backup Fund Filter -->
+    <div class="filter-section">
+      <h4><fa-icon [icon]="faCoins"></fa-icon> Backup Fund</h4>
+      <div class="range-container">
+        <span>Min: €{{ filterForm.get('backupFundMin')?.value }}</span>
+        <span>Max: €{{ filterForm.get('backupFundMax')?.value }}</span>
+      </div>
+      <div class="slider-container">
+        <mat-slider min="0" [max]="maxBackupFund" class="full-width">
+          <input matSliderStartThumb formControlName="backupFundMin">
+          <input matSliderEndThumb formControlName="backupFundMax">
+        </mat-slider>
+      </div>
+    </div>
+    
+    <mat-divider></mat-divider>
+    
+    <!-- Contribution Frequency -->
+    <div class="filter-section">
+      <h4><fa-icon [icon]="faClock"></fa-icon> Contribution Frequency</h4>
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-select formControlName="contributionFrequency">
+          <mat-option value="">Any Frequency</mat-option>
+          <mat-option *ngFor="let frequency of contributionFrequencies" [value]="frequency.value">
+            {{ frequency.label }}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+    </div>
+    
+    <mat-divider></mat-divider>
+    
+    <!-- Member Count Filter -->
+    <div class="filter-section">
+      <h4><fa-icon [icon]="faUsers"></fa-icon> Member Count</h4>
+      <div class="range-container">
+        <span>Min: {{ filterForm.get('memberCountMin')?.value }}</span>
+        <span>Max: {{ filterForm.get('memberCountMax')?.value }}</span>
+      </div>
+      <div class="slider-container">
+        <mat-slider min="0" max="100" class="full-width">
+          <input matSliderStartThumb formControlName="memberCountMin">
+          <input matSliderEndThumb formControlName="memberCountMax">
+        </mat-slider>
+      </div>
+    </div>
+    
+    <mat-divider></mat-divider>
+    
+    <!-- Sorting Options -->
+    <div class="filter-section">
+      <h4><fa-icon [icon]="faSort"></fa-icon> Sort By</h4>
+      <div class="sort-container">
+        <mat-form-field appearance="outline" class="sort-field">
+          <mat-select formControlName="sortBy">
+            <mat-option *ngFor="let option of sortOptions" [value]="option.value">
+              {{ option.label }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+        
+        <mat-form-field appearance="outline" class="order-field">
+          <mat-select formControlName="order">
+            <mat-option value="asc">
+              <fa-icon [icon]="faSortAlphaDown"></fa-icon> ASC
+            </mat-option>
+            <mat-option value="desc">
+              <fa-icon [icon]="faSortAlphaUp"></fa-icon> DESC
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+      </div>
+    </div>
+    
+    <mat-divider></mat-divider>
+    
+    <!-- Additional Options -->
+    <div class="filter-section checkbox-section">
+      <mat-checkbox formControlName="onlyJoinable" color="primary">
+        Only show communities I can join
+      </mat-checkbox>
+    </div>
+  </form>
+</div>

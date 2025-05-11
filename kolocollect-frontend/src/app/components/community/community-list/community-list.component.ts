@@ -13,6 +13,7 @@ import { catchError, finalize, throwError, forkJoin, of } from 'rxjs';
 import { Community, CommunityListResponse, MidCycle } from '../../../models/community.model';
 import { JoinCommunityDialogComponent } from '../join-community-dialog/join-community-dialog.component';
 import { MidcycleService } from '../../../services/midcycle.service';
+import { CommunityFilterComponent } from '../community-filter/community-filter.component';
 
 // Angular Material imports
 import { MatCardModule } from '@angular/material/card';
@@ -51,8 +52,7 @@ import { MemberService } from '../../../services/member.service';
   selector: 'app-community-list',
   templateUrl: './community-list.component.html',
   styleUrls: ['./community-list.component.scss'],
-  standalone: true,
-  imports: [
+  standalone: true,  imports: [
     CommonModule,
     RouterModule,
     FormsModule,
@@ -66,7 +66,8 @@ import { MemberService } from '../../../services/member.service';
     MatProgressSpinnerModule,
     FontAwesomeModule,
     MatDialogModule,
-    MatDividerModule
+    MatDividerModule,
+    CommunityFilterComponent
   ]
 })
 export class CommunityListComponent implements OnInit {
@@ -449,6 +450,7 @@ export class CommunityListComponent implements OnInit {
    * This uses cached values from the API if available
    */
   isMidcycleReady(community: Community): boolean {
+    console.log("Checking midcycle readiness for community:", community);
     if (!community.midCycle || !Array.isArray(community.midCycle) || community.midCycle.length === 0) {
       return false;
     }
@@ -462,6 +464,7 @@ export class CommunityListComponent implements OnInit {
     if (this.midcycleReadinessCache[activeMidCycle.id] !== undefined) {
       return this.midcycleReadinessCache[activeMidCycle.id];
     }
+    console.log("Active midcycle ID:", activeMidCycle)
 
     // If no cache, use the value from the community data
     return activeMidCycle.isReady;
@@ -609,5 +612,23 @@ export class CommunityListComponent implements OnInit {
       return '€0.00';
     }
     return '€' + value.toFixed(2);
+  }
+
+  /**
+   * Handle filter changes from the CommunityFilterComponent
+   */
+  onFilterChange(filters: any): void {
+    console.log('Filters applied:', filters);
+    this.filterOptions = filters;
+    this.pageIndex = 0; // Reset to first page when filters change
+    this.loadCommunities();
+  }
+    /**
+   * Toggle filter panel visibility
+   */
+  isFilterPanelVisible: boolean = false;
+  
+  toggleFilterPanel(): void {
+    this.isFilterPanelVisible = !this.isFilterPanelVisible;
   }
 }
