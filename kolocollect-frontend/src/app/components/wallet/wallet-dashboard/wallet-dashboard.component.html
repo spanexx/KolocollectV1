@@ -13,15 +13,14 @@
     <p>Loading wallet data...</p>
   </div>
 
-  <!-- Error message display with improved styling -->
-  <div *ngIf="error && !isLoading" class="error-container">
+  <!-- Error message display with improved styling -->  <div *ngIf="error && !isLoading" class="error-container">
     <mat-card class="error-card">
       <mat-card-content>
-        <mat-icon color="warn">error_outline</mat-icon>
+        <fa-icon [icon]="faExclamationTriangle" class="error-icon"></fa-icon>
         <h2>Error Loading Wallet</h2>
         <p>{{ error }}</p>
         <button mat-raised-button color="primary" (click)="loadWalletData()">
-          <mat-icon>refresh</mat-icon> Try Again
+          <fa-icon [icon]="faRedo"></fa-icon> Try Again
         </button>
       </mat-card-content>
     </mat-card>
@@ -41,15 +40,18 @@
             <div [ngClass]="monthlyChange >= 0 ? 'balance-change positive' : 'balance-change negative'">
               {{ monthlyChange >= 0 ? '+' : '' }}{{ formatCurrency(monthlyChange) }} this month
             </div>
-          </div>
-          <div class="balance-actions">
+          </div>          <div class="balance-actions">
             <a mat-raised-button color="primary" [routerLink]="['/wallet/add-funds']">
               <fa-icon [icon]="faPlus" class="button-icon"></fa-icon>
               Add Funds
             </a>
-            <a mat-stroked-button color="primary" [routerLink]="['/wallet/withdraw']">
+            <a mat-stroked-button color="primary" [routerLink]="['/wallet/withdraw-funds']">
               <fa-icon [icon]="faMinus" class="button-icon"></fa-icon>
               Withdraw
+            </a>
+            <a mat-stroked-button color="accent" [routerLink]="['/wallet/transfer-funds']">
+              <fa-icon [icon]="faExchangeAlt" class="button-icon"></fa-icon>
+              Transfer
             </a>
           </div>
         </mat-card-content>
@@ -110,11 +112,11 @@
               <div class="transaction-details">
                 <div class="transaction-title">{{ transaction.description }}</div>
                 <div class="transaction-date">{{ formatDate(transaction.date) }}</div>
-              </div>
-              <div class="transaction-status">
-                <mat-chip [color]="transaction.status === 'completed' ? 'primary' : 'accent'">
+              </div>              <div class="transaction-status">
+                <div class="status-chip" [ngClass]="transaction.status === 'completed' ? 'status-completed' : 'status-pending'">
+                  <fa-icon [icon]="transaction.status === 'completed' ? faCheck : faHourglass" [fixedWidth]="true"></fa-icon>
                   {{ transaction.status || 'completed' }}
-                </mat-chip>
+                </div>
               </div>
               <div [ngClass]="isPositiveTransaction(transaction.type) ? 'transaction-amount positive' : 'transaction-amount negative'">
                 {{ isPositiveTransaction(transaction.type) ? '+' : '-' }}{{ formatCurrency(transaction.amount) }}
@@ -128,7 +130,7 @@
           </div>
           
           <div class="view-all">
-            <a mat-button color="primary" [routerLink]="['/wallet/transactions']">
+            <a mat-button color="primary" [routerLink]="['/wallet/transaction-history']">
               <fa-icon [icon]="faEye" class="button-icon"></fa-icon>
               View All Transactions
             </a>
@@ -168,11 +170,11 @@
                       Ready to release
                     </p>
                   </div>
-                  <div class="fund-actions">
-                    <div>
-                      <mat-chip [color]="!fund.isMatured ? 'primary' : 'accent'">
+                  <div class="fund-actions">                    <div>
+                      <div class="status-chip" [ngClass]="!fund.isMatured ? 'status-active' : 'status-matured'">
+                        <fa-icon [icon]="!fund.isMatured ? faLock : faCheckCircle" [fixedWidth]="true"></fa-icon>
                         {{ !fund.isMatured ? 'Active' : 'Matured' }}
-                      </mat-chip>
+                      </div>
                     </div>
                     <button *ngIf="getRemainingDays(fund.endDate) <= 0 && !fund.isMatured" 
                       mat-button color="primary" (click)="releaseFund(fund.id)">
@@ -226,7 +228,7 @@
               <div class="settings-section">
                 <h3>Transaction History</h3>
                 <p class="settings-description">View and download your complete transaction history</p>
-                <a mat-stroked-button color="primary" [routerLink]="['/wallet/transactions']">
+                <a mat-stroked-button color="primary" [routerLink]="['/wallet/transaction-history']">
                   View Transaction History
                 </a>
               </div>

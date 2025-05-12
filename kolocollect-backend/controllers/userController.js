@@ -327,6 +327,92 @@ exports.getUserNotifications = async (req, res) => {
   }
 };
 
+// In-memory cache for search results
+const searchCache = {};
+const searchTimeouts = {};
+const CLIENT_RATE_LIMIT = {};
+const RATE_LIMIT_WINDOW = 5000; // 5 seconds
+const RATE_LIMIT_MAX = 3; // Max 3 requests per window
+
+// Search users by name or email
+exports.searchUsers = async (req, res) => {
+  try {
+    const { query } = req.query;
+    const clientIp = req.ip || 'unknown';
+    
+    // Basic rate limiting by IP
+    const now = Date.now();
+    if (!CLIENT_RATE_LIMIT[clientIp]) {
+      CLIENT_RATE_LIMIT[clientIp] = {
+        count: 1,
+        resetAt: now + RATE_LIMIT_WINDOW
+      };
+    } else if (now < CLIENT_RATE_LIMIT[clientIp].resetAt) {
+      CLIENT_RATE_LIMIT[clientIp].count++;
+      if (CLIENT_RATE_LIMIT[clientIp].count > RATE_LIMIT_MAX) {
+        console.log(`Rate limit exceeded for ${clientIp} on query: ${query}`);
+        return createErrorResponse(res, 429, 'TOO_MANY_REQUESTS', 'Too many search requests. Please wait a moment before trying again.');
+      }
+    } else {
+      // Reset rate limit counter
+      CLIENT_RATE_LIMIT[clientIp] = {
+        count: 1,
+        resetAt: now + RATE_LIMIT_WINDOW
+      };
+    }
+    
+    if (!query) {
+      return createErrorResponse(res, 400, 'SEARCH_QUERY_REQUIRED', 'Search query is required');
+    }
+    
+    // Normalize query for consistency in caching
+    const normalizedQuery = query.trim().toLowerCase();
+    
+    // Check cache first
+    if (searchCache[normalizedQuery]) {
+      console.log(`Returning cached results for query: ${normalizedQuery}`);
+      return res.status(200).json(searchCache[normalizedQuery]);
+    }
+    
+    // Create a case-insensitive regex for search
+    const searchRegex = new RegExp(normalizedQuery, 'i');
+    
+    const users = await User.find({
+      $or: [
+        { name: searchRegex },
+        { email: searchRegex }
+      ]
+    })
+    .select('_id name email') // Only return essential fields
+    .limit(20); // Limit the number of results
+    
+    // Transform the result to match the frontend interface
+    const results = users.map(user => ({
+      id: user._id,
+      name: user.name,
+      email: user.email
+    }));
+    
+    // Cache results for 5 minutes
+    searchCache[normalizedQuery] = results;
+    
+    // Clear cache after timeout
+    if (searchTimeouts[normalizedQuery]) {
+      clearTimeout(searchTimeouts[normalizedQuery]);
+    }
+    
+    searchTimeouts[normalizedQuery] = setTimeout(() => {
+      delete searchCache[normalizedQuery];
+      delete searchTimeouts[normalizedQuery];
+    }, 5 * 60 * 1000); // 5 minutes cache timeout
+    
+    res.status(200).json(results);
+  } catch (err) {
+    console.error('Error searching users:', err);
+    createErrorResponse(res, 500, 'SEARCH_ERROR', 'Failed to search users: ' + err.message);
+  }
+};
+
 // Request password reset
 exports.requestPasswordReset = async (req, res) => {
   try {

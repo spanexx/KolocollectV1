@@ -1,0 +1,112 @@
+<div class="transfer-funds-container">
+  <div class="header">
+    <a mat-icon-button routerLink="/wallet" class="back-button" matTooltip="Back to wallet">
+      <fa-icon [icon]="faArrowLeft"></fa-icon>
+    </a>
+    <h1>Transfer Funds</h1>
+  </div>
+
+  <mat-card class="transfer-card">
+    <mat-card-content>      <div *ngIf="isSuccess" class="success-container">
+        <div class="success-icon">
+          <fa-icon [icon]="faCheckCircle" size="3x"></fa-icon>
+        </div>
+        <h2>Transfer Successful</h2>
+        <p>Your transfer has been processed successfully. Redirecting to wallet dashboard...</p>
+      </div>
+
+      <div *ngIf="!isSuccess">
+        <div class="form-icon">
+          <fa-icon [icon]="faExchangeAlt" size="3x"></fa-icon>
+        </div>
+        
+        <h2>Transfer Funds to Another User</h2>
+        
+        <div class="balance-info">
+          <p>Available Balance: <strong>{{ formatCurrency(availableBalance) }}</strong></p>
+        </div>
+          <div class="form-error" *ngIf="error">
+          <fa-icon [icon]="faExclamationTriangle" class="error-icon"></fa-icon>
+          <span>{{ error }}</span>
+        </div>
+        
+        <form [formGroup]="transferForm" (ngSubmit)="onSubmit()">
+          <div class="recipient-section">
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Recipient Email</mat-label>              <input matInput formControlName="recipientEmail" placeholder="user@example.com" [matAutocomplete]="auto">
+              <mat-progress-spinner *ngIf="isSearchLoading" matSuffix diameter="16" color="primary" mode="indeterminate"></mat-progress-spinner>
+              <fa-icon [icon]="faSearch" matSuffix *ngIf="!isSearchLoading"></fa-icon>
+              <mat-error *ngIf="transferForm.get('recipientEmail')?.hasError('required')">
+                Recipient email is required
+              </mat-error>
+              <mat-error *ngIf="transferForm.get('recipientEmail')?.hasError('email')">
+                Please enter a valid email address
+              </mat-error>
+            </mat-form-field>
+            
+            <mat-autocomplete #auto="matAutocomplete">
+              <mat-option *ngFor="let user of filteredUsers" [value]="user.email" (click)="selectUser(user)">
+                <div class="user-option">
+                  <div class="user-avatar">
+                    <img *ngIf="user.avatarUrl" [src]="user.avatarUrl" [alt]="user.name">
+                    <fa-icon *ngIf="!user.avatarUrl" [icon]="faUser"></fa-icon>
+                  </div>
+                  <div class="user-info">
+                    <div class="user-name">{{ user.name }}</div>
+                    <div class="user-email">{{ user.email }}</div>
+                  </div>
+                </div>
+              </mat-option>
+            </mat-autocomplete>
+          </div>
+          
+          <div class="selected-user" *ngIf="selectedUser">
+            <mat-card>
+              <mat-card-content>
+                <div class="user-details">
+                  <div class="user-avatar">
+                    <img *ngIf="selectedUser.avatarUrl" [src]="selectedUser.avatarUrl" [alt]="selectedUser.name">
+                    <fa-icon *ngIf="!selectedUser.avatarUrl" [icon]="faUser"></fa-icon>
+                  </div>
+                  <div class="user-info">
+                    <div class="user-name">{{ selectedUser.name }}</div>
+                    <div class="user-email">{{ selectedUser.email }}</div>
+                  </div>
+                </div>
+              </mat-card-content>
+            </mat-card>
+          </div>
+          
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Amount</mat-label>
+            <span matPrefix>$&nbsp;</span>
+            <input matInput type="number" min="1" step="0.01" formControlName="amount" placeholder="0.00">
+            <mat-error *ngIf="transferForm.get('amount')?.hasError('required')">
+              Amount is required
+            </mat-error>
+            <mat-error *ngIf="transferForm.get('amount')?.hasError('min')">
+              Amount must be at least $1
+            </mat-error>
+          </mat-form-field>
+          
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Description (optional)</mat-label>
+            <textarea matInput formControlName="description" placeholder="What's this transfer for?"></textarea>
+            <mat-hint align="end">{{ transferForm.get('description')?.value?.length || 0 }}/100</mat-hint>
+            <mat-error *ngIf="transferForm.get('description')?.hasError('maxlength')">
+              Description cannot exceed 100 characters
+            </mat-error>
+          </mat-form-field>
+          
+          <div class="form-actions">
+            <button mat-flat-button color="primary" type="submit" [disabled]="transferForm.invalid || isLoading" class="submit-button">
+              <span *ngIf="!isLoading">Transfer Funds</span>
+              <mat-icon *ngIf="isLoading" class="spinner">refresh</mat-icon>
+            </button>
+            <button mat-button routerLink="/wallet" type="button">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>

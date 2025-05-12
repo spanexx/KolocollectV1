@@ -40,7 +40,19 @@ import {
   faLock,
   faEye,
   faFileInvoiceDollar,
-  faArrowsRotate
+  faArrowsRotate,
+  faExclamationTriangle,
+  faCheckCircle,
+  faRedo,
+  faFileDownload,
+  faFilePdf,
+  faSort,
+  faSortUp,
+  faSortDown,
+  faFilter,
+  faCalendar,
+  faCheck,
+  faHourglass
 } from '@fortawesome/free-solid-svg-icons';
 
 // RxJS
@@ -78,9 +90,22 @@ export class WalletDashboardComponent implements OnInit, OnDestroy {
   faMinus = faMinus;
   faChevronRight = faChevronRight;
   faPiggyBank = faPiggyBank;
-  faLock = faLock;  faEye = faEye;
+  faLock = faLock;  
+  faEye = faEye;
   faFileInvoiceDollar = faFileInvoiceDollar;
   faArrowsRotate = faArrowsRotate;
+  faExclamationTriangle = faExclamationTriangle;
+  faCheckCircle = faCheckCircle;
+  faRedo = faRedo;
+  faFileDownload = faFileDownload;
+  faFilePdf = faFilePdf;
+  faSort = faSort;
+  faSortUp = faSortUp;
+  faSortDown = faSortDown;
+  faFilter = faFilter;
+  faCalendar = faCalendar;
+  faCheck = faCheck;
+  faHourglass = faHourglass;
 
   // Data properties
   wallet: any = null;

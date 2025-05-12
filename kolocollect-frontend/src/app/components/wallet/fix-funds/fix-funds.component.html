@@ -1,0 +1,135 @@
+<div class="fix-funds-container">
+  <div class="header">
+    <a mat-icon-button routerLink="/wallet" class="back-button" matTooltip="Back to wallet">
+      <fa-icon [icon]="faArrowLeft"></fa-icon>
+    </a>
+    <h1>Fix Funds</h1>
+  </div>
+
+  <mat-card class="fix-funds-card">
+    <mat-card-content>      <div *ngIf="isSuccess" class="success-container">
+        <div class="success-icon">
+          <fa-icon [icon]="faCheckCircle" size="3x"></fa-icon>
+        </div>
+        <h2>Funds Fixed Successfully</h2>
+        <p>Your funds have been locked for the specified duration. Redirecting to wallet dashboard...</p>
+      </div>
+
+      <div *ngIf="!isSuccess">
+        <div class="form-icon">
+          <fa-icon [icon]="faLock" size="3x"></fa-icon>
+        </div>
+        
+        <h2>Lock Funds for a Period</h2>
+        <p class="info-text">
+          Fixed funds are locked for a specified duration and cannot be withdrawn until the end date.
+          This feature helps you save for specific goals or ensure funds are available for future contributions.
+        </p>
+        
+        <div class="balance-info">
+          <p>Available Balance: <strong>{{ formatCurrency(availableBalance) }}</strong></p>
+        </div>
+          <div class="form-error" *ngIf="error">
+          <fa-icon [icon]="faExclamationTriangle" class="error-icon"></fa-icon>
+          <span>{{ error }}</span>
+        </div>
+        
+        <form [formGroup]="fixFundsForm" (ngSubmit)="onSubmit()">
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Amount</mat-label>
+            <span matPrefix>$&nbsp;</span>
+            <input matInput type="number" min="10" step="0.01" formControlName="amount" placeholder="0.00">
+            <mat-hint>Minimum amount: $10.00</mat-hint>
+            <mat-error *ngIf="fixFundsForm.get('amount')?.hasError('required')">
+              Amount is required
+            </mat-error>
+            <mat-error *ngIf="fixFundsForm.get('amount')?.hasError('min')">
+              Minimum amount to fix is $10
+            </mat-error>
+          </mat-form-field>
+            <div class="duration-section">
+            <h3>Lock Duration</h3>
+            <p>Specify how long you want to lock your funds</p>
+              <div class="lock-period-container">
+              <mat-form-field appearance="outline" class="full-width">
+                <mat-label>Lock Period</mat-label>
+                <mat-select formControlName="lockPeriod">
+                  <mat-option *ngFor="let period of lockPeriods" [value]="period.value">
+                    {{ period.label }}
+                  </mat-option>
+                </mat-select>
+              </mat-form-field>
+            </div>
+            
+            <div class="date-info">              <div class="date-card">
+                <div class="date-label">Start Date</div>
+                <div class="date-value">{{formatDate(currentDate)}}</div>
+              </div>
+              
+              <mat-divider vertical></mat-divider>
+              
+              <div class="date-card">
+                <div class="date-label">Release Date</div>
+                <div class="date-value">{{ formatDate(calculatedEndDate) }}</div>
+              </div>
+            </div>
+            
+            <div class="interest-info">
+              <div class="interest-row">
+                <span>Estimated Interest:</span>
+                <strong>{{ formatCurrency(estimatedInterest) }}</strong>
+              </div>
+              <div class="interest-row">
+                <span>Total at Maturity:</span>
+                <strong>{{ formatCurrency(estimatedTotal) }}</strong>
+              </div>
+            </div>
+          </div>
+          
+          <div class="purpose-section">
+            <h3>Purpose</h3>
+            <p>Select what these funds are being fixed for</p>
+            
+            <mat-form-field appearance="outline" class="full-width">
+              <mat-label>Purpose</mat-label>
+              <mat-select formControlName="purpose">
+                <mat-option *ngFor="let purpose of purposes" [value]="purpose.id">
+                  {{ purpose.name }}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+            
+            <!-- Community selector only shown when purpose is 'community' -->
+            <mat-form-field *ngIf="fixFundsForm.get('purpose')?.value === 'community'" appearance="outline" class="full-width">
+              <mat-label>Select Community</mat-label>
+              <mat-select formControlName="communityId">
+                <mat-option *ngIf="isLoadingCommunities" disabled>Loading communities...</mat-option>
+                <mat-option *ngFor="let community of communities" [value]="community.id">
+                  {{ community.name }}
+                </mat-option>
+                <mat-option *ngIf="communities.length === 0 && !isLoadingCommunities" disabled>
+                  You don't have any communities
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+            
+            <!-- Specific purpose input shown when purpose is 'other' -->
+            <mat-form-field *ngIf="fixFundsForm.get('purpose')?.value === 'other'" appearance="outline" class="full-width">
+              <mat-label>Specify Purpose</mat-label>
+              <input matInput formControlName="specificPurpose" placeholder="e.g. New Car, Education, etc.">
+            </mat-form-field>
+          </div>
+          
+          <div class="form-actions">
+            <button mat-flat-button color="primary" type="submit" [disabled]="fixFundsForm.invalid || isLoading" class="submit-button">
+              <fa-icon [icon]="faLock" *ngIf="!isLoading" class="button-icon"></fa-icon>
+              <span *ngIf="!isLoading">Fix Funds</span>
+              <mat-icon *ngIf="isLoading" class="spinner">refresh</mat-icon>
+            </button>
+            <button mat-button routerLink="/wallet" type="button">Cancel</button>
+          </div>
+        </form>
+      </div>
+    </mat-card-content>
+  </mat-card>
+</div>

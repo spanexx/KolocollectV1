@@ -36,25 +36,43 @@ export class WalletService {
   addFunds(data: { userId: string; amount: number; source?: string }): Observable<any> {
     return this.api.post<any>('/wallet/add-funds', data);
   }
-
   /**
    * Withdraw funds from a wallet
    */
-  withdrawFunds(data: { userId: string; amount: number; destination?: string }): Observable<any> {
+  withdrawFunds(data: { userId: string; amount: number; destination?: any }): Observable<any> {
     return this.api.post<any>('/wallet/withdraw-funds', data);
   }
-
   /**
    * Transfer funds between wallets
    */
-  transferFunds(data: { userId: string; recipientId: string; amount: number; description?: string }): Observable<any> {
+  transferFunds(data: { userId: string; recipientId?: string; recipientEmail?: string; amount: number; description?: string }): Observable<any> {
     return this.api.post<any>('/wallet/transfer-funds', data);
   }
-
   /**
    * Get transaction history for a wallet
+   * @param userId User ID
+   * @param params Optional params for filtering transactions
+   * @param params.page Page number for pagination
+   * @param params.limit Number of transactions per page
+   * @param params.type Filter by transaction type ('deposit', 'withdrawal', 'contribution', etc.)
+   * @param params.status Filter by transaction status ('pending', 'completed', 'failed')
+   * @param params.dateFrom Start date for filtering (ISO date string)
+   * @param params.dateTo End date for filtering (ISO date string)
+   * @param params.minAmount Minimum transaction amount
+   * @param params.maxAmount Maximum transaction amount
+   * @param params.search Search term for transaction description
    */
-  getTransactionHistory(userId: string, params: { page?: number; limit?: number; type?: string } = {}): Observable<any> {
+  getTransactionHistory(userId: string, params: { 
+    page?: number; 
+    limit?: number; 
+    type?: string | string[]; 
+    status?: string | string[];
+    dateFrom?: string;
+    dateTo?: string;
+    minAmount?: number;
+    maxAmount?: number;
+    search?: string;
+  } = {}): Observable<any> {
     return this.api.get<any>(`/wallet/${userId}/transactions`, params);
   }
 
@@ -74,8 +92,32 @@ export class WalletService {
 
   /**
    * Release a fixed fund that has matured
-   */
-  releaseFixedFund(userId: string, fundId: string): Observable<any> {
+   */  releaseFixedFund(userId: string, fundId: string): Observable<any> {
     return this.api.post<any>(`/wallet/${userId}/release-fixed-fund`, { fundId });
+  }
+  /**
+   * Download transactions in CSV or PDF format
+   * @param userId User ID
+   * @param params Download parameters including filters and format
+   */
+  downloadTransactions(userId: string, params: { 
+    format: 'csv' | 'pdf';
+    type?: string | string[]; 
+    status?: string | string[];
+    dateFrom?: string;
+    dateTo?: string;
+    minAmount?: number;
+    maxAmount?: number;
+    search?: string;
+  }): Observable<any> {
+    const format = params.format || 'csv';
+    const requestParams = { ...params } as Partial<typeof params>;
+    requestParams.format = undefined;
+    
+    return this.api.get<any>(
+      `/wallet/${userId}/transactions/download/${format}`, 
+      requestParams, 
+      { responseType: format === 'csv' ? 'text' : 'arraybuffer' }
+    );
   }
 }

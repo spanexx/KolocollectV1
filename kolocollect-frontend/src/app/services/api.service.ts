@@ -8,18 +8,33 @@ import { environment } from '../../environments/environment';
   providedIn: 'root'
 })
 export class ApiService {
-  constructor(private http: HttpClient) { }
-
-  /**
+  constructor(private http: HttpClient) { }  /**
    * Perform a GET request to the API
    */
-  get<T>(url: string, params: any = {}, customHeaders: HttpHeaders = new HttpHeaders()): Observable<T> {
-    const options = {
+  get<T>(url: string, params: any = {}, options: { 
+    headers?: HttpHeaders,
+    responseType?: 'json' | 'text' | 'blob' | 'arraybuffer'
+  } = {}): Observable<T> {
+    const httpOptions: any = {
       params: this.buildParams(params),
-      headers: customHeaders
+      headers: options.headers || new HttpHeaders()
     };
+    
+    if (options.responseType) {
+      httpOptions.responseType = options.responseType;
+        // When using a custom responseType, we need to properly type the response
+      return this.http.get(`${environment.apiUrl}${url}`, httpOptions)
+        .pipe(
+          timeout(environment.apiTimeoutMs),
+          catchError(this.handleError)
+        ) as Observable<T>;
+    }
 
-    return this.http.get<T>(`${environment.apiUrl}${url}`, options)
+    const httpOptionsWithObserveBody: { params: HttpParams, headers: HttpHeaders, observe: 'body' } = {
+      ...httpOptions,
+      observe: 'body'
+    };
+    return this.http.get<T>(`${environment.apiUrl}${url}`, httpOptionsWithObserveBody)
       .pipe(
         timeout(environment.apiTimeoutMs),
         catchError(this.handleError)

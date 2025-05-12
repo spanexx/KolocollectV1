@@ -14,6 +14,7 @@ const authMiddleware = require('../middlewares/authMiddleware');
 router.use(authMiddleware);
 
 // Protected Routes
+router.get('/search', userController.searchUsers); // Add user search endpoint
 router.get('/:userId/profile', userController.getUserProfile);
 router.get('/:userId/upcoming-payouts', userController.getUpcomingPayouts);
 router.post('/:userId/clean-up-logs', userController.cleanUpLogs);

@@ -41,6 +41,7 @@ const walletSchema = new mongoose.Schema({
   fixedBalance: { type: Number, default: 0 },
   totalBalance: { type: Number, default: 0 },
   transactions: [transactionSchema],
+  fixedFunds: [fixedFundsSchema],
   isFrozen: { type: Boolean, default: false },
 });
 
@@ -181,6 +182,11 @@ walletSchema.methods.fixFunds = async function (amount, endDate) {
 
   if (this.availableBalance < amount) {
     throw new Error('Insufficient balance to fix funds.');
+  }
+
+  // Initialize fixedFunds array if it's undefined
+  if (!this.fixedFunds) {
+    this.fixedFunds = [];
   }
 
   // Create a new fixed funds entry

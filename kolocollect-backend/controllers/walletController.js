@@ -89,32 +89,68 @@ exports.withdrawFunds = async (req, res) => {
 
 //  Transfer Funds
 exports.transferFunds = async (req, res) => {
-  try {
-    const { userId, amount, recipientId, description } = req.body;
+  try {    const { userId, amount, recipientId, recipientEmail, description } = req.body;
 
-    if (!isValidObjectId(userId) || !isValidObjectId(recipientId) || !amount || amount <= 0) {
-      return createErrorResponse(res, 400, 'Invalid amount or recipient ID.');
+    console.log('Transfer funds request body:', req.body);
+
+    // Validate the sender ID and amount
+    if (!isValidObjectId(userId)) {
+      return createErrorResponse(res, 400, 'Invalid user ID format.');
     }
 
-    const senderWallet = await Wallet.findOne({ userId });
+    if (!amount || amount <= 0) {
+      return createErrorResponse(res, 400, 'Invalid amount. Amount must be greater than 0.');
+    }    let recipientUser;
+    // Handle both recipientId and recipientEmail
+    if (recipientId && isValidObjectId(recipientId)) {
+      console.log('Looking up recipient by ID:', recipientId);
+      recipientUser = await User.findById(recipientId);
+    } else if (recipientEmail) {
+      console.log('Looking up recipient by email:', recipientEmail);
+      recipientUser = await User.findOne({ email: recipientEmail });
+    } else {
+      return createErrorResponse(res, 400, 'Recipient ID or email is required.');
+    }
+
+    if (!recipientUser) {
+      return createErrorResponse(res, 404, 'Recipient user not found. Please check the email or ID provided.');
+    }
+
+    // Check if sender is transferring to themselves
+    if (recipientUser._id.toString() === userId) {
+      return createErrorResponse(res, 400, 'Cannot transfer funds to yourself.');
+    }    const senderWallet = await Wallet.findOne({ userId });
     if (!senderWallet) return createErrorResponse(res, 404, 'Sender wallet not found.');
 
-    const recipientWallet = await Wallet.findOne({ userId: recipientId });
-    if (!recipientWallet) return createErrorResponse(res, 404, 'Recipient wallet not found.');
+    let recipientWallet = await Wallet.findOne({ userId: recipientUser._id });
+    if (!recipientWallet) {
+      // Create a wallet for the recipient if one doesn't exist
+      console.log('Creating new wallet for recipient:', recipientUser._id);
+      recipientWallet = new Wallet({
+        userId: recipientUser._id,
+        availableBalance: 0,
+        totalBalance: 0,
+        fixedBalance: 0,
+        transactions: []
+      });
+      await recipientWallet.save();
+    }
+
+    // Check if sender has sufficient funds
+    if (senderWallet.availableBalance < amount) {
+      return createErrorResponse(res, 400, 'Insufficient funds for this transfer.');
+    }
 
     // Use schema method
-    await senderWallet.transferFunds(amount, recipientWallet._id, description);
-
-    // Notify sender
+    await senderWallet.transferFunds(amount, recipientWallet._id, description);// Notify sender
     const sender = await User.findById(userId);
     if (sender) {
-      await sender.addNotification('info', `You transferred €${amount} to ${recipientId}.`);
+      await sender.addNotification('info', `You transferred €${amount} to ${recipientUser.email}.`);
     }
 
     // Notify recipient
-    const recipient = await User.findById(recipientId);
-    if (recipient) {
-      await recipient.addNotification('info', `You received €${amount} from ${userId}.`);
+    if (recipientUser) {
+      await recipientUser.addNotification('info', `You received €${amount} from ${sender.email}.`);
     }
 
     res.status(200).json({ message: `Successfully transferred €${amount}.`, senderWallet, recipientWallet });
@@ -147,10 +183,23 @@ exports.getTransactionHistory = async (req, res) => {
 // Fix Funds
 exports.fixFunds = async (req, res) => {
   try {
-    const { userId, amount, duration } = req.body;
+    const { userId } = req.params;
+    const { amount, duration } = req.body;
+    console.log('Fixing funds:', req.body, 'for user:', userId);
 
-    if (!isValidObjectId(userId) || !amount || amount <= 0 || !duration) {
-      return createErrorResponse(res, 400, 'Invalid amount or duration.');
+    // Validate userId
+    if (!isValidObjectId(userId)) {
+      return createErrorResponse(res, 400, 'Invalid user ID format.');
+    }
+    
+    // Validate amount
+    if (!amount || isNaN(amount) || parseFloat(amount) <= 0) {
+      return createErrorResponse(res, 400, 'Amount must be a positive number.');
+    }
+    
+    // Validate duration
+    if (!duration || isNaN(duration) || parseInt(duration) <= 0) {
+      return createErrorResponse(res, 400, 'Duration must be a positive number of days.');
     }
 
     const wallet = await Wallet.findOne({ userId });
@@ -161,23 +210,34 @@ exports.fixFunds = async (req, res) => {
     }
 
     const endDate = new Date();
-    endDate.setDate(endDate.getDate() + duration);
-
+    endDate.setDate(endDate.getDate() + duration);    // Make sure we have a parsed amount
+    const parsedAmount = parseFloat(amount);
+    const parsedDuration = parseInt(duration);
+    
     // Use addTransaction for fixing funds
     await wallet.addTransaction(
-      amount,
+      parsedAmount,
       'fixed',
-      `Fixed €${amount} for ${duration} days`
+      `Fixed €${parsedAmount} for ${parsedDuration} days`
     );
-
+    
+    // Initialize fixedFunds array if it's undefined
+    if (!wallet.fixedFunds) {
+      wallet.fixedFunds = [];
+    }
+    
     // Add fixed fund record
     wallet.fixedFunds.push({
-      amount,
+      amount: parsedAmount,
       startDate: new Date(),
       endDate,
       isMatured: false,
     });
-
+    
+    // Update wallet balances (move funds from available to fixed)
+    wallet.availableBalance -= parsedAmount;
+    wallet.fixedBalance += parsedAmount;
+    
     await wallet.save();
 
     // Notify user
@@ -210,10 +270,18 @@ exports.getFixedFunds = async (req, res) => {
       return createErrorResponse(res, 400, 'Invalid user ID.');
     }
 
-    const wallet = await Wallet.findOne({ userId }).select('fixedBalance');
+    const wallet = await Wallet.findOne({ userId }).select('fixedBalance fixedFunds');
     if (!wallet) return createErrorResponse(res, 404, 'Wallet not found.');
 
-    res.status(200).json({ fixedBalance: wallet.fixedBalance });
+    // Initialize fixedFunds if it doesn't exist
+    if (!wallet.fixedFunds) {
+      wallet.fixedFunds = [];
+    }
+
+    res.status(200).json({ 
+      fixedBalance: wallet.fixedBalance,
+      fixedFunds: wallet.fixedFunds
+    });
   } catch (err) {
     console.error('Error fetching fixed funds:', err);
     createErrorResponse(res, 500, 'Failed to fetch fixed funds.');

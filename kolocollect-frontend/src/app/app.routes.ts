@@ -46,12 +46,29 @@ export const routes: Routes = [
       { 
         path: 'communities/:id', 
         loadComponent: () => import('./components/community/community-detail/community-detail.component').then(m => m.CommunityDetailComponent)
-      },
-
-      // Wallet routes
+      },      // Wallet routes
       { 
         path: 'wallet', 
         loadComponent: () => import('./components/wallet/wallet-dashboard/wallet-dashboard.component').then(m => m.WalletDashboardComponent)
+      },
+      {
+        path: 'wallet/add-funds',
+        loadComponent: () => import('./components/wallet/add-funds/add-funds.component').then(m => m.AddFundsComponent)
+      },      {
+        path: 'wallet/withdraw-funds',
+        loadComponent: () => import('./components/wallet/withdraw-funds/withdraw-funds.component').then(m => m.WithdrawFundsComponent)
+      },
+      {
+        path: 'wallet/transfer-funds',
+        loadComponent: () => import('./components/wallet/transfer-funds/transfer-funds.component').then(m => m.TransferFundsComponent)
+      },
+      {
+        path: 'wallet/transaction-history',
+        loadComponent: () => import('./components/wallet/transaction-history/transaction-history.component').then(m => m.TransactionHistoryComponent)
+      },
+      {
+        path: 'wallet/fix-funds',
+        loadComponent: () => import('./components/wallet/fix-funds/fix-funds.component').then(m => m.FixFundsComponent)
       },
 
       // Contribution routes

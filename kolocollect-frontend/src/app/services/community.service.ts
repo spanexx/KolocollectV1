@@ -203,4 +203,11 @@ export class CommunityService {
   getCommunityContributionHistory(communityId: string): Observable<any> {
     return this.api.get<any>(`/communities/${communityId}/contribution-history`);
   }
+
+  /**
+   * Get communities a user is a member of
+   */
+  getUserCommunities(userId: string): Observable<any> {
+    return this.api.get<any>(`/users/${userId}/communities`);
+  }
 }

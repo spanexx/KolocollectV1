@@ -1,0 +1,62 @@
+<div class="add-funds-container">
+  <div class="header">
+    <a mat-icon-button routerLink="/wallet" class="back-button" matTooltip="Back to wallet">
+      <fa-icon [icon]="faArrowLeft"></fa-icon>
+    </a>
+    <h1>Add Funds</h1>
+  </div>
+
+  <mat-card class="add-funds-card">
+    <mat-card-content>      <div *ngIf="isSuccess" class="success-container">
+        <div class="success-icon">
+          <fa-icon [icon]="faCheckCircle" size="3x"></fa-icon>
+        </div>
+        <h2>Funds Added Successfully</h2>
+        <p>Your wallet has been credited. Redirecting to wallet dashboard...</p>
+      </div>
+
+      <form *ngIf="!isSuccess" [formGroup]="addFundsForm" (ngSubmit)="onSubmit()">
+        <div class="form-icon">
+          <fa-icon [icon]="faMoneyBillWave" size="3x"></fa-icon>
+        </div>
+        
+        <h2>Add Funds to Your Wallet</h2>
+          <div class="form-error" *ngIf="error">
+          <fa-icon [icon]="faExclamationTriangle" class="error-icon"></fa-icon>
+          <span>{{ error }}</span>
+        </div>
+        
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Amount</mat-label>
+          <span matPrefix>$&nbsp;</span>
+          <input matInput type="number" min="1" step="0.01" formControlName="amount" placeholder="0.00">
+          <mat-error *ngIf="addFundsForm.get('amount')?.hasError('required')">
+            Amount is required
+          </mat-error>
+          <mat-error *ngIf="addFundsForm.get('amount')?.hasError('min')">
+            Amount must be at least $1
+          </mat-error>
+        </mat-form-field>
+        
+        <h3>Payment Method</h3>
+        <div class="payment-methods">
+          <div *ngFor="let method of paymentMethods" 
+               class="payment-method-option" 
+               [class.selected]="addFundsForm.get('paymentMethod')?.value === method.id"
+               (click)="addFundsForm.get('paymentMethod')?.setValue(method.id)">
+            <fa-icon [icon]="method.icon" size="lg"></fa-icon>
+            <span>{{ method.name }}</span>
+          </div>
+        </div>
+        
+        <div class="form-actions">
+          <button mat-flat-button color="primary" type="submit" [disabled]="addFundsForm.invalid || isLoading" class="submit-button">
+            <span *ngIf="!isLoading">Add Funds</span>
+            <mat-icon *ngIf="isLoading" class="spinner">refresh</mat-icon>
+          </button>
+          <button mat-button routerLink="/wallet" type="button">Cancel</button>
+        </div>
+      </form>
+    </mat-card-content>
+  </mat-card>
+</div>
