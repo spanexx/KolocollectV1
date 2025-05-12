@@ -178,7 +178,6 @@ export class MakeContributionComponent implements OnInit {
         console.log('Raw community response:', response);
         if (response && response.communities) {          this.userCommunities = response.communities.map((community: any) => {
             // Log the entire community object in detail for debugging
-            console.log('Community before normalization (detailed):', JSON.stringify(community, null, 2));
             
             // Create a normalized copy with consistent properties
             const normalizedCommunity = {

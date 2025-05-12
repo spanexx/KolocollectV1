@@ -145,18 +145,35 @@ CommunitySchema.methods.updateContributions = function (midCycle, userId, contri
  */
 CommunitySchema.methods.syncMidCyclesToCycles = async function () {
     try {
-        this.cycles.forEach((cycle) => {
-            const relatedMidCycles = this.midCycle.filter(mc => mc.cycleNumber === cycle.cycleNumber);
+        const Cycle = mongoose.model('Cycle');
+        const MidCycle = mongoose.model('MidCycle');
+        
+        // Get fresh data for all cycles and midcycles
+        const allCycles = await Cycle.find({ _id: { $in: this.cycles } });
+        const allMidCycles = await MidCycle.find({ _id: { $in: this.midCycle } });
+        
+        console.log(`Syncing ${allMidCycles.length} mid-cycles to ${allCycles.length} cycles`);
+        
+        // For each cycle, find all associated mid-cycles
+        for (const cycle of allCycles) {
+            // Find mid-cycles that belong to this cycle
+            const relatedMidCycles = allMidCycles.filter(mc => mc.cycleNumber === cycle.cycleNumber);
             const validMidCycles = relatedMidCycles.filter(mc => mc && mc._id);
-
+            
             if (validMidCycles.length !== relatedMidCycles.length) {
                 console.warn('Some mid-cycles were invalid and excluded during synchronization.');
             }
-
+            
+            // Update the cycle's midCycles array
             cycle.midCycles = validMidCycles.map(mc => mc._id);
-            console.log(`Synchronized mid-cycles for cycle ${cycle.cycleNumber}:`, cycle.midCycles);
-        });
-        await this.save();
+            console.log(`Synchronized ${cycle.midCycles.length} mid-cycles for cycle ${cycle.cycleNumber}`);
+            
+            // Save the updated cycle
+            await cycle.save();
+        }
+        
+        // Return the updated community
+        return this;
     } catch (err) {
         console.error('Error syncing mid-cycles to cycles:', err);
         throw err;
@@ -328,26 +345,60 @@ CommunitySchema.methods.startFirstCycle = async function () {
  * - Processes defaulter penalties
  * - Initializes new mid-cycle
  */
-CommunitySchema.methods.startNewCycle = async function () {
-    try {
+CommunitySchema.methods.startNewCycle = async function () {    try {
         const Cycle = mongoose.model('Cycle');
         const Member = mongoose.model('Member');
         const CommunityVote = mongoose.model('CommunityVote');
         const Wallet = mongoose.model('Wallet');
 
-        // Ensure the current cycle is complete
+        // Check for any active cycles
         const activeCycle = await Cycle.findOne({ 
             communityId: this._id,
             isComplete: false 
         });
+        console.log(`Active cycle found: ${activeCycle}`);
+        
+        // If there's an active cycle and it's not already marked as complete in our previous operation,
+        // we need to prevent starting a new cycle
         if (activeCycle) {
-            throw new Error('Cannot start a new cycle until the current cycle is complete.');
-        }
-
-        // Get the last cycle number
-        const lastCycle = await Cycle.findOne({ communityId: this._id })
-            .sort({ cycleNumber: -1 });
-        const newCycleNumber = (lastCycle?.cycleNumber || 0) + 1;
+            console.log('Found active cycle that should be complete:', activeCycle._id);
+            
+            // Double check if all members have been paid to be sure
+            const activeMembers = await Member.find({ 
+                communityId: this._id,
+                status: 'active' 
+            });
+            
+            const paidMemberIds = activeCycle.paidMembers.map(id => id.toString());
+            const allPaid = activeMembers.every(member => 
+                paidMemberIds.includes(member.userId.toString())
+            );
+            
+            if (allPaid) {
+                // All members are paid, so we can safely mark it complete
+                console.log('All members were actually paid, marking cycle complete');
+                activeCycle.isComplete = true;
+                activeCycle.endDate = new Date();
+                await activeCycle.save();
+            } else {
+                throw new Error('Cannot start a new cycle until the current cycle is complete and all members have been paid.');
+            }
+        }        // Get all cycles for this community, including ones that were just marked complete
+        const existingCycles = await Cycle.find({ communityId: this._id });
+        console.log('community id:', this._id);
+        console.log(`Found ${existingCycles.length} existing cycles for this community`);
+        
+        // Log each cycle to debug
+        existingCycles.forEach(cycle => {
+            console.log(`Cycle ID: ${cycle._id}, Number: ${cycle.cycleNumber}, isComplete: ${cycle.isComplete}`);
+        });
+        
+        // Simply use the length of the community's cycles array plus 1
+        // This ensures we always get a sequential cycle number
+        const completedCycleCount = this.cycles.length;
+        const newCycleNumber = completedCycleCount + 1;
+        
+        console.log(`Community has ${completedCycleCount} cycle(s), new cycle number will be: ${newCycleNumber}`);
 
         // Get all active members
         const members = await Member.find({ 
@@ -366,9 +417,7 @@ CommunitySchema.methods.startNewCycle = async function () {
         await this.applyResolvedVotes();
 
         // Update member positions for the new cycle
-        await this.updateMemberPositions(members, false);
-
-        // Create new cycle
+        await this.updateMemberPositions(members, false);        // Create new cycle
         const newCycle = new Cycle({
             communityId: this._id,
             cycleNumber: newCycleNumber,
@@ -376,6 +425,12 @@ CommunitySchema.methods.startNewCycle = async function () {
             startDate: new Date()
         });
         await newCycle.save();
+        console.log(`New cycle created: ${newCycle}`);
+        
+        // Add the new cycle to the community's cycles array and save
+        this.cycles.push(newCycle._id);
+        await this.save();
+        console.log(`Added new cycle to community's cycles array`);
 
         // Handle defaulters' wallets
         for (const member of members) {
@@ -410,7 +465,10 @@ CommunitySchema.methods.startNewCycle = async function () {
  */
 CommunitySchema.methods.startMidCycle = async function () {    try {
         const activeCycle = await Cycle.findOne({ _id: { $in: this.cycles }, isComplete: false });
-        if (!activeCycle) throw new Error('No active cycle found.');        // Get all active members sorted by position
+        console.log(`Active cycle found: ${activeCycle}`);
+        if (!activeCycle) throw new Error('No active cycle found.');       
+        
+        // Get all active members sorted by position
         const activeMembers = await Member.find({ 
             _id: { $in: this.members },
             status: 'active',
@@ -901,7 +959,9 @@ CommunitySchema.methods.distributePayouts = async function () {
             await Payout.createPayout(
                 this._id,
                 nextRecipientId,
-                netPayout
+                netPayout,
+                activeMidCycle.cycleNumber,
+                activeMidCycle._id
             );
 
             await recipientWallet.addTransaction(
@@ -923,23 +983,47 @@ CommunitySchema.methods.distributePayouts = async function () {
         if (activeCycle && recipient.status === 'active' && !activeCycle.paidMembers.includes(nextRecipientId)) {
             activeCycle.paidMembers.push(nextRecipientId);
             await activeCycle.save();
-        }
-
-        const activeMembers = await Member.find({ 
+        }        const activeMembers = await Member.find({ 
             _id: { $in: this.members }, 
             status: 'active' 
         });
-        const allPaid = activeMembers.every(member => 
-            activeCycle.paidMembers.includes(member.userId)
-        );
+        
+        // Debug the payment status for each member
+        console.log('Active members count:', activeMembers.length);
+        console.log('Paid members in cycle:', activeCycle.paidMembers.length);
+        
+        // Convert all ObjectId values to strings for proper comparison
+        const paidMemberIds = activeCycle.paidMembers.map(id => id.toString());
+        
+        // Check which members have been paid
+        const unpaidMembers = activeMembers.filter(member => {
+            const memberUserId = member.userId.toString();
+            const isPaid = paidMemberIds.includes(memberUserId);
+            console.log(`Member ${member._id} (userId: ${memberUserId}): Paid = ${isPaid}`);
+            return !isPaid;
+        });
+        
+        const allPaid = unpaidMembers.length === 0;
+        console.log('All members paid?', allPaid);
 
         if (allPaid) {
+            console.log('All members have been paid, marking cycle as complete');
             activeCycle.isComplete = true;
             activeCycle.endDate = new Date();
             await activeCycle.save();
-            const newCycleResult = await this.startNewCycle();
-            console.log(newCycleResult.message);
+            
+            try {
+                console.log('Starting new cycle');
+                const newCycleResult = await this.startNewCycle();
+                console.log(newCycleResult.message);
+            } catch (cycleError) {
+                console.error('Error starting new cycle:', cycleError);
+                // Save the fact that this cycle is complete even if we can't start new one
+                this.nextPayout = null;
+                await this.save();
+            }
         } else {
+            console.log(`${unpaidMembers.length} members still need to be paid, starting new mid-cycle`);
             const newMidCycleResult = await this.startMidCycle();
             await this.updatePayoutInfo();
             this.nextPayout = calculateNextPayoutDate(this.settings.contributionFrequency);

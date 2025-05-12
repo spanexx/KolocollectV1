@@ -91,11 +91,9 @@ export class DashboardComponent implements OnInit {
   
   // Communities
   communities: Array<{
-    id: {
-    _id: string;
+    id: string;
     name: string;
     description: string;
-    }
     isAdmin: boolean;
     _id?: string;
   }> = [];
@@ -280,9 +278,31 @@ export class DashboardComponent implements OnInit {
         
         // Filter out any null or undefined payouts
         payoutsArray = payoutsArray.filter((payout: any) => !!payout);
-            // Process payouts as-is initially - we'll enrich them properly later
-        // This simplifies the flow and ensures we don't delay rendering the dashboard
-        const enhancePromises: Promise<any>[] = [];
+          
+        // For each payout without an expectedAmount or amount, fetch community data
+        const enhancePromises = payoutsArray
+          .filter((payout: any) => 
+            payout.communityId && 
+            (!payout.expectedAmount || payout.expectedAmount === 0) && 
+            (!payout.amount || payout.amount === 0)
+          )
+          .map((payout: any) => 
+            this.api.get<any>(`/communities/${payout.communityId}`)
+              .pipe(
+                catchError((err: any) => {
+                  console.error(`Failed to fetch community ${payout.communityId}:`, err);
+                  return of({}); // Return empty object on error
+                })
+              )
+              .toPromise()
+              .then((communityData: any) => {
+                if (communityData) {
+                  // Store community data for later use in amount calculation
+                  payout.community = communityData.community || communityData;
+                }
+                return payout;
+              })
+          );
         
         // Wait for all community fetches to complete before processing payouts
         Promise.all(enhancePromises || [])
@@ -330,8 +350,21 @@ export class DashboardComponent implements OnInit {
                     amount = parseFloat(objWithToString.toString());
                   }
                 }
-                  // We'll do a more thorough community-based calculation in enrichUpcomingPayoutData
-                // Just use the parsed amount here or default to 0
+                
+                // If we still don't have an amount, calculate it from community settings if available
+                if ((isNaN(amount) || amount === 0) && payout.communityId) {
+                  const community = payout.community || {};
+                  const settings = community.settings || {};
+                  const memberCount = community.members?.length || 0;
+                  
+                  if (settings.minContribution && memberCount > 0) {
+                    const minContribution = Number(settings.minContribution);
+                    const backupFundPercentage = Number(settings.backupFundPercentage) || 10;
+                    
+                    amount = minContribution * memberCount * (1 - (backupFundPercentage / 100));
+                    console.log(`Calculated amount for upcoming payout: ${amount}`);
+                  }
+                }
                 
                 // Fallback if amount is NaN
                 if (isNaN(amount)) {
@@ -540,8 +573,9 @@ export class DashboardComponent implements OnInit {
       }
     });
   }
+
   /**
-   * Enrich upcoming payout data with community names and amounts
+   * Enrich upcoming payout data with community names
    */
   private enrichUpcomingPayoutData(): void {
     if (!this.upcomingPayouts || this.upcomingPayouts.length === 0) {
@@ -549,99 +583,66 @@ export class DashboardComponent implements OnInit {
     }
     
     // Create a cache to avoid duplicate API calls
-    const communityCache: {[key: string]: {name: string, data?: any}} = {};
+    const communityNameCache: {[key: string]: string} = {};
     
-    // Get all payouts that need enrichment (missing community name or zero amount)
-    const payoutsNeedingEnrichment = this.upcomingPayouts.filter(payout => 
-      payout.communityId && (
-        payout.communityName === 'Loading...' || 
-        !payout.communityName || 
-        payout.amount === 0 || 
-        isNaN(payout.amount)
+    // For any payouts with 'Loading...' communityName, fetch the actual name
+    const missingCommunityIds = this.upcomingPayouts
+      .filter((payout) => 
+        (payout.communityName === 'Loading...' || !payout.communityName) && 
+        payout.communityId
       )
-    );
+      .map((payout) => payout.communityId);
     
-    if (payoutsNeedingEnrichment.length === 0) {
-      return;
+    if (missingCommunityIds.length > 0) {
+      // Get unique community IDs
+      const uniqueCommunityIds = [...new Set(missingCommunityIds)];
+      
+      console.log(`Dashboard: Fetching names for ${uniqueCommunityIds.length} communities...`);
+      
+      // For each community ID, fetch its name
+      uniqueCommunityIds.forEach((communityId) => {
+        if (!communityId) {
+          return; // Skip null or undefined community IDs
+        }
+        
+        // Skip if we've already fetched this community's name in this session
+        if (communityNameCache[communityId]) {
+          this.updatePayoutCommunityNames(communityId, communityNameCache[communityId]);
+          return;
+        }
+        
+        this.payoutService.getCommunityName(communityId)
+          .subscribe({
+            next: (data: any) => {
+              if (data && data.name) {
+                // Cache the name
+                communityNameCache[communityId] = data.name;
+                // Update all payouts with this community ID
+                this.updatePayoutCommunityNames(communityId, data.name);
+              } else {
+                this.updatePayoutCommunityNames(communityId, 'Unknown Community');
+              }
+            },
+            error: (error: any) => {
+              console.error(`Failed to fetch name for community ${communityId}:`, error);
+              this.updatePayoutCommunityNames(communityId, 'Unknown Community');
+            }
+          });
+      });
     }
-    
-    // Get unique community IDs
-    const uniqueCommunityIds = [...new Set(payoutsNeedingEnrichment.map(payout => payout.communityId))];
-    
-    console.log(`Dashboard: Enriching data for ${uniqueCommunityIds.length} communities...`);
-    
-    // For each community ID, fetch its details
-    uniqueCommunityIds.forEach(communityId => {
-      if (!communityId) {
-        return; // Skip null or undefined community IDs
-      }
-      
-      // Skip if we've already fetched this community's data in this session
-      if (communityCache[communityId] && communityCache[communityId].name !== 'Unknown Community') {
-        this.updatePayoutCommunityInfo(communityId, communityCache[communityId].name, communityCache[communityId].data);
-        return;
-      }
-      
-      // Fetch complete community details including members and settings
-      this.api.get<any>(`/communities/${communityId}`)
-        .subscribe({
-          next: (communityData: any) => {
-            const community = communityData?.community || communityData;
-            
-            // Extract community name
-            const name = community?.name || 'Unknown Community';
-            
-            // Cache the data
-            communityCache[communityId] = {
-              name: name,
-              data: community
-            };
-            
-            // Update all payouts with this community ID
-            this.updatePayoutCommunityInfo(communityId, name, community);
-          },
-          error: (error: any) => {
-            console.error(`Failed to fetch details for community ${communityId}:`, error);
-            communityCache[communityId] = { name: 'Unknown Community' };
-            this.updatePayoutCommunityInfo(communityId, 'Unknown Community', null);
-          }
-        });
-    });
   }
-    /**
-   * Update community info (name and amount) for all payouts with a given community ID
+  
+  /**
+   * Update community names for all payouts with a given community ID
    */
-  private updatePayoutCommunityInfo(communityId: string, name: string, communityData: any): void {
+  private updatePayoutCommunityNames(communityId: string, name: string): void {
     if (!this.upcomingPayouts || !communityId) {
       return;
     }
     
     this.upcomingPayouts.forEach((payout) => {
       if (payout.communityId === communityId) {
-        // Update the community name
         payout.communityName = name;
-        
-        // Update the amount if it's zero or undefined and we have community data
-        if ((payout.amount === 0 || isNaN(payout.amount)) && communityData) {
-          try {
-            const settings = communityData.settings || {};
-            const memberCount = communityData.members?.length || 0;
-            
-            if (settings.minContribution && memberCount > 0) {
-              const minContribution = Number(settings.minContribution);
-              const backupFundPercentage = Number(settings.backupFundPercentage) || 10;
-              
-              // Calculate the expected payout amount
-              const amount = minContribution * memberCount * (1 - (backupFundPercentage / 100));
-              if (!isNaN(amount) && amount > 0) {
-                payout.amount = amount;
-                console.log(`Updated amount for payout in ${name}: $${amount}`);
-              }
-            }
-          } catch (error) {
-            console.error(`Failed to calculate amount for payout in ${name}:`, error);
-          }
-        }
       }
     });
   }

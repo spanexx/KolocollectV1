@@ -17,9 +17,28 @@ import { PayoutService } from '../../../services/payout.service';
 import { AuthService } from '../../../services/auth.service';
 import { LoadingService } from '../../../services/loading.service';
 import { ToastService } from '../../../services/toast.service';
+import { ApiService } from '../../../services/api.service';
 import { Payout, PayoutStatus } from '../../../models/payout.model';
 import { catchError, finalize } from 'rxjs/operators';
-import { throwError } from 'rxjs';
+import { throwError, Observable } from 'rxjs';
+
+// Define interface for upcoming payout data
+interface UpcomingPayout {
+  communityId?: string;
+  communityName?: string;
+  payoutDate?: Date | string;
+  expectedDate?: Date | string;
+  expectedAmount?: number;
+  amount?: number;
+  cycleNumber?: number;
+  position?: number;
+  isNextInLine?: boolean;
+  settings?: {
+    minContribution: number;
+    backupFundPercentage: number;
+  };
+  memberCount?: number;
+}
 
 @Component({
   selector: 'app-payout-history',
@@ -67,12 +86,12 @@ export class PayoutHistoryComponent implements OnInit {
   faCheckCircle = faCheckCircle;
   faTimesCircle = faTimesCircle;
   faClock = faClock;
-
   constructor(
     private payoutService: PayoutService,
     private authService: AuthService,
     private loadingService: LoadingService,
-    private toastService: ToastService
+    private toastService: ToastService,
+    private api: ApiService
   ) { }
   ngOnInit(): void {
     // Load upcoming payouts first, as we'll use them to enrich the payout history
@@ -123,10 +142,10 @@ export class PayoutHistoryComponent implements OnInit {
         console.log('Payouts:', this.payouts);
         this.calculatePayoutStats();
       });
-  }
-  /**
+  }  /**
    * Load upcoming payouts
-   */  loadUpcomingPayouts(): void {
+   */  
+  loadUpcomingPayouts(): void {
     const userId = this.authService.currentUserValue?.id;
     
     if (!userId) {
@@ -150,28 +169,85 @@ export class PayoutHistoryComponent implements OnInit {
         console.log('Upcoming payouts raw data:', data);
         
         // Make sure we're dealing with an array
+        let upcomingPayoutsArray: UpcomingPayout[] = [];
         if (data && Array.isArray(data)) {
-          this.upcomingPayouts = data;
+          upcomingPayoutsArray = data;
         } else if (data && data.upcomingPayouts && Array.isArray(data.upcomingPayouts)) {
           // Handle case where the API returns an object with an upcomingPayouts property
-          this.upcomingPayouts = data.upcomingPayouts;
+          upcomingPayoutsArray = data.upcomingPayouts;
         } else {
           // Default to empty array if data isn't in expected format
-          this.upcomingPayouts = [];
+          upcomingPayoutsArray = [];
         }
         
         // Filter out any null or undefined entries
-        this.upcomingPayouts = this.upcomingPayouts.filter(payout => payout);
+        upcomingPayoutsArray = upcomingPayoutsArray.filter((payout): payout is UpcomingPayout => !!payout);
         
-        // Sort upcoming payouts by date
-        this.upcomingPayouts = this.upcomingPayouts.sort((a, b) => {
-          const dateA = a.payoutDate || a.expectedDate;
-          const dateB = b.payoutDate || b.expectedDate;
-          return new Date(dateA).getTime() - new Date(dateB).getTime();
+        // Fetch additional community information for each payout to better calculate expected amounts
+        const enhancedPayouts: UpcomingPayout[] = [];
+        const fetchPromises = upcomingPayoutsArray.map((payout: UpcomingPayout) => {
+          if (!payout.communityId) return Promise.resolve(payout);
+          
+          return new Promise<UpcomingPayout>(resolve => {
+            this.api.get<any>(`/communities/${payout.communityId}`)
+              .pipe(
+                catchError(error => {
+                  console.error(`Failed to fetch details for community ${payout.communityId}:`, error);
+                  return new Observable(observer => {
+                    observer.next({});
+                    observer.complete();
+                  });
+                })
+              )              .subscribe((communityData: any) => {
+                // Enhance the payout with additional community data
+                const enhanced: UpcomingPayout = { ...payout };
+                
+                if (communityData) {
+                  console.log('Community data:', communityData);
+                  
+                  // Handle nested data structure - API might return either direct or nested community data
+                  const community = communityData.community || communityData;
+                  
+                  // Set community name
+                  enhanced.communityName = community.name || payout.communityName;
+                  
+                  // Get settings from proper location in response
+                  const settings = community.settings;
+                  enhanced.settings = settings;
+                  
+                  // Get member count - might be in different locations depending on API response
+                  enhanced.memberCount = community.members?.length || 0;
+                    // Calculate a more accurate expectedAmount if possible
+                  if (settings && settings.minContribution) {
+                    const activeMembers = enhanced.memberCount || 0;
+                    const minContribution = Number(settings.minContribution);
+                    const backupFundPercentage = Number(settings.backupFundPercentage) || 10;
+                    
+                    // Only override if we don't already have an expected amount
+                    if (!enhanced.expectedAmount || enhanced.expectedAmount === 0) {
+                      const calculatedAmount = minContribution * activeMembers * (1 - (backupFundPercentage / 100));
+                      console.log(`Calculated amount for ${enhanced.communityName}: $${calculatedAmount.toFixed(2)} = ${minContribution} * ${activeMembers} * (1 - (${backupFundPercentage} / 100))`);
+                      enhanced.expectedAmount = calculatedAmount;
+                    }
+                  }
+                }
+                
+                enhancedPayouts.push(enhanced);
+                resolve(enhanced);
+              });
+          });
         });
-        
-        console.log('Processed upcoming payouts:', this.upcomingPayouts);
-        this.calculateUpcomingTotal();
+          Promise.all(fetchPromises).then(() => {
+          // Sort upcoming payouts by date
+          this.upcomingPayouts = enhancedPayouts.sort((a: UpcomingPayout, b: UpcomingPayout) => {
+            const dateA = a.payoutDate || a.expectedDate;
+            const dateB = b.payoutDate || b.expectedDate;
+            return new Date(dateA as string).getTime() - new Date(dateB as string).getTime();
+          });
+          
+          console.log('Enhanced upcoming payouts:', this.upcomingPayouts);
+          this.calculateUpcomingTotal();
+        });
       });
   }  /**
    * Calculate payout statistics
@@ -226,23 +302,51 @@ export class PayoutHistoryComponent implements OnInit {
       communitiesPaid: this.communitiesPaid,
       validPayouts: validPayouts.length
     });
-  }/**
+  }  /**
    * Calculate upcoming payout total
-   */
-  calculateUpcomingTotal(): void {
+   */  calculateUpcomingTotal(): void {
     if (!this.upcomingPayouts || !Array.isArray(this.upcomingPayouts)) {
       this.upcomingTotal = 0;
       return;
     }
     
+    // For debugging - log all payouts and their expected amounts
+    console.log('Calculating total from payouts:', this.upcomingPayouts.map(p => ({
+      community: p.communityName,
+      expectedAmount: p.expectedAmount,
+      settings: p.settings,
+      memberCount: p.memberCount
+    })));
+    
     this.upcomingTotal = this.upcomingPayouts
-      .reduce((sum, payout) => {
+      .reduce((sum: number, payout: UpcomingPayout) => {
         if (!payout) return sum;
         
         // Get the amount, checking all possible fields where it might be stored
-        const amount = Number(payout.amount) || 
-                       Number(payout.expectedAmount) || 
-                       0;
+        let amount = 0;
+        
+        // If we have an expectedAmount or amount, use it
+        if (Number(payout.expectedAmount) > 0) {
+          amount = Number(payout.expectedAmount);
+          console.log(`Using provided expectedAmount for ${payout.communityName}: ${amount}`);
+        } else if (Number(payout.amount) > 0) {
+          amount = Number(payout.amount);
+          console.log(`Using provided amount for ${payout.communityName}: ${amount}`);
+        } else {
+          // If we don't have an amount, we need to calculate a projected amount
+          // If we have communityContributionAmount and memberCount, calculate projected payout
+          if (payout.settings && payout.settings.minContribution && payout.memberCount) {
+            const minContribution = Number(payout.settings.minContribution);
+            const memberCount = Number(payout.memberCount);
+            const backupFundPercentage = Number(payout.settings.backupFundPercentage) || 10;
+            
+            // Calculate projected amount: contribution * memberCount * (1 - backupFund%)
+            amount = minContribution * memberCount * (1 - (backupFundPercentage / 100));
+            console.log(`Calculated amount for ${payout.communityName}: ${amount} = ${minContribution} * ${memberCount} * (1 - (${backupFundPercentage} / 100))`);
+              // Update the payout object with the calculated amount
+            payout.expectedAmount = amount;
+          }
+        }
         
         // Make sure it's a valid number
         return sum + (isNaN(amount) ? 0 : amount);

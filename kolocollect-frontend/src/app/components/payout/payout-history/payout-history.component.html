@@ -112,8 +112,7 @@
                 <span *ngIf="!payout.communityName && !payout.communityId" class="unknown-community">
                   Unknown Community
                 </span>
-              </div>
-              <div class="payout-badge">
+              </div>              <div class="payout-badge">
                 <div class="status-chip" [ngClass]="{
                   'next': payout.isNextInLine,
                   'queue': !payout.isNextInLine && payout.position
@@ -121,9 +120,6 @@
                   <fa-icon [icon]="payout.isNextInLine ? faCheckCircle : faClock"></fa-icon>
                   {{ payout.isNextInLine ? 'Next in line' : (payout.position ? 'Position: ' + payout.position : 'Upcoming') }}
                 </div>
-              </div>
-              <div class="payout-status" *ngIf="payout.position && !payout.isNextInLine">
-                <div class="status-chip queue">Position: {{ payout.position }}</div>
               </div>
             </div>
             

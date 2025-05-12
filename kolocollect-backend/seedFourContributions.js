@@ -12,8 +12,6 @@ dotenv.config();
 const connectToDB = async () => {
   try {
     await mongoose.connect(process.env.MONGO_URI, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
       serverSelectionTimeoutMS: 30000,
       socketTimeoutMS: 30000,
     });
@@ -29,7 +27,20 @@ const seedContributionsForAllCommunities = async () => {
   try {
     console.log('Starting contribution seeding process...');
 
-    const communities = await Community.find();
+    // Find all communities and populate midCycle and members
+    const communities = await Community.find()
+      .populate({
+        path: 'midCycle',
+        match: { isComplete: false }, // Only populate active midCycles
+        populate: {
+          path: 'contributions.user' // Populate user references in contributions
+        }
+      })
+      .populate({
+        path: 'members',
+        select: 'userId status'
+      });
+
     if (!communities.length) {
       console.log('No communities found in the database.');
       return;
@@ -40,30 +51,40 @@ const seedContributionsForAllCommunities = async () => {
     for (const community of communities) {
       console.log(`Processing community: "${community.name}"`);
 
-      const activeMidCycles = community.midCycle.filter((mc) => !mc.isComplete);
-      if (!activeMidCycles.length) {
+      // midCycle is now populated with actual midCycle documents
+      if (!community.midCycle || community.midCycle.length === 0) {
         console.log(`No active mid-cycles found for community: "${community.name}".`);
         continue;
       }
 
-      console.log(`Found ${activeMidCycles.length} active mid-cycles for community: "${community.name}".`);
+      console.log(`Found ${community.midCycle.length} active mid-cycles for community: "${community.name}".`);
 
-      for (const midCycle of activeMidCycles) {
+      for (const midCycle of community.midCycle) {
         console.log(`Processing mid-cycle: Cycle ${midCycle.cycleNumber}`);
 
+        // Get eligible members who haven't contributed to this midCycle yet
         const eligibleMembers = community.members.filter((member) => {
-          const contributions = midCycle.contributions.find(c => c.user.equals(member.userId));
-          return member.status === 'active' && (!contributions || contributions.length === 0);
-        });
-
-        if (!eligibleMembers.length) {
+          // Check if this member has already contributed to this midCycle
+          const hasContributed = midCycle.contributions && 
+                                 midCycle.contributions.some(c => 
+                                    c.user && member.userId && 
+                                    c.user.toString() === member.userId.toString());
+          
+          return member.status === 'active' && !hasContributed;
+        });        if (!eligibleMembers.length) {
           console.log(`No eligible members for mid-cycle: Cycle ${midCycle.cycleNumber}.`);
           continue;
         }
 
+        console.log(`Found ${eligibleMembers.length} eligible members for mid-cycle ${midCycle.cycleNumber}`);
         console.log(`Eligible members for mid-cycle: ${eligibleMembers.map((m) => m.userId).join(', ')}`);
 
         for (const member of eligibleMembers) {
+          // Check if userId exists
+          if (!member.userId) {
+            console.error(`Member has no userId defined, skipping`);
+            continue;
+          }
 
           const wallet = await Wallet.findOne({ userId: member.userId });
           if (!wallet || wallet.availableBalance < community.settings.minContribution) {
@@ -111,15 +132,32 @@ const distributePayoutsSeeder = async () => {
   try {
     console.log('Starting payout distribution process...');
 
-    const communities = await Community.find({
-      "midCycle.isReady": true,
-      "midCycle.isComplete": false,
+    // First find all midCycles that are ready but not complete
+    const readyMidCycles = await mongoose.model('MidCycle').find({
+      isReady: true,
+      isComplete: false
     });
-
-    if (!communities.length) {
+    
+    if (!readyMidCycles.length) {
+      console.log('No ready mid-cycles found.');
+      return;
+    }
+    
+    console.log(`Found ${readyMidCycles.length} ready mid-cycles.`);
+    
+    // Get the communities containing these midCycles
+    const communityIds = await mongoose.model('Community').distinct('_id', {
+      midCycle: { $in: readyMidCycles.map(mc => mc._id) }
+    });
+    
+    if (!communityIds.length) {
       console.error('No communities found with ready mid-cycles.');
       return;
     }
+    
+    const communities = await Community.find({
+      _id: { $in: communityIds }
+    }).populate('midCycle');
 
     console.log(`Found ${communities.length} community/communities ready for payout distribution.`);
 

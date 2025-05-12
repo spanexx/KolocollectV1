@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const User = require('./User');
-const Community = require('./Community');
+// Avoid direct import to prevent circular dependency
+// const Community = require('./Community');
 const MidCycle = require('./Midcycle');
 const Member = require('./Member');
 const CommunityActivityLog = require('./CommunityActivityLog');
@@ -98,23 +99,18 @@ ContributionSchema.statics.getCycleTotal = async function(communityId, cycleNumb
 ContributionSchema.statics.createContribution = async function(userId, communityId, amount, midCycleId) {
   const session = await mongoose.startSession();
   try {
-    session.startTransaction();
-
-    // Get community with all necessary references
+    session.startTransaction();    // Get community with all necessary references
+    const Community = mongoose.model('Community');
     const community = await Community.findById(communityId)
       .populate('members')
       .populate('midCycle')
       .session(session);
-    if (!community) throw new Error('Community not found.');
-
-    // Validate mid-cycle
+    if (!community) throw new Error('Community not found.');// Validate mid-cycle    const MidCycle = mongoose.model('MidCycle');
     const activeMidCycle = await MidCycle.findOne({
       _id: midCycleId,
       isComplete: false
     }).session(session);
-    if (!activeMidCycle) throw new Error('MidCycle not found or already complete.');
-
-    // Validate member status
+    if (!activeMidCycle) throw new Error('MidCycle not found or already complete.');    // Validate member status    const Member = mongoose.model('Member');
     const member = await Member.findOne({
       userId,
       _id: { $in: community.members },
@@ -160,16 +156,12 @@ ContributionSchema.statics.createContribution = async function(userId, community
       recipientId: midCycleId,
       amount,
       contributionId: savedContribution._id
-    }, { session });
-
-    // Add to user's profile
-    const user = await User.findById(userId).session(session);
+    }, { session });    // Add to user's profile
+    const user = await mongoose.model('User').findById(userId).session(session);
     if (user) {
       await user.addContribution(savedContribution._id, amount, { session });
-    }
-
-    // Log activity
-    const activityLog = new CommunityActivityLog({
+    }    // Log activity
+    const activityLog = new mongoose.model('CommunityActivityLog')({
       communityId,
       userId,
       actionType: 'contribution_created',
@@ -189,11 +181,17 @@ ContributionSchema.statics.createContribution = async function(userId, community
 };
 
 ContributionSchema.statics.createContributionWithInstallment = async function (userId, communityId, amount, midCycleId) {
+  // Use mongoose.model directly to avoid circular dependency issues
+  const Community = mongoose.model('Community');
   const community = await Community.findById(communityId);
   if (!community) throw new Error('Community not found');
 
   // Get mid-cycle with populated data
-  const midCycle = await mongoose.model('MidCycle').getMidcycle(midCycleId);
+  const MidCycle = mongoose.model('MidCycle');
+  // Use getMidcycle static method if it exists, otherwise use findById
+  const midCycle = MidCycle.getMidcycle ? 
+    await MidCycle.getMidcycle(midCycleId) : 
+    await MidCycle.findById(midCycleId);
   if (!midCycle) throw new Error('Mid-cycle not found');
 
   const contribution = new this({
@@ -209,9 +207,8 @@ ContributionSchema.statics.createContributionWithInstallment = async function (u
   });
 
   await contribution.save();
-
   // Create activity log for the contribution
-  const activityLog = new CommunityActivityLog({
+  const activityLog = new mongoose.model('CommunityActivityLog')({
     communityId,
     activityType: 'contribution_created',
     userId,
