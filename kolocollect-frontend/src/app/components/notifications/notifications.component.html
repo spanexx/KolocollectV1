@@ -1,0 +1,87 @@
+<div class="notifications-container">
+  <div class="notifications-header">
+    <h1>Notifications</h1>
+    <p class="subheading">Stay updated with your KoloCollect activity</p>
+    
+    <div class="header-actions">
+      <button 
+        mat-raised-button 
+        color="primary" 
+        class="mark-all-read-btn" 
+        [disabled]="getUnreadCount() === 0"
+        (click)="markAllAsRead()">
+        <fa-icon [icon]="faCalendarCheck"></fa-icon>
+        Mark All as Read
+      </button>
+      
+      <div class="filter-buttons">
+        <button 
+          mat-button 
+          [ngClass]="{'active': currentFilter === 'all'}" 
+          (click)="changeFilter('all')">
+          All
+        </button>
+        <button 
+          mat-button 
+          [ngClass]="{'active': currentFilter === 'unread'}" 
+          (click)="changeFilter('unread')">
+          Unread
+          <span class="count-badge" *ngIf="getUnreadCount() > 0">{{getUnreadCount()}}</span>
+        </button>
+        <button 
+          mat-button 
+          [ngClass]="{'active': currentFilter === 'read'}" 
+          (click)="changeFilter('read')">
+          Read
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading Spinner -->
+  <div *ngIf="isLoading" class="loading-container">
+    <mat-spinner diameter="40"></mat-spinner>
+    <p>Loading your notifications...</p>
+  </div>
+  
+  <!-- Notifications Content -->
+  <div *ngIf="!isLoading" class="notifications-content">
+    <!-- No Notifications Message -->
+    <div *ngIf="getFilteredNotifications().length === 0" class="no-notifications">
+      <fa-icon [icon]="faBell" size="4x"></fa-icon>
+      <h3>No {{ currentFilter !== 'all' ? currentFilter : '' }} notifications</h3>
+      <p>{{ currentFilter === 'all' ? 'You don\'t have any notifications yet' : currentFilter === 'unread' ? 'You don\'t have any unread notifications' : 'You don\'t have any read notifications' }}</p>
+    </div>
+  
+    <!-- Notification List -->
+    <div *ngIf="getFilteredNotifications().length > 0" class="notification-list">
+      <div 
+        *ngFor="let notification of getFilteredNotifications()" 
+        class="notification-item" 
+        [ngClass]="getNotificationClass(notification.type)"
+        [@notificationAnimation]="notification.animationState">
+        
+        <div class="notification-icon">
+          <fa-icon [icon]="getNotificationIcon(notification.type)" [ngClass]="'icon-' + notification.type"></fa-icon>
+          <div class="read-status" [ngClass]="{'read': notification.read}"></div>
+        </div>
+        
+        <div class="notification-content">
+          <div class="notification-message">{{notification.message}}</div>
+          <div class="notification-date">{{formatDate(notification.date)}}</div>
+        </div>
+        
+        <div class="notification-actions">
+          <button 
+            mat-icon-button 
+            class="mark-read-btn" 
+            *ngIf="!notification.read"
+            (click)="markAsRead(notification)"
+            aria-label="Mark as read">
+            <fa-icon [icon]="faCheck"></fa-icon>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

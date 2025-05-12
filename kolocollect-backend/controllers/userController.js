@@ -498,3 +498,51 @@ exports.updatePassword = async (req, res) => {
     createErrorResponse(res, 500, 'UPDATE_PASSWORD_ERROR', 'Error updating password.');
   }
 };
+
+// Mark a single notification as read
+exports.markNotificationAsRead = async (req, res) => {
+  try {
+    const { userId, notificationId } = req.params;
+    
+    const user = await User.findById(userId);
+    if (!user) return createErrorResponse(res, 404, 'User not found.');
+    
+    const notification = user.notifications.id(notificationId);
+    if (!notification) return createErrorResponse(res, 404, 'Notification not found.');
+    
+    notification.read = true;
+    await user.save();
+    
+    res.status(200).json({
+      message: 'Notification marked as read.',
+      notificationId
+    });
+  } catch (err) {
+    console.error('Error marking notification as read:', err);
+    createErrorResponse(res, 500, 'Failed to mark notification as read.');
+  }
+};
+
+// Mark all notifications as read
+exports.markAllNotificationsAsRead = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    
+    const user = await User.findById(userId);
+    if (!user) return createErrorResponse(res, 404, 'User not found.');
+    
+    // Mark all notifications as read
+    user.notifications.forEach(notification => {
+      notification.read = true;
+    });
+    
+    await user.save();
+    
+    res.status(200).json({
+      message: 'All notifications marked as read.'
+    });
+  } catch (err) {
+    console.error('Error marking all notifications as read:', err);
+    createErrorResponse(res, 500, 'Failed to mark notifications as read.');
+  }
+};

@@ -119,7 +119,6 @@ export class DashboardComponent implements OnInit {
     position?: number | null;
     isNextInLine?: boolean;
   }> = [];
-
   // Notifications
   notifications: Array<{
     id: string;
@@ -128,6 +127,7 @@ export class DashboardComponent implements OnInit {
     type: string;
     read: boolean;
   }> = [];
+  notificationCount = 0;
   
   constructor(
     private authService: AuthService,
@@ -139,7 +139,6 @@ export class DashboardComponent implements OnInit {
     private notificationService: NotificationService,
     private api: ApiService
   ) {}
-
   ngOnInit(): void {
     // Get current user data
     this.authService.currentUser$.subscribe(user => {
@@ -147,6 +146,12 @@ export class DashboardComponent implements OnInit {
       if (user) {
         this.loadDashboardData();
       }
+    });
+    
+    // Subscribe to notification unread count
+    this.notificationService.unreadCount$.subscribe(count => {
+      // This will keep the notification count in sync with header
+      this.notificationCount = count;
     });
   }
   
@@ -384,11 +389,11 @@ export class DashboardComponent implements OnInit {
           // Otherwise, assume it's an object with a notifications property
           const notificationsArray = Array.isArray(notificationsResponse) ? 
             notificationsResponse : 
-            (notificationsResponse.notifications || []);
+            (notificationsResponse.notifications || []);          // Get all unread notifications
+          const unreadNotifications = notificationsArray.filter((n: any) => !n.read);
           
-          this.notifications = notificationsArray
-            .filter((n: any) => !n.read)
-            .slice(0, 5)
+          // Only show the first 5 for display in the dashboard
+          this.notifications = unreadNotifications.slice(0, 5)
             .map((notification: any) => {
               let date: Date;
               try {

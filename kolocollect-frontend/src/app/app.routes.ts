@@ -79,12 +79,16 @@ export const routes: Routes = [
       { 
         path: 'contributions/make', 
         loadComponent: () => import('./components/contribution/make-contribution/make-contribution.component').then(m => m.MakeContributionComponent) 
-      },
-
-      // Payout routes
+      },      // Payout routes
       { 
         path: 'payouts', 
         loadComponent: () => import('./components/payout/payout-history/payout-history.component').then(m => m.PayoutHistoryComponent)
+      },
+
+      // Notifications route
+      {
+        path: 'notifications',
+        loadComponent: () => import('./components/notifications/notifications.component').then(m => m.NotificationsComponent)
       }
     ]
   },

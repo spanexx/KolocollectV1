@@ -22,5 +22,7 @@ router.post('/logout', userController.logoutUser); // Added logout route
 router.post('/update-password', userController.updatePassword);
 router.get('/:userId/communities', userController.getUserCommunities);
 router.get('/:userId/notifications', userController.getUserNotifications);
+router.post('/:userId/notifications/:notificationId/read', userController.markNotificationAsRead);
+router.post('/:userId/notifications/read-all', userController.markAllNotificationsAsRead);
 
 module.exports = router;

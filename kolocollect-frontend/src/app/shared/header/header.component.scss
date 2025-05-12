@@ -3,7 +3,8 @@
   top: 0;
   z-index: 1000;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  background-color: #6D28D9; // Primary color from our design system
+  background-color: #ab4502; // Warm terracotta color to complement colorful African logo
+  height: 70px; // Increased height to accommodate larger logo
 }
 
 .header-container {
@@ -18,6 +19,7 @@
 .brand {
   display: flex;
   align-items: center;
+  padding: 5px 0;
   
   .brand-link {
     display: flex;
@@ -29,13 +31,11 @@
     &:hover {
       opacity: 0.9;
     }
-  }
-  
-  .app-name {
-    font-size: 1.5rem;
-    font-weight: 600;
+  }  .brand-logo {
+    height: 60px;
+    width: auto;
     margin-left: 0.5rem;
-    font-family: 'Poppins', sans-serif;
+    display: block;
   }
 }
 
@@ -120,64 +120,199 @@
   }
 }
 
-::ng-deep {
-  .notifications-menu {
+::ng-deep {  .notifications-menu {
     max-width: 320px;
+    background-color: #fff;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
     
     .notification-header {
-      padding: 1rem 1rem 0.5rem;
-      border-bottom: 1px solid #e5e7eb;
+      padding: 1rem;
+      background-color: #fff;
+      position: relative;
       
       h3 {
         margin: 0;
-        color: #4B5563;
-        font-weight: 500;
+        color: #1a1a1a;
+        font-weight: 600;
+        font-family: 'Poppins', sans-serif;
+        font-size: 1.1rem;
+        display: flex;
+        align-items: center;
+        letter-spacing: 0.02em;
+        
+        &::after {
+          content: '';
+          position: absolute;
+          bottom: 0;
+          left: 1rem;
+          width: 40px;
+          height: 3px;
+          background-color: #ab4502;
+        }
       }
-    }
-    
-    .no-notifications {
-      padding: 1rem;
+    }    .no-notifications {
+      padding: 2rem 1rem;
       text-align: center;
       color: #6B7280;
+      background-color: #fff;
+      
+      p {
+        margin: 0;
+        opacity: 0.7;
+      }
     }
-    
-    .mat-mdc-menu-item {
+      
+    .notifications-scroll-container {
+      max-height: 300px;
+      overflow-y: auto;
+      position: relative;
+      padding: 0.5rem 0;
+      
+      /* Subtle scrollbar */
+      &::-webkit-scrollbar {
+        width: 4px;
+      }
+      
+      &::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      
+      &::-webkit-scrollbar-thumb {
+        background: rgba(171, 69, 2, 0.3);
+        border-radius: 10px;
+      }
+      
+      &::-webkit-scrollbar-thumb:hover {
+        background: rgba(171, 69, 2, 0.5);
+      }
+    }    .mat-mdc-menu-item {
       height: auto;
       padding: 0.75rem 1rem;
       white-space: normal;
       line-height: 1.4;
+      margin: 0.2rem 0.5rem;
+      border-radius: 8px;
+      transition: all 0.3s cubic-bezier(0.55, 0, 0.55, 0.2);
+      
+      // Animation styles
+      transform-origin: right;
+      overflow: hidden;
+      position: relative;
+      will-change: transform, opacity, height, padding, margin;
+      backface-visibility: hidden; // Prevents flickering during animation
+      
+      &:hover {
+        background-color: #f8f8f8;
+      }
+      
+      &:active {
+        background-color: #f0f0f0;
+      }
       
       fa-icon {
         margin-right: 1rem;
-        font-size: 1.25rem;
+        font-size: 1.1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 38px;
+        width: 38px;
+        border-radius: 50%;
+        border: 1px solid rgba(0, 0, 0, 0.05);
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
         
-        &.icon-primary {
-          color: #6D28D9; // Primary color
+        &.icon-success {
+          color: #22C55E;
+          background-color: rgba(34, 197, 94, 0.07);
         }
         
-        &.icon-accent {
-          color: #F59E0B; // Accent color
+        &.icon-info {
+          color: #ab4502;
+          background-color: rgba(171, 69, 2, 0.07);
         }
         
-        &.icon-warn {
-          color: #EF4444; // Error color
+        &.icon-warning {
+          color: #F59E0B;
+          background-color: rgba(245, 158, 11, 0.07);
+        }
+        
+        &.icon-error {
+          color: #EF4444;
+          background-color: rgba(239, 68, 68, 0.07);
+        }
+      }      .notification-content {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+        
+        .notification-message {
+          font-weight: 500;
+          margin-bottom: 0.25rem;
+          font-family: 'Poppins', sans-serif;
+          font-size: 0.875rem;
+          color: #333333;
+          line-height: 1.4;
+          letter-spacing: 0.01em;
+        }
+        
+        .notification-date {
+          font-size: 0.7rem;
+          color: #6B7280;
+          display: flex;
+          align-items: center;
+          opacity: 0.75;
+          font-weight: 400;
+          letter-spacing: 0.02em;
         }
       }
-    }
-    
-    .notification-footer {
-      border-top: 1px solid #e5e7eb;
-      padding: 0.5rem;
+    }    .notification-footer {
+      border-top: 1px solid rgba(0, 0, 0, 0.05);
+      padding: 0.75rem;
       display: flex;
-      justify-content: center;
+      justify-content: space-between;
+      background-color: #fafafa;
+      position: relative;
+        a, button {
+        font-size: 0.75rem;
+        line-height: 1;
+        padding: 8px 14px;
+        font-weight: 500;
+        color: #ab4502;
+        border-radius: 20px;
+        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        background-color: #fff;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+        border: 1px solid rgba(171, 69, 2, 0.1);
+        text-transform: uppercase;
+        letter-spacing: 0.03em;
+        transform-origin: center;
+        
+        &:hover {
+          background-color: #ab4502;
+          color: white;
+          border-color: #ab4502;
+          transform: scale(1.03);
+        }
+        
+        &:active {
+          transform: scale(0.97);
+        }
+      }
+      
+      fa-icon {
+        margin-right: 5px;
+        font-size: 0.7rem;
+      }
     }
   }
 }
 
 // Responsive styles
 @media (max-width: 480px) {
-  .brand .app-name {
-    font-size: 1.2rem;
+  .brand .brand-logo {
+    height: 48px;
   }
   
   .header-actions .user-menu-btn .username {

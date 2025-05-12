@@ -120,12 +120,17 @@ $screen-lg: 992px;
   .logo-container {
     display: flex;
     align-items: center;
-    overflow: hidden;
-    
-    .logo-link {
+    overflow: hidden;      .logo-link {
       text-decoration: none;
       display: flex;
       align-items: center;
+      
+      .logo-image {
+        max-height: 36px;
+        max-width: 100%;
+        object-fit: contain;
+        transition: all $transition-duration ease;
+      }
       
       .logo-text {
         font-family: 'Poppins', sans-serif;
@@ -134,8 +139,7 @@ $screen-lg: 992px;
         color: $primary-color;
         white-space: nowrap;
       }
-      
-      .logo-icon {
+        .logo-icon {
         display: flex;
         justify-content: center;
         align-items: center;
@@ -147,6 +151,13 @@ $screen-lg: 992px;
         font-weight: bold;
         font-family: 'Poppins', sans-serif;
         font-size: 1.25rem;
+      }
+      
+      .logo-icon-image {
+        width: 36px;
+        height: 36px;
+        object-fit: contain;
+        border-radius: 50%;
       }
     }
   }

@@ -23,7 +23,8 @@ import {
   faUserPlus,
   faChevronLeft,
   faChevronRight,
-  faBars
+  faBars,
+  faBell
 } from '@fortawesome/free-solid-svg-icons';
 
 // Import the ClickOutsideDirective
@@ -75,10 +76,10 @@ export class SidebarComponent implements OnInit {
   faMoneyBillWave = faMoneyBillWave;
   faUser = faUser;
   faSignInAlt = faSignInAlt;
-  faUserPlus = faUserPlus;
-  faChevronLeft = faChevronLeft;
+  faUserPlus = faUserPlus;  faChevronLeft = faChevronLeft;
   faChevronRight = faChevronRight;
   faBars = faBars;
+  faBell = faBell;
   
   navItems: NavItem[] = [
     { 
@@ -108,17 +109,23 @@ export class SidebarComponent implements OnInit {
       faIcon: this.faReceipt,
       route: '/contributions', 
       requiresAuth: true 
-    },
-    { 
+    },    { 
       label: 'Payouts', 
       icon: 'payments', 
       faIcon: this.faMoneyBillWave,
       route: '/payouts', 
       requiresAuth: true 
     },
+    {
+      label: 'Notifications',
+      icon: 'notifications',
+      faIcon: this.faBell,
+      route: '/notifications',
+      requiresAuth: true
+    },
     { 
       label: 'Profile', 
-      icon: 'person', 
+      icon: 'person',
       faIcon: this.faUser,
       route: '/profile', 
       requiresAuth: true 

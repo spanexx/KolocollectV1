@@ -29,13 +29,13 @@ const userSchema = new mongoose.Schema({
       choice: { type: String },
       date: { type: Date, default: Date.now },
     },
-  ],
-  notifications: [
+  ],  notifications: [
     {
       type: { type: String, enum: ['info', 'warning', 'alert', 'penalty', 'payout'], default: 'info' },
       message: { type: String },
       date: { type: Date, default: Date.now },
       communityId: { type: mongoose.Schema.Types.ObjectId, ref: 'Community' },
+      read: { type: Boolean, default: false },
     },
   ],
   activityLog: [
@@ -195,12 +195,12 @@ userSchema.methods.addNotification = async function (type, message, communityId 
       (n) => n.type === type && n.message === message && String(n.communityId) === String(communityId)
     );
 
-    if (!duplicateNotification) {
-      this.notifications.push({
+    if (!duplicateNotification) {      this.notifications.push({
         type,
         message,
         communityId,
         date: new Date(),
+        read: false,
       });
 
       // Log the action in the user's activity log

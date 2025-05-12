@@ -1,13 +1,7 @@
-<div class="mobile-toggle-button" *ngIf="isMobile" (click)="toggleSidebar()">
-  <fa-icon [icon]="faBars"></fa-icon>
-</div>
-
 <div class="sidebar" [class.collapsed]="isCollapsed" clickOutside (clickOutside)="onClickOutside()" (click)="onSidebarTabClick($event)">
-  <div class="sidebar-header">
-    <div class="logo-container">
-      <a routerLink="/dashboard" class="logo-link">
-        <span class="logo-text" *ngIf="!isCollapsed">KoloCollect</span>
-        <span class="logo-icon" *ngIf="isCollapsed || isSmallScreen">K</span>
+  <div class="sidebar-header">    <div class="logo-container">      <a routerLink="/dashboard" class="logo-link">
+        <img src="assets/logo.png" alt="KoloCollect" class="logo-image" *ngIf="!isCollapsed">
+        <img src="assets/logo.png" alt="KoloCollect" class="logo-icon-image" *ngIf="isCollapsed || isSmallScreen">
       </a>
     </div>
     <button mat-icon-button class="toggle-button" (click)="toggleSidebar()" 
