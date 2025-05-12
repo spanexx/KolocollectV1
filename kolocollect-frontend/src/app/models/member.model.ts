@@ -41,6 +41,11 @@ export interface MemberListResponse {
   };
 }
 
+export interface MemberResponse {
+  status: string;
+  data: Member;
+}
+
 export interface ActiveMemberCountResponse {
   status: string;
   data: {
@@ -49,7 +54,10 @@ export interface ActiveMemberCountResponse {
   };
 }
 
-export interface MemberResponse {
+export interface BatchActiveMemberCountResponse {
   status: string;
-  data: Member;
+  data: {
+    communityId: string;
+    activeMembers: number;
+  }[];
 }

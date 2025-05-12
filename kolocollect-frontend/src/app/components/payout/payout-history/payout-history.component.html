@@ -5,94 +5,174 @@
   
   <mat-card>
     <mat-card-content>
-      <div class="table-container">
-        <table mat-table>
-          <!-- Date Column -->
+      <div class="table-container" *ngIf="!isLoading">
+        <table mat-table [dataSource]="payouts" *ngIf="payouts && payouts.length > 0">          <!-- Date Column -->
           <ng-container matColumnDef="date">
             <th mat-header-cell *matHeaderCellDef>Date</th>
-            <td mat-cell *matCellDef>April 15, 2025</td>
-          </ng-container>
-          
-          <!-- Community Column -->
+            <td mat-cell *matCellDef="let payout">{{ formatDate(payout.processedDate || payout.scheduledDate || payout.payoutDate || payout.date) }}</td>
+          </ng-container>            <!-- Community Column -->
           <ng-container matColumnDef="community">
             <th mat-header-cell *matHeaderCellDef>Community</th>
-            <td mat-cell *matCellDef>Family Savings Group</td>
+            <td mat-cell *matCellDef="let payout" class="community-column">
+              <div class="community-info">
+                <fa-icon [icon]="faBuilding" class="community-icon"></fa-icon>
+                <span class="community-name" *ngIf="payout.communityName && payout.communityName !== 'Loading...'">
+                  {{ payout.communityName }}
+                </span>
+                <span class="community-name loading" *ngIf="payout.communityName === 'Loading...'">
+                  <fa-icon [icon]="faSpinner" [spin]="true" class="loading-icon"></fa-icon> Loading...
+                </span>
+                <span class="community-name unknown" *ngIf="!payout.communityName">
+                  {{ payout.communityId ? 'Community ' + payout.communityId.substr(0, 8) : 'Unknown Community' }}
+                </span>
+              </div>
+            </td>
           </ng-container>
           
           <!-- Cycle Column -->
           <ng-container matColumnDef="cycle">
             <th mat-header-cell *matHeaderCellDef>Cycle</th>
-            <td mat-cell *matCellDef>Cycle 2</td>
+            <td mat-cell *matCellDef="let payout">Cycle {{ payout.cycleNumber || '-' }}</td>
           </ng-container>
           
           <!-- Amount Column -->
           <ng-container matColumnDef="amount">
             <th mat-header-cell *matHeaderCellDef>Amount</th>
-            <td mat-cell *matCellDef>$800.00</td>
+            <td mat-cell *matCellDef="let payout">{{ formatCurrency(payout.amount) }}</td>
           </ng-container>
           
           <!-- Status Column -->
           <ng-container matColumnDef="status">
             <th mat-header-cell *matHeaderCellDef>Status</th>
-            <td mat-cell *matCellDef>
-              <span class="status-chip completed">Received</span>
+            <td mat-cell *matCellDef="let payout">
+              <span class="status-chip completed">
+                <fa-icon [icon]="faCheckCircle" class="status-icon"></fa-icon>
+                Received
+              </span>
             </td>
           </ng-container>
 
           <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
           <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
         </table>
+
+        <!-- Paginator -->
+        <mat-paginator 
+          *ngIf="payouts && payouts.length > 0"
+          [length]="totalPayouts"
+          [pageSize]="pageSize"
+          [pageIndex]="pageIndex"
+          [pageSizeOptions]="[5, 10, 25, 50]"
+          (page)="onPageChange($event)">
+        </mat-paginator>
+      </div>
+
+      <!-- Loading indicator -->
+      <div *ngIf="isLoading" class="loading-container">
+        <fa-icon [icon]="faSpinner" [spin]="true" size="2x"></fa-icon>
+        <p>Loading payout history...</p>
       </div>
 
       <!-- Placeholder for when there are no payouts -->
-      <div class="no-data-placeholder" *ngIf="false">
+      <div class="no-data-placeholder" *ngIf="!isLoading && (!payouts || payouts.length === 0)">
+        <fa-icon [icon]="faMoneyBillWave" size="3x"></fa-icon>
         <p>You haven't received any payouts yet.</p>
-        <button mat-raised-button color="primary">Join Communities</button>
+        <button mat-raised-button color="primary" routerLink="/communities">Join Communities</button>
       </div>
     </mat-card-content>
   </mat-card>
-  
   <!-- Upcoming Payouts Section -->
   <div class="upcoming-payouts-section">
     <h2>Upcoming Payouts</h2>
     
-    <mat-card class="upcoming-payout-card">
-      <mat-card-content>
-        <div class="upcoming-payout-details">
-          <div class="community-name">Business Investment Group</div>
-          <div class="payout-info">
-            <div class="amount">$1,000.00</div>
-            <div class="date">Expected: June 15, 2025</div>
+    <div *ngIf="isLoading" class="loading-container">
+      <fa-icon [icon]="faSpinner" [spin]="true" size="2x"></fa-icon>
+      <p>Loading upcoming payouts...</p>
+    </div>
+    
+    <div *ngIf="!isLoading && (!upcomingPayouts || upcomingPayouts.length === 0)" class="no-upcoming-payouts">
+      <fa-icon [icon]="faClock" size="2x"></fa-icon>
+      <p>No upcoming payouts found. Join active communities to receive payouts.</p>
+      <button mat-raised-button color="primary" routerLink="/communities">Browse Communities</button>
+    </div>
+    
+    <div class="upcoming-payouts-grid" *ngIf="!isLoading && upcomingPayouts && upcomingPayouts.length > 0">      <mat-card class="upcoming-payout-card" *ngFor="let payout of upcomingPayouts">
+        <mat-card-content>
+          <div class="upcoming-payout-details">
+            <div class="payout-header">              <div class="community-name">
+                <span *ngIf="payout.communityName && payout.communityName !== 'Loading...'">
+                  {{ payout.communityName }}
+                </span>
+                <span *ngIf="payout.communityName === 'Loading...'" class="loading-community">
+                  <fa-icon [icon]="faSpinner" [spin]="true" class="loading-icon"></fa-icon> Loading community...
+                </span>
+                <span *ngIf="!payout.communityName && payout.communityId" class="community-id">
+                  Community {{ payout.communityId.substr(0, 8) }}...
+                </span>
+                <span *ngIf="!payout.communityName && !payout.communityId" class="unknown-community">
+                  Unknown Community
+                </span>
+              </div>
+              <div class="payout-badge">
+                <div class="status-chip" [ngClass]="{
+                  'next': payout.isNextInLine,
+                  'queue': !payout.isNextInLine && payout.position
+                }">
+                  <fa-icon [icon]="payout.isNextInLine ? faCheckCircle : faClock"></fa-icon>
+                  {{ payout.isNextInLine ? 'Next in line' : (payout.position ? 'Position: ' + payout.position : 'Upcoming') }}
+                </div>
+              </div>
+              <div class="payout-status" *ngIf="payout.position && !payout.isNextInLine">
+                <div class="status-chip queue">Position: {{ payout.position }}</div>
+              </div>
+            </div>
+            
+            <div class="payout-info">
+              <div class="amount">{{ formatCurrency(payout.expectedAmount || payout.amount) }}</div>
+              <div class="date">
+                Expected: {{ formatDate(payout.payoutDate || payout.expectedDate) }}
+              </div>
+            </div>
+            
+            <div class="cycle-info">
+              <fa-icon [icon]="faCalendarAlt"></fa-icon>
+              <span>Cycle {{ payout.cycleNumber || 'Upcoming' }}</span>
+              <span *ngIf="payout.midCycleNumber"> - Mid-cycle {{ payout.midCycleNumber }}</span>
+            </div>
           </div>
-          <div class="cycle-info">
-            <mat-icon>loop</mat-icon>
-            <span>Cycle 3</span>
-          </div>
-        </div>
-      </mat-card-content>
-    </mat-card>
+        </mat-card-content>
+      </mat-card>
+    </div>
   </div>
-  
-  <!-- Payout Stats -->
+    <!-- Payout Stats -->
   <div class="payout-stats-cards">
     <mat-card>
       <mat-card-content>
         <div class="stat-label">Total Received</div>
-        <div class="stat-value">$1,800.00</div>
+        <div class="stat-value">{{ formatCurrency(totalReceived) }}</div>
+        <div class="stat-hint" *ngIf="totalReceived === 0">
+          Completed payouts will appear here
+        </div>
       </mat-card-content>
     </mat-card>
     
     <mat-card>
       <mat-card-content>
         <div class="stat-label">Upcoming</div>
-        <div class="stat-value">$1,000.00</div>
+        <div class="stat-value">{{ formatCurrency(upcomingTotal) }}</div>
+        <div class="stat-hint" *ngIf="upcomingTotal === 0">
+          Future payouts will appear here
+        </div>
       </mat-card-content>
     </mat-card>
     
     <mat-card>
       <mat-card-content>
         <div class="stat-label">Communities Paid</div>
-        <div class="stat-value">2</div>
+        <div class="stat-value">{{ communitiesPaid }}</div>
+        <div class="stat-hint" *ngIf="communitiesPaid === 0">
+          Join communities to receive payouts
+        </div>
       </mat-card-content>
     </mat-card>
   </div>

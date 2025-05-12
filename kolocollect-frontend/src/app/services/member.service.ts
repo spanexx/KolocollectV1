@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
-import { Member, MemberListResponse, MemberResponse, ActiveMemberCountResponse } from '../models/member.model';
+import { Member, MemberListResponse, MemberResponse, ActiveMemberCountResponse, BatchActiveMemberCountResponse } from '../models/member.model';
 
 @Injectable({
   providedIn: 'root'
@@ -47,5 +47,15 @@ export class MemberService {
    */
   getActiveMemberCount(communityId: string): Observable<ActiveMemberCountResponse> {
     return this.http.get<ActiveMemberCountResponse>(`${this.apiUrl}/community/${communityId}/active-count`);
+  }
+  /**
+   * Get active member counts for multiple communities in one batch request
+   * This reduces the number of API calls needed when displaying a list of communities
+   */
+  getBatchActiveMemberCounts(communityIds: string[]): Observable<BatchActiveMemberCountResponse> {
+    return this.http.post<BatchActiveMemberCountResponse>(
+      `${this.apiUrl}/communities/active-counts`, 
+      { communityIds }
+    );
   }
 }

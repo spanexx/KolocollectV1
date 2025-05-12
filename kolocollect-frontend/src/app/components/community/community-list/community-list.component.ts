@@ -148,17 +148,12 @@ export class CommunityListComponent implements OnInit {
         this.loadCommunities();
         return;
       }
+        // Pre-fetch data for all loaded communities at once
+      this.prefetchActiveMemberCounts(this.communities);
       
-      // Pre-fetch data for all loaded communities
+      // Check midcycle readiness status for all communities
       this.communities.forEach(community => {
-        // Pre-fetch active member counts
-        this.getActiveMemberCount(community);
-        
-        // Check midcycle readiness status
         this.checkMidcycleReadiness(community);
-      });
-      this.communities.forEach(community => {
-        this.getActiveMemberCount(community);
       });
     });
   }  loadUserCommunities(): void {
@@ -352,35 +347,66 @@ export class CommunityListComponent implements OnInit {
   }  /**
    * Cache for active member counts to avoid repeated API calls
    */
-  private activeMemberCounts: { [communityId: string]: number } = {};
+  private activeMemberCounts: { [communityId: string]: number } = {};  /**
+   * Prefetch active member counts for all communities in a single API call
+   * This significantly reduces the number of API requests when displaying many communities
+   */
+  prefetchActiveMemberCounts(communities: Community[]): void {
+    if (!communities || communities.length === 0) {
+      return;
+    }
 
+    // Extract community IDs for the batch request
+    const communityIds = communities.map(community => community._id);
+
+    console.log(`Prefetching active member counts for ${communityIds.length} communities`);
+
+    // Make a single API call to get all active member counts at once
+    this.memberService.getBatchActiveMemberCounts(communityIds).pipe(
+      catchError(error => {
+        console.error('Error fetching batch active member counts:', error);
+        // If the batch endpoint fails, initialize all counts to 0
+        communityIds.forEach(id => {
+          this.activeMemberCounts[id] = 0;
+        });
+        return of({ status: 'error', data: [] });
+      })
+    ).subscribe({
+      next: (response) => {
+        console.log('Received batch active member counts:', response);
+        if (response && response.data) {
+          // Update the cache with all returned counts
+          response.data.forEach(item => {
+            this.activeMemberCounts[item.communityId] = item.activeMembers;
+          });
+          
+          // Set any missing communities to 0
+          communityIds.forEach(id => {
+            if (this.activeMemberCounts[id] === undefined) {
+              this.activeMemberCounts[id] = 0;
+            }
+          });
+        }
+      },
+      error: (err) => {
+        console.error('Error in batch active member counts subscription:', err);
+      }
+    });
+  }
   /**
    * Get the count of active members for a community
-   * Uses cached value if available, otherwise calls the API
+   * Uses cached value from the batch request, or returns 0
+   * No individual API calls are made from this method
    */
   getActiveMemberCount(community: Community): number {
-    // If we have a cached value, return it immediately
-    if (this.activeMemberCounts[community._id]) {
+    // If we have a cached value, return it
+    if (this.activeMemberCounts[community._id] !== undefined) {
       return this.activeMemberCounts[community._id];
     }
 
-    // Default to 0 until we get data from the API
-    this.activeMemberCounts[community._id] = 0;
-    
-    // Call the API to get the actual count
-    this.memberService.getActiveMemberCount(community._id).pipe(
-      catchError(error => {
-        // Log error but don't crash the UI
-        console.error('Error fetching active member count:', error);
-        return of({ status: 'error', data: { communityId: community._id, activeMembers: 0 } });
-      })
-    ).subscribe(response => {
-      if (response && response.data) {
-        this.activeMemberCounts[community._id] = response.data.activeMembers;
-      }
-    });
-    
-    return this.activeMemberCounts[community._id];
+    // Return 0 if we don't have a cached value yet
+    // This will be updated when the batch request completes
+    return 0;
   }
   
   isCommunityFull(community: Community): boolean {
@@ -450,7 +476,6 @@ export class CommunityListComponent implements OnInit {
    * This uses cached values from the API if available
    */
   isMidcycleReady(community: Community): boolean {
-    console.log("Checking midcycle readiness for community:", community);
     if (!community.midCycle || !Array.isArray(community.midCycle) || community.midCycle.length === 0) {
       return false;
     }

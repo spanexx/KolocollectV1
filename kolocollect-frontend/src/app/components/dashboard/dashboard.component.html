@@ -158,11 +158,21 @@
             <span>Loading upcoming payouts...</span>
           </div>
           
-          <div *ngIf="!isLoading" class="payouts-list">
-            <div *ngFor="let payout of upcomingPayouts" class="payout-item">
+          <div *ngIf="!isLoading" class="payouts-list">            <div *ngFor="let payout of upcomingPayouts" class="payout-item">
               <div class="payout-info">
-                <div class="payout-community">{{payout.communityName}}</div>
+                <div class="payout-community">
+                  <ng-container *ngIf="payout.communityName !== 'Loading...'">{{payout.communityName}}</ng-container>
+                  <span *ngIf="payout.communityName === 'Loading...'" class="loading-community">
+                    <fa-icon [icon]="faSpinner" [spin]="true" class="loading-icon"></fa-icon> Loading...
+                  </span>
+                </div>
                 <div class="payout-amount">${{payout.amount.toFixed(2)}}</div>
+                <div class="payout-position" *ngIf="payout.position && !payout.isNextInLine">
+                  <mat-chip color="primary" selected size="small">Position: {{payout.position}}</mat-chip>
+                </div>
+                <div class="payout-next" *ngIf="payout.isNextInLine">
+                  <mat-chip color="accent" selected size="small">Next in line!</mat-chip>
+                </div>
               </div>
               <div class="payout-date-info">
                 <div class="payout-date">{{formatDate(payout.date)}}</div>

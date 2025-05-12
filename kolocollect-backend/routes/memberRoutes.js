@@ -16,6 +16,9 @@ router.get('/community/:communityId', memberController.getMembersByCommunityId);
 // GET active member count by community ID
 router.get('/community/:communityId/active-count', memberController.getActiveMemberCount);
 
+// GET active member counts for multiple communities in one request
+router.post('/communities/active-counts', memberController.getBatchActiveMemberCounts);
+
 // GET member by ID
 router.get('/:memberId', memberController.getMemberById);
 

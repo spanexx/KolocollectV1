@@ -1,0 +1,39 @@
+  <div class="community-header-action" *ngIf="!loading && !error && community">
+    <button mat-icon-button class="refresh-button" (click)="loadCommunityDetails()" [disabled]="loading" matTooltip="Refresh community data">
+      <fa-icon [icon]="faArrowsRotate" [spin]="loading"></fa-icon>
+    </button>
+ 
+ <button mat-icon-button [matMenuTriggerFor]="shareMenu" class="share-button" matTooltip="Share or Export Community">
+      <fa-icon [icon]="faShare"></fa-icon>
+    </button>
+    
+    <mat-menu #shareMenu="matMenu" class="share-menu">
+      <button mat-menu-item (click)="exportCommunityAsPdf()">
+        <fa-icon [icon]="faFilePdf" class="menu-icon"></fa-icon>
+        <span>Export as PDF</span>
+      </button>
+      <button mat-menu-item [matMenuTriggerFor]="shareSubmenu">
+        <fa-icon [icon]="faShare" class="menu-icon"></fa-icon>
+        <span>Share Community</span>
+      </button>
+    </mat-menu>
+    
+    <mat-menu #shareSubmenu="matMenu">
+      <button mat-menu-item (click)="shareCommunityViaLink()">
+        <fa-icon [icon]="faLink" class="menu-icon"></fa-icon>
+        <span>Copy Link</span>
+      </button>
+      <button mat-menu-item (click)="openSocialShareUrl('twitter')">
+        <fa-icon [icon]="faTwitter" class="menu-icon twitter-icon"></fa-icon>
+        <span>Twitter</span>
+      </button>
+      <button mat-menu-item (click)="openSocialShareUrl('facebook')">
+        <fa-icon [icon]="faFacebook" class="menu-icon facebook-icon"></fa-icon>
+        <span>Facebook</span>
+      </button>
+      <button mat-menu-item (click)="openSocialShareUrl('whatsapp')">
+        <fa-icon [icon]="faWhatsapp" class="menu-icon whatsapp-icon"></fa-icon>
+        <span>WhatsApp</span>
+      </button>
+    </mat-menu>
+    </div>

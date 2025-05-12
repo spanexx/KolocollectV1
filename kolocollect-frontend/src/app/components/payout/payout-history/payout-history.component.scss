@@ -32,14 +32,16 @@
   border-radius: 9999px;
   font-size: 0.75rem;
   font-weight: 500;
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
   
   &.completed {
     background-color: #D1FAE5;
     color: #065F46;
   }
   
-  &.pending {
+  &.pending, &.scheduled {
     background-color: #FEF3C7;
     color: #92400E;
   }
@@ -48,11 +50,38 @@
     background-color: #E0E7FF;
     color: #3730A3;
   }
+  
+  &.failed {
+    background-color: #FEE2E2;
+    color: #B91C1C;
+  }
+
+  .status-icon {
+    margin-right: 0.25rem;
+  }
+}
+
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1rem;
+  
+  p {
+    margin-top: 1rem;
+    color: #6B7280;
+  }
 }
 
 .no-data-placeholder {
   padding: 3rem 1rem;
   text-align: center;
+  
+  fa-icon {
+    color: #D1D5DB;
+    margin-bottom: 1rem;
+  }
   
   p {
     margin-bottom: 1.5rem;
@@ -70,31 +99,75 @@
   }
 }
 
+.upcoming-payouts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+  
+  @media (max-width: 640px) {
+    grid-template-columns: 1fr;
+  }
+}
+
 .upcoming-payout-card {
-  margin-bottom: 1.5rem;
+  margin-bottom: 0;
+  height: 100%;
 }
 
 .upcoming-payout-details {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  flex-direction: column;
+  height: 100%;
   
-  @media (max-width: 768px) {
-    flex-direction: column;
+  .payout-header {
+    display: flex;
+    justify-content: space-between;
     align-items: flex-start;
-    gap: 1rem;
-  }
-  
-  .community-name {
-    font-weight: 600;
-    font-size: 1.125rem;
+    margin-bottom: 1rem;
+    
+    .community-name {
+      font-weight: 600;
+      font-size: 1.125rem;
+      flex: 1;
+    }
+      .payout-status, .payout-badge {
+      margin-left: 0.5rem;
+      
+      .status-chip {
+        padding: 0.25rem 0.75rem;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        
+        fa-icon {
+          font-size: 0.875rem;
+        }
+        
+        &.next {
+          background-color: #D1FAE5;
+          color: #065F46;
+        }
+        
+        &.queue {
+          background-color: #E0E7FF;
+          color: #3730A3;
+        }
+      }
+    }
   }
   
   .payout-info {
+    margin: auto 0;
+    padding: 1rem 0;
+    
     .amount {
       font-weight: 600;
-      font-size: 1.25rem;
+      font-size: 1.5rem;
       color: #059669;
+      margin-bottom: 0.25rem;
     }
     
     .date {
@@ -107,13 +180,40 @@
     display: flex;
     align-items: center;
     color: #6B7280;
+    margin-top: auto;
+    border-top: 1px solid #E5E7EB;
+    padding-top: 0.75rem;
     
-    mat-icon {
+    fa-icon {
       margin-right: 0.5rem;
       font-size: 1rem;
-      height: 1rem;
-      width: 1rem;
     }
+  }
+}
+
+.no-upcoming-payouts {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1rem;
+  background-color: #F9FAFB;
+  border-radius: 0.5rem;
+  text-align: center;
+  
+  fa-icon {
+    color: #D1D5DB;
+    margin-bottom: 1rem;
+    font-size: 2rem;
+  }
+  
+  p {
+    color: #6B7280;
+    margin: 0 0 1.5rem 0;
+  }
+  
+  button {
+    min-width: 180px;
   }
 }
 
@@ -140,5 +240,87 @@
     font-size: 1.5rem;
     font-weight: 600;
     color: #374151;
+    margin-bottom: 0.5rem;
   }
+  
+  .stat-hint {
+    font-size: 0.75rem;
+    color: #9CA3AF;
+    font-style: italic;
+    margin-top: 0.25rem;
+  }
+}
+
+// Community column styling
+.community-column {
+  .community-info {
+    display: flex;
+    align-items: center;
+    
+    .community-icon {
+      color: #6B7280;
+      margin-right: 8px;
+      font-size: 0.9rem;
+    }
+    
+    .community-name {
+      font-weight: 500;
+      color: #4B5563;
+    }
+  }
+}
+
+.community-info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  
+  .community-icon {
+    color: #6D28D9;
+  }
+  
+  .community-name {
+    font-weight: 500;
+    
+    &.loading {
+      color: #6B7280;
+      font-style: italic;
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+      
+      .loading-icon {
+        font-size: 0.75rem;
+        color: #6D28D9;
+      }
+    }
+    
+    &.unknown {
+      color: #9CA3AF;
+      font-style: italic;
+    }
+  }
+}
+
+.loading-community {
+  color: #6B7280;
+  font-style: italic;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  
+  .loading-icon {
+    font-size: 0.75rem;
+    color: #6D28D9;
+  }
+}
+
+.community-id {
+  color: #6B7280;
+  font-style: italic;
+}
+
+.unknown-community {
+  color: #9CA3AF;
+  font-style: italic;
 }

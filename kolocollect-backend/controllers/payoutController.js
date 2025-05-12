@@ -34,7 +34,8 @@ exports.getPayoutsByCommunity = async (req, res) => {
 // Get all payouts by a specific user
 exports.getPayoutsByUser = async (req, res) => {
   try {
-    const payouts = await Payout.find({ userId: req.params.userId });
+    const payouts = await Payout.find({ recipient: req.params.userId });
+    console.log(payouts);
     res.json(payouts);
   } catch (err) {
     res.status(500).json({ error: err.message });

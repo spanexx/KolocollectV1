@@ -34,7 +34,8 @@ import {
   faMoneyBillWave,
   faEye,
   faReceipt,
-  faUserPlus
+  faUserPlus,
+  faSpinner
 } from '@fortawesome/free-solid-svg-icons';
 
 @Component({
@@ -62,14 +63,14 @@ export class DashboardComponent implements OnInit {
   faMinus = faMinus;
   faMoneyBill = faMoneyBill;
   faBell = faBell;
-  faCheck = faCheck;
-  faInfoCircle = faInfoCircle;
+  faCheck = faCheck;  faInfoCircle = faInfoCircle;
   faExclamationTriangle = faExclamationTriangle;
   faUsers = faUsers;
   faMoneyBillWave = faMoneyBillWave;
   faEye = faEye;
   faReceipt = faReceipt;
   faUserPlus = faUserPlus;
+  faSpinner = faSpinner;
 
   // Loading state
   isLoading = true;
@@ -102,13 +103,15 @@ export class DashboardComponent implements OnInit {
     date: Date;
     status: string;
   }> = [];
-
   // Upcoming payouts
   upcomingPayouts: Array<{
     id: string;
+    communityId: string;
     communityName: string;
     amount: number;
     date: Date;
+    position?: number | null;
+    isNextInLine?: boolean;
   }> = [];
 
   // Notifications
@@ -242,38 +245,101 @@ export class DashboardComponent implements OnInit {
         console.error('Error fetching recent contributions:', error);
       }
     });
-    
-    // Get upcoming payouts
+      // Get upcoming payouts
     const payoutsRequest = this.userService.getUpcomingPayouts(this.currentUser.id);
     requests.push(payoutsRequest);
     
     payoutsRequest.subscribe({
-      next: (payouts) => {
-        if (payouts && Array.isArray(payouts)) {this.upcomingPayouts = payouts.map((payout: any) => {
-            let date: Date;
-            try {
-              // Try to parse the date
-              const rawDate = payout.scheduledDate || payout.expectedDate;
-              date = rawDate ? new Date(rawDate) : new Date();
-              
-              // Verify the date is valid
-              if (isNaN(date.getTime())) {
-                console.warn(`Invalid date for payout: ${payout.id || payout._id}`);
-                date = new Date(); // Fallback to current date
-              }
-            } catch (error) {
-              console.error('Error parsing payout date:', error);
+      next: (response) => {
+        console.log('Upcoming payouts raw response:', response);
+        // Handle different response formats
+        let payoutsArray: any[] = [];
+        
+        if (response && Array.isArray(response)) {
+          payoutsArray = response;
+        } else if (response && response.upcomingPayouts && Array.isArray(response.upcomingPayouts)) {
+          payoutsArray = response.upcomingPayouts;
+        } else {
+          console.warn('Unexpected format for upcoming payouts:', response);
+          payoutsArray = [];
+        }
+        
+        // Filter out any null or undefined payouts
+        payoutsArray = payoutsArray.filter(payout => !!payout);
+        
+        this.upcomingPayouts = payoutsArray.map((payout: any) => {
+          // Parse date safely
+          let date: Date;
+          try {
+            // Try parsing with various date field names
+            const rawDate = payout.payoutDate || payout.scheduledDate || payout.expectedDate;
+            date = rawDate ? new Date(rawDate) : new Date();
+            
+            // Verify the date is valid
+            if (isNaN(date.getTime())) {
+              console.warn(`Invalid date for payout: ${payout.id || payout._id || 'unknown'}`);
               date = new Date(); // Fallback to current date
             }
+          } catch (error) {
+            console.error('Error parsing payout date:', error);
+            date = new Date(); // Fallback to current date
+          }
+          
+          // Parse amount safely
+          let amount = 0;
+          try {
+            if (payout.amount !== undefined && payout.amount !== null) {
+              if (typeof payout.amount === 'number') {
+                amount = payout.amount;
+              } else if (typeof payout.amount === 'string') {
+                amount = parseFloat(payout.amount);
+              } else if (typeof payout.amount === 'object') {
+                // Handle MongoDB Decimal128 object that has a toString method
+                const objWithToString = payout.amount as { toString(): string };
+                amount = parseFloat(objWithToString.toString());
+              }
+            } else if (payout.expectedAmount !== undefined && payout.expectedAmount !== null) {
+              if (typeof payout.expectedAmount === 'number') {
+                amount = payout.expectedAmount;
+              } else if (typeof payout.expectedAmount === 'string') {
+                amount = parseFloat(payout.expectedAmount);
+              } else if (typeof payout.expectedAmount === 'object') {
+                // Handle MongoDB Decimal128 object that has a toString method
+                const objWithToString = payout.expectedAmount as { toString(): string };
+                amount = parseFloat(objWithToString.toString());
+              }
+            }
             
-            return {
-              id: payout.id || payout._id || 'unknown-id',
-              communityName: payout.communityName || 'Unknown Community',
-              amount: Number(payout.amount || payout.expectedAmount) || 0,
-              date: date
-            };
-          });
-        }
+            // Fallback if amount is NaN
+            if (isNaN(amount)) {
+              amount = 0;
+            }
+          } catch (error) {
+            console.error('Error parsing payout amount:', error);
+            amount = 0;
+          }
+          
+          return {
+            id: payout.id || payout._id || 'unknown-id',
+            communityId: payout.communityId || '',
+            communityName: payout.communityName || 'Loading...',
+            amount: amount,
+            date: date,
+            position: payout.position || null,
+            isNextInLine: payout.isNextInLine || false
+          };
+        });
+        
+        // Sort by date (soonest first)
+        this.upcomingPayouts.sort((a, b) => a.date.getTime() - b.date.getTime());
+        
+        // Limit to 5 most recent payouts for the dashboard
+        this.upcomingPayouts = this.upcomingPayouts.slice(0, 5);
+        
+        console.log('Processed upcoming payouts:', this.upcomingPayouts);
+        
+        // Fetch any missing community names
+        this.enrichUpcomingPayoutData();
       },
       error: (error) => {
         console.error('Error fetching upcoming payouts:', error);
@@ -356,32 +422,7 @@ export class DashboardComponent implements OnInit {
     }
   }
   // Helper methods for the template
-  formatDate(date: Date | null | string): string {
-    if (!date) {
-      return 'N/A';
-    }
-    
-    try {
-      // Handle string dates by converting to Date object
-      const dateObj = typeof date === 'string' ? new Date(date) : date;
-      
-      // Validate the date is valid before formatting
-      if (isNaN(dateObj.getTime())) {
-        return 'Invalid date';
-      }
-      
-      return new Intl.DateTimeFormat('en-US', {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric'
-      }).format(dateObj);
-    } catch (error) {
-      console.error('Error formatting date:', error);
-      return 'Invalid date';
-    }
-  }
-  
-  getNotificationIcon(type: string): string {
+    getNotificationIcon(type: string): string {
     switch (type) {
       case 'warning': return 'warning';
       case 'success': return 'check_circle';
@@ -400,11 +441,16 @@ export class DashboardComponent implements OnInit {
       default: return this.faBell;
     }
   }
-  
-  getNotificationClass(type: string): string {
+    getNotificationClass(type: string): string {
     return `notification-${type}`;
   }
-    getDaysRemaining(date: Date | null): number {
+
+  /**
+   * Get days remaining until a date
+   * @param date The target date to calculate days until
+   * @returns Number of days remaining (always >= 0)
+   */
+  getDaysRemaining(date: Date | null): number {
     if (!date) {
       return 0;
     }
@@ -416,9 +462,17 @@ export class DashboardComponent implements OnInit {
         return 0;
       }
       
-      const today = new Date();
-      const timeDiff = date.getTime() - today.getTime();
-      return Math.max(0, Math.ceil(timeDiff / (1000 * 3600 * 24))); // Ensure we don't return negative days
+      const now = new Date();
+      // Strip time information from both dates for accurate day calculation
+      const payoutDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      
+      // Calculate difference in days
+      const diffTime = payoutDate.getTime() - today.getTime();
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      
+      // Return max of 0 days (don't show negative days)
+      return Math.max(0, diffDays);
     } catch (error) {
       console.error('Error calculating days remaining:', error);
       return 0;
@@ -453,5 +507,99 @@ export class DashboardComponent implements OnInit {
         console.error('Error marking notifications as read:', error);
       }
     });
+  }
+
+  /**
+   * Enrich upcoming payout data with community names
+   */
+  private enrichUpcomingPayoutData(): void {
+    if (!this.upcomingPayouts || this.upcomingPayouts.length === 0) {
+      return;
+    }
+    
+    // Create a cache to avoid duplicate API calls
+    const communityNameCache: {[key: string]: string} = {};
+    
+    // For any payouts with 'Loading...' communityName, fetch the actual name
+    const missingCommunityIds = this.upcomingPayouts
+      .filter(payout => 
+        (payout.communityName === 'Loading...' || !payout.communityName) && 
+        payout.communityId
+      )
+      .map(payout => payout.communityId);
+    
+    if (missingCommunityIds.length > 0) {
+      // Get unique community IDs
+      const uniqueCommunityIds = [...new Set(missingCommunityIds)];
+      
+      console.log(`Dashboard: Fetching names for ${uniqueCommunityIds.length} communities...`);
+      
+      // For each community ID, fetch its name
+      uniqueCommunityIds.forEach(communityId => {
+        if (!communityId) {
+          return; // Skip null or undefined community IDs
+        }
+        
+        // Skip if we've already fetched this community's name in this session
+        if (communityNameCache[communityId]) {
+          this.updatePayoutCommunityNames(communityId, communityNameCache[communityId]);
+          return;
+        }
+        
+        this.payoutService.getCommunityName(communityId)
+          .subscribe({
+            next: (data) => {
+              if (data && data.name) {
+                // Cache the name
+                communityNameCache[communityId] = data.name;
+                // Update all payouts with this community ID
+                this.updatePayoutCommunityNames(communityId, data.name);
+              } else {
+                this.updatePayoutCommunityNames(communityId, 'Unknown Community');
+              }
+            },
+            error: (error) => {
+              console.error(`Failed to fetch name for community ${communityId}:`, error);
+              this.updatePayoutCommunityNames(communityId, 'Unknown Community');
+            }
+          });
+      });
+    }
+  }
+  
+  /**
+   * Update community names for all payouts with a given community ID
+   */
+  private updatePayoutCommunityNames(communityId: string, name: string): void {
+    if (!this.upcomingPayouts || !communityId) {
+      return;
+    }
+    
+    this.upcomingPayouts.forEach(payout => {
+      if (payout.communityId === communityId) {
+        payout.communityName = name;
+      }
+    });
+  }
+
+  /**
+   * Format a date for display
+   */
+  formatDate(date: Date | null | string): string {
+    if (!date) return 'N/A';
+    
+    try {
+      const d = new Date(date);
+      if (isNaN(d.getTime())) return 'Invalid Date';
+      
+      return d.toLocaleDateString('en-US', { 
+        year: 'numeric',
+        month: 'short', 
+        day: 'numeric'
+      });
+    } catch (error) {
+      console.error('Error formatting date:', error);
+      return 'Error';
+    }
   }
 }

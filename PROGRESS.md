@@ -6,7 +6,197 @@ This document tracks the progress of implementing the frontend for KoloCollect a
 
 ## Latest Updates (May 11, 2025)
 
+- [⏳] **Refactoring: Community Detail Component**
+  - Problem: The community detail component has become too large and complex, containing over 800 lines of HTML and 1200+ lines of TypeScript, making it difficult to maintain and extend
+  - Solution: Breaking down the component into smaller, focused components with clear responsibilities
+  - Implementation Plan:
+
+    1. **Component Structure:**
+
+       A. Parent Components:
+       - `CommunityDetailComponent` - Main container that:
+         - Fetches the community data
+         - Handles routing parameters
+         - Contains the tab navigation structure
+         - Manages community-level operations (join/leave, admin functions)
+
+       - `CommunityHeaderComponent` - Header with:
+         - Community name, description
+         - Basic stats display
+         - Admin/member actions
+         - Sharing options
+
+       B. Tab Components:
+       - `CommunityOverviewComponent` - For overview tab:
+         - Community settings and details
+         - Current cycle information
+         - Mid-cycle summary
+         - Key statistics
+
+       - `CommunityMembersComponent` - For members tab:
+         - List of all community members
+         - Member status indicators
+         - Navigation to member details
+         - Leave community functionality
+
+       - `CommunityMidcycleComponent` - For midcycle tab:
+         - Current midcycle status and details
+         - Contribution progress tracking
+         - Contributors list
+         - Payout information for current midcycle
+         - Admin actions for midcycle management
+
+       - `CommunityContributionHistoryComponent` - For contribution history tab:
+         - Hierarchical view of contributions
+         - Filtering and sorting options
+         - Make contribution action
+
+       - `CommunityVotesComponent` - For votes tab:
+         - Vote creation form (admin only)
+         - List of active and resolved votes
+         - Voting functionality for members
+         - Vote results visualization
+
+       - `CommunityPayoutsComponent` - For payouts tab:
+         - Payout schedule information
+         - Next payout details
+         - Payout history
+       
+       C. Feature Components:
+       - `CommunitySharingComponent` - For sharing functionality:
+         - Export as PDF options
+         - Social media sharing
+         - Copy link functionality
+
+       - `MidcycleProgressComponent` - For midcycle visualization:
+         - Progress bar with percentage
+         - Contribution status indicators
+         - Visual representation of completion
+
+       - `VoteCreationComponent` - For vote creation (admin only):
+         - Topic selection
+         - Dynamic options management
+         - Form validation
+
+       - `VoteListComponent` - For displaying votes:
+         - Vote item display
+         - Progress bars for voting results
+         - Vote action buttons
+
+       - `PayoutInfoComponent` - For payout information:
+         - Next payout recipient and amount
+         - Scheduled date information
+         - Status indicators
+
+    2. --State Management:--
+       - `CommunityStateService`:
+         - Store community data
+         - Handle data loading and caching
+         - Manage member status changes
+         - Emit events for community updates
+
+       - `MidcycleStateService`:
+         - Track midcycle status changes
+         - Handle contribution updates
+         - Manage payout distribution
+         - Cache midcycle data
+
+       - `VotingStateService`:
+         - Handle vote creation
+         - Track vote status changes
+         - Manage user votes
+         - Store voting results
+
+    3. **Implementation Steps:**
+
+       **Phase 1: Component Structure & Basic Functionality**
+
+       1. Create base folder structure for new components:
+  ```
+
+          components/
+            community/
+              community-detail/                  (existing)
+              community-header/                  (new)
+              community-tabs/
+                community-overview/              (new)
+                community-members/               (new)
+                community-midcycle/              (new)
+                community-contribution-history/  (new)
+                community-votes/                 (new)
+                community-payouts/               (new)
+              shared-features/
+                sharing-buttons/                 (new)
+                midcycle-progress/               (new)
+                vote-creation/                   (new)
+                vote-list/                       (new)
+                payout-info/                     (new)
+          ```
+
+       1. Update the CommunityDetailComponent to work as a container:
+          - Keep route parameter handling
+          - Keep basic community data loading
+          - Keep authentication state
+          - Remove tab-specific logic and UI
+          - Add router-outlet for tab components
+
+       2. Create the CommunityHeaderComponent:
+          - Extract header with community info
+          - Extract sharing functionality
+          - Move join/leave community buttons
+
+       3. Implement simplest tab components first:
+          - CommunityMembersComponent (member list only)
+          - CommunityPayoutsComponent (payout schedule)
+          - CommunityOverviewComponent (community details)
+
+       **Phase 2: Complex Components & Feature Extraction**
+
+       4. Implement more complex tab components:
+          - CommunityMidcycleComponent (with contribution progress)
+          - CommunityContributionHistoryComponent (reuse hierarchical component)
+          - CommunityVotesComponent (voting functionality)
+
+       5. Extract shared feature components:
+          - CommunitySharingComponent (extract from header)
+          - MidcycleProgressComponent (extract from midcycle tab)
+          - VoteCreationComponent (extract from votes tab)
+          - VoteListComponent (extract from votes tab)
+          - PayoutInfoComponent (extract from payouts tab)
+
+       **Phase 3: State Management & Integration**
+
+       6. Implement state management services:
+          - CommunityStateService with basic state
+          - MidcycleStateService for tracking contributions
+          - VotingStateService for vote management
+
+       7. Update components to use state services:
+          - Replace direct API calls with service calls
+          - Update event handling to use service events
+          - Implement proper error handling
+
+       8. Test and optimize:
+          - Performance testing
+          - Fix navigation and state issues
+          - Implement lazy loading for tabs
+
+    1. **Testing Strategy:**
+       - Unit tests for each component
+       - Integration tests for component interaction
+       - End-to-end tests for key user flows
+
+  - Expected Benefits:
+    - Improved code maintainability with clearer separation of concerns
+    - Better performance through more granular change detection
+    - Enhanced developer experience with more focused components
+    - Easier testing with smaller component boundaries
+    - Simplified future development with reusable components
+    
+  - Status: Planning completed, implementation starting May 12, 2025
+
 - [✅] **Feature: Document Sharing and Export API**
+  
   - Problem: Users need the ability to download or share community pages as PDF or images, and to share contribution data for cycles or mid-cycles
   - Solution:
     1. Created backend sharing controller with PDF generation functionality

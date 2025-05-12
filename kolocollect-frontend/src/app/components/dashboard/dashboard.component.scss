@@ -481,14 +481,16 @@ $shadow-heavy: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0,
       
       .payout-community {
         font-weight: 500;
-        margin-bottom: $tiny;
+        margin-bottom: $nano;
         color: $text-primary-light;
       }
       
-      .payout-amount {
-        font-size: 1.25rem;
-        font-weight: 600;
-        color: $primary-color;
+      .payout-position, .payout-next {
+        margin-top: $tiny;
+        
+        mat-chip {
+          font-size: 0.75rem;
+        }
       }
     }
     
@@ -589,6 +591,20 @@ $shadow-heavy: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0,
   }
 }
 
+// Loading state styling
+.loading-community {
+  color: $text-secondary-light;
+  font-style: italic;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  
+  .loading-icon {
+    font-size: 0.75rem;
+    color: $primary-color;
+  }
+}
+
 // Add modern forced colors mode support
 @media (forced-colors: active) {
   // Card styling
@@ -601,7 +617,7 @@ $shadow-heavy: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0,
     }
   }
   
-  mat-card-header {
+  mat-card_header {
     border-bottom: 1px solid CanvasText;
   }
   

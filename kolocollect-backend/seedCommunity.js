@@ -73,21 +73,21 @@ const seedDatabase = async () => {
           firstCycleMin: 5,
         },
       },
-      // ...Array.from({ length: 30 }, (_, i) => ({
-      //   name: `Community ${i + 2}`,
-      //   description: `This is community number ${i + 2}`,
-      //   maxMembers: 10 + i, // Increment max members for variety
-      //   contributionFrequency: ['Hourly', 'Daily', 'Weekly'][i % 3], // Rotate contribution frequency
-      //   backupFundPercentage: 3 + i, // Increment backup fund percentage
-      //   adminId: users[(i + 1) % users.length]._id, // Assign admins cyclically
-      //   settings: {
-      //     isPrivate: i % 2 === 0, // Alternate between public and private
-      //     minContribution: 50 + i * 10, // Increment min contribution
-      //     penalty: 10 + i * 5, // Increment penalty
-      //     numMissContribution: 3,
-      //     firstCycleMin: 5 + i, // Increment first cycle min
-      //   },
-      // })),
+      ...Array.from({ length: 30 }, (_, i) => ({
+        name: `Community ${i + 2}`,
+        description: `This is community number ${i + 2}`,
+        maxMembers: 10 + i, // Increment max members for variety
+        contributionFrequency: ['Hourly', 'Daily', 'Weekly'][i % 3], // Rotate contribution frequency
+        backupFundPercentage: 3 + i, // Increment backup fund percentage
+        adminId: users[(i + 1) % users.length]._id, // Assign admins cyclically
+        settings: {
+          isPrivate: i % 2 === 0, // Alternate between public and private
+          minContribution: 50 + i * 10, // Increment min contribution
+          penalty: 10 + i * 5, // Increment penalty
+          numMissContribution: 3,
+          firstCycleMin: 5 + i, // Increment first cycle min
+        },
+      })),
     ];
 
     const createdCommunities = [];

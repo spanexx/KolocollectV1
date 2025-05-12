@@ -1,6 +1,53 @@
 # Frontend Integration Plan
 
-## Latest Plan Update (May 10, 2025)
+## Latest Plan Update (May 11, 2025)
+
+### Community Detail Component Refactoring Plan
+
+#### Overview
+
+The community detail component has grown too large and complex, handling multiple responsibilities. This leads to maintenance challenges, performance issues, and makes future feature development more difficult. This plan outlines how to break down the monolithic community detail component into smaller, more manageable components with clear responsibilities.
+
+#### Component Decomposition Strategy
+
+1. **Parent Components**
+   - `CommunityDetailComponent` - Main container, handles routing and basic community data fetching
+   - `CommunityHeaderComponent` - Header with community info and join/leave functionality
+   - `CommunityTabsComponent` - Tab navigation container
+
+2. **Tab Components**
+   - `CommunityOverviewComponent` - Overview tab content
+   - `CommunityMembersComponent` - Members tab content
+   - `CommunityMidcycleComponent` - Midcycle tab content
+   - `CommunityContributionHistoryComponent` - Contribution history tab content
+   - `CommunityVotesComponent` - Votes tab content
+   - `CommunityPayoutsComponent` - Payouts tab content
+
+3. **Reusable Feature Components**
+   - `CommunitySharingComponent` - Sharing and export functionality
+   - `MidcycleProgressComponent` - Midcycle progress visualization
+   - `VoteCreationComponent` - Vote creation form (admin only)
+   - `VoteListComponent` - List of community votes
+   - `PayoutScheduleComponent` - Payout scheduling information
+   - `CommunityStatusComponent` - Community status indicator
+
+#### State Management Improvements
+
+- Create a `CommunityStateService` to manage shared state between components
+- Implement a `MidcycleStateService` to handle midcycle-specific state
+- Develop a `VotingStateService` to manage vote creation and casting
+
+#### Implementation Steps
+
+1. Create the folder structure for the new components
+2. Implement the parent container components first
+3. Extract the tab components one by one, starting with the simplest ones
+4. Create reusable feature components that can be shared across tabs
+5. Update routing and navigation to work with the new component structure
+6. Implement state management services to handle shared state
+7. Test and verify each component as it's extracted
+
+### Previous Plan Update (May 10, 2025)
 
 ### Member Service Implementation Plan
 

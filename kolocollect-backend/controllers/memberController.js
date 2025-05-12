@@ -204,3 +204,66 @@ exports.getActiveMemberCount = async (req, res) => {
     });
   }
 };
+
+// Get active member counts for multiple communities in one batch request
+exports.getBatchActiveMemberCounts = async (req, res) => {
+  try {
+    const { communityIds } = req.body;
+    
+    if (!communityIds || !Array.isArray(communityIds) || communityIds.length === 0) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Please provide an array of community IDs'
+      });
+    }
+    
+    // Validate all community IDs
+    for (const communityId of communityIds) {
+      if (!mongoose.Types.ObjectId.isValid(communityId)) {
+        return res.status(400).json({
+          status: 'error',
+          message: `Invalid community ID format: ${communityId}`
+        });
+      }
+    }
+    
+    // Get counts for all communities in one aggregation query
+    const results = await Member.aggregate([
+      {
+        $match: {
+          communityId: { $in: communityIds.map(id => new mongoose.Types.ObjectId(id)) },
+          status: 'active'
+        }
+      },
+      {
+        $group: {
+          _id: '$communityId',
+          activeMembers: { $sum: 1 }
+        }
+      }
+    ]);
+    
+    // Convert results to a map for easier access
+    const countsMap = {};
+    results.forEach(result => {
+      countsMap[result._id.toString()] = result.activeMembers;
+    });
+    
+    // Ensure all requested communities are included in the response, even if they have 0 members
+    const responseCounts = communityIds.map(communityId => ({
+      communityId,
+      activeMembers: countsMap[communityId] || 0
+    }));
+    
+    return res.status(200).json({
+      status: 'success',
+      data: responseCounts
+    });
+  } catch (error) {
+    return res.status(500).json({
+      status: 'error',
+      message: 'Error retrieving batch active member counts',
+      error: error.message
+    });
+  }
+};

@@ -165,7 +165,7 @@
                 <fa-icon [icon]="faHandHoldingDollar" class="button-icon"></fa-icon>
                 Contribute
               </button>
-            </ng-container>        <ng-container *ngIf="!isUserMemberOfCommunity(community._id)">
+            </ng-container>            <ng-container *ngIf="!isUserMemberOfCommunity(community._id)">
               <button class="custom-button accent-button" 
                       (click)="joinCommunity(community._id)" 
                       [disabled]="isCommunityFull(community)" 

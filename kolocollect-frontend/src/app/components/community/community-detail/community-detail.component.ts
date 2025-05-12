@@ -165,7 +165,9 @@ export class CommunityDetailComponent implements OnInit, OnDestroy {  // Font Aw
     private loadingService: LoadingService,
     private sharingService: SharingService,
     private dialog: MatDialog
-  ) { }ngOnInit(): void {
+  ) { }
+  
+  ngOnInit(): void {
     this.currentUser = this.authService.currentUserValue;
     this.currentUserId = this.currentUser?.id;
     

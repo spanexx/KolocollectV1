@@ -124,16 +124,144 @@ exports.logoutUser = async (req, res) => {
 // Get upcoming payouts
 exports.getUpcomingPayouts = async (req, res) => {
   try {
+    const mongoose = require('mongoose');
     const { userId } = req.params;
 
+    // Find user and populate their communities
     const user = await User.findById(userId).populate('communities.id', 'name');
     if (!user) return res.status(404).json({ message: 'User not found.' });
 
-    const upcomingPayouts = await user.upcomingPayouts;
+    // Get upcoming payouts from virtual
+    const virtualUpcomingPayouts = await user.upcomingPayouts || [];
+    
+    // Get all communities the user is a part of
+    const userCommIds = user.communities.map(comm => comm.id._id);
+    
+    // Find all communities the user is part of
+    const Community = mongoose.model('Community');
+    const Member = mongoose.model('Member');
+    const communities = await Community.find({
+      _id: { $in: userCommIds }
+    }).populate({
+      path: 'cycles',
+      match: { isComplete: false }
+    }).populate({
+      path: 'midCycle',
+      match: { isComplete: false }
+    });
+
+    // Calculate upcoming payouts based on member position in active cycles
+    const calculatedUpcomingPayouts = [];
+    
+    for (const community of communities) {
+      try {
+        // Skip if community has no active cycles
+        if (!community.cycles || community.cycles.length === 0) continue;
+        
+        // Get active cycle
+        const activeCycle = community.cycles[0]; // The most recent active cycle
+        if (!activeCycle) continue;
+        
+        // Find the user's member record in this community
+        const member = await Member.findOne({
+          communityId: community._id,
+          userId: userId,
+          status: 'active'
+        });
+        
+        if (!member) continue; // Skip if not an active member
+        
+        // Get active midcycle
+        const activeMidCycle = community.midCycle.find(mc => !mc.isComplete);
+        if (!activeMidCycle) continue;
+        
+        // If user is next in line for current midcycle
+        if (activeMidCycle.nextInLine && 
+            activeMidCycle.nextInLine.userId && 
+            activeMidCycle.nextInLine.userId.toString() === userId) {
+          // User is getting the current payout
+          calculatedUpcomingPayouts.push({
+            communityId: community._id,
+            communityName: community.name,
+            payoutDate: activeMidCycle.payoutDate || community.nextPayout,
+            expectedAmount: activeMidCycle.payoutAmount || 0,
+            cycleNumber: activeCycle.cycleNumber,
+            midCycleNumber: activeMidCycle.cycleNumber,
+            isNextInLine: true
+          });
+          continue;
+        }
+        
+        // Get all members who haven't been paid yet in this cycle
+        const unpaidMembers = await Member.find({
+          _id: { $in: community.members },
+          userId: { $nin: activeCycle.paidMembers },
+          status: 'active'
+        }).sort('position');
+        
+        // Find user's position in the unpaid members queue
+        const userPosition = unpaidMembers.findIndex(m => 
+          m.userId.toString() === userId
+        );
+        
+        if (userPosition === -1) continue; // User not in upcoming queue
+        
+        // Estimate future payout date based on contribution frequency
+        let estimatedDate = new Date(activeMidCycle.payoutDate || community.nextPayout);
+        const payoutInterval = {
+          'Daily': 1,
+          'Weekly': 7,
+          'Monthly': 30,
+          'Hourly': 1/24
+        }[community.settings.contributionFrequency] || 7; // Default to weekly
+        
+        // Add days based on position in queue
+        estimatedDate.setDate(estimatedDate.getDate() + (payoutInterval * userPosition));
+        
+        // Estimate amount (usually similar to current midcycle's amount)
+        const estimatedAmount = activeMidCycle.payoutAmount || 
+          (community.settings.minContribution * 
+           community.members.filter(m => m.status === 'active').length * 
+           (1 - (community.settings.backupFundPercentage / 100)));
+        
+        // Add to calculated payouts
+        calculatedUpcomingPayouts.push({
+          communityId: community._id,
+          communityName: community.name,
+          payoutDate: estimatedDate,
+          expectedAmount: estimatedAmount,
+          cycleNumber: activeCycle.cycleNumber,
+          position: userPosition + 1, // Position in queue (1-indexed for display)
+          isNextInLine: false
+        });
+      } catch (err) {
+        console.error(`Error calculating payout for community ${community._id}:`, err);
+      }
+    }
+    
+    // Combine both sources of upcoming payouts, with calculated taking precedence
+    // Create a map of communityIds from calculated payouts
+    const calculatedCommunityIds = calculatedUpcomingPayouts.map(p => p.communityId.toString());
+    
+    // Add any virtual payouts that aren't already in calculated payouts
+    const combinedPayouts = [...calculatedUpcomingPayouts];
+    for (const payout of virtualUpcomingPayouts) {
+      if (!calculatedCommunityIds.includes(payout.communityId.toString())) {
+        // Find community name
+        const community = communities.find(c => c._id.toString() === payout.communityId.toString());
+        combinedPayouts.push({
+          ...payout,
+          communityName: community ? community.name : 'Unknown Community',
+        });
+      }
+    }
+    
+    // Sort by date
+    combinedPayouts.sort((a, b) => new Date(a.payoutDate) - new Date(b.payoutDate));
 
     res.status(200).json({
       message: 'Upcoming payouts retrieved successfully.',
-      upcomingPayouts,
+      upcomingPayouts: combinedPayouts,
     });
   } catch (err) {
     console.error('Error fetching upcoming payouts:', err);
