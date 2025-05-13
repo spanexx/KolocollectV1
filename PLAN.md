@@ -1,6 +1,176 @@
 # Frontend Integration Plan
 
-## Latest Plan Update (May 11, 2025)
+## Latest Plan Update (May 13, 2025)
+
+### Profile Enhancement Plan
+
+#### Overview
+This plan outlines the implementation of enhanced profile features including profile picture upload, document verification upload, and file storage integration.
+
+#### Key Features to Implement
+1. **Profile Picture Management**
+   - Upload/update profile picture
+   - Image cropping and resizing
+   - Default avatar fallback
+   - Profile picture display in header and profile
+
+2. **Document Verification System**
+   - ID verification document upload
+   - Document status tracking (pending, verified, rejected)
+   - Admin verification interface
+   - Document type categorization
+
+3. **Media Storage Integration**
+   - S3-compatible bucket storage for media files
+   - Secure URL generation for access
+   - File type validation and security measures
+   - File metadata management
+
+#### Backend Implementation
+
+##### 1. Media Controller & Routes
+- Create new `mediaController.js` with the following endpoints:
+  - `POST /api/media/upload`: Upload files to storage bucket
+  - `GET /api/media/url/:fileId`: Generate signed URL for accessing files
+  - `DELETE /api/media/files/:fileId`: Delete files from storage
+  - `GET /api/media/files/:userId`: List all files for a user
+
+##### 2. User Model Updates
+- Add fields to the User model:
+  ```javascript
+  profilePicture: {
+    fileId: String,
+    url: String,
+    lastUpdated: Date
+  },
+  verificationDocuments: [{
+    fileId: String,
+    documentType: {
+      type: String,
+      enum: ['id', 'passport', 'driverLicense', 'utilityBill', 'other']
+    },
+    status: {
+      type: String,
+      enum: ['pending', 'verified', 'rejected'],
+      default: 'pending'
+    },
+    uploadDate: {
+      type: Date,
+      default: Date.now
+    },
+    verifiedDate: Date,
+    rejectionReason: String
+  }]
+  ```
+
+##### 3. Media Service
+- Create S3 bucket integration using AWS SDK or compatible library
+- Implement file upload, download, and delete operations
+- Configure CORS and security settings for the bucket
+- Implement file type validation and size limits
+
+##### 4. User Controller Updates
+- Add new methods to `userController.js`:
+  - `updateProfilePicture`: Update user's profile picture
+  - `uploadVerificationDocument`: Upload new verification document
+  - `getVerificationDocuments`: Get all verification documents for a user
+  - `deleteVerificationDocument`: Delete a verification document
+
+#### Frontend Implementation
+
+##### 1. Media Service
+- Create new Angular service `media.service.ts`:
+  - `uploadFile(file: File, userId: string, type: string)`: Upload file to backend
+  - `getFileUrl(fileId: string)`: Get signed URL for file access
+  - `deleteFile(fileId: string)`: Delete file
+  - `listUserFiles(userId: string, type: string)`: List files by type
+
+##### 2. Profile Component Updates
+- Add profile picture upload functionality:
+  - Implement drag-and-drop file upload
+  - Add image cropping using ngx-image-cropper
+  - Display profile picture in header
+- Implement document verification section:
+  - Create document upload interface
+  - Show upload status and verification state
+  - Implement document deletion
+
+##### 3. Document Verification Component
+- Create new component for document verification:
+  - Document type selection (ID, passport, etc.)
+  - Upload interface with preview
+  - Status tracking UI
+  - Verification status indicators
+
+##### 4. Admin Verification Interface
+- Create admin interface for verifying uploaded documents:
+  - List all pending documents
+  - View document details and image
+  - Approve or reject with reason
+  - Send notification on status change
+
+#### Integration Plan
+1. Implement Backend API endpoints first (2 days)
+2. Create Media Service for the frontend (1 day)
+3. Update User model and implement profile picture feature (1 day)
+4. Implement document verification frontend (1 day)
+5. Create admin verification interface (1 day)
+6. Testing and refinement (1 day)
+
+#### Technical Considerations
+1. **Security**: 
+   - Implement proper access control for media files
+   - Use signed URLs with expiration for file access
+   - Validate file types and scan for malware
+
+2. **Performance**:
+   - Implement image resizing and compression
+   - Use client-side cropping to reduce upload size
+   - Implement progressive loading for images
+
+3. **Storage**:
+   - Configure proper bucket lifecycle policies
+   - Implement file cleanup for rejected documents
+   - Set up monitoring and quotas
+
+#### Estimated Timeline
+- Total implementation time: 7 days
+- Target completion date: May 20, 2025
+
+## Previous Plan Update (May 12, 2025)
+
+### Transaction History Component Implementation Plan
+
+#### Overview
+This plan outlines the implementation of a comprehensive Transaction History component for the wallet section. The component will allow users to view their transaction history with filtering, sorting, pagination, and export capabilities.
+
+#### Key Features
+1. **Transaction Listing**: Display all transactions with type, amount, date, description, and status
+2. **Advanced Filtering**: Filter by transaction type, date range, amount, status, and search
+3. **Sorting and Pagination**: Sort by any column with server-side pagination
+4. **Export Options**: Export transaction history as CSV or PDF
+5. **Responsive Design**: Work seamlessly on desktop and mobile devices
+
+#### Implementation Steps
+1. **Backend Enhancements**:
+   - Update `getTransactionHistory` in walletController.js for advanced filtering
+   - Add pagination, sorting, and export capabilities
+   - Create export endpoints for CSV and PDF formats
+
+2. **Frontend Implementation**:
+   - Enhance wallet service with new API methods
+   - Create transaction history component with filter panel
+   - Implement material table with sorting and pagination
+   - Add export functionality
+   - Connect with existing wallet dashboard
+
+3. **Testing and Finalization**:
+   - Test all filtering, sorting, and pagination functions
+   - Verify export functionality
+     - Implement proper PDF generation with PDFKit
+     - Fix CSV export response handling
+   - Ensure responsive design works on all devices
+   - Replace Angular Material icons with Font Awesome for consistency
 
 ### Community Detail Component Refactoring Plan
 

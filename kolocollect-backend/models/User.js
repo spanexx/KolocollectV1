@@ -7,6 +7,33 @@ const userSchema = new mongoose.Schema({
   password: { type: String, required: true },
   role: { type: String, enum: ['user', 'admin'], default: 'user' },
   dateJoined: { type: Date, default: Date.now },
+  phone: { type: String, trim: true },
+  address: { type: String, trim: true },
+  bio: { type: String, trim: true },
+  profilePicture: {
+    fileId: { type: String },
+    url: { type: String },
+    lastUpdated: { type: Date }
+  },  verificationDocuments: [{
+    fileId: { type: String },
+    url: { type: String },
+    documentType: {
+      type: String,
+      enum: ['id', 'passport', 'driverLicense', 'utilityBill', 'other']
+    },
+    documentDescription: { type: String },
+    status: {
+      type: String,
+      enum: ['pending', 'verified', 'rejected'],
+      default: 'pending'
+    },
+    uploadDate: {
+      type: Date,
+      default: Date.now
+    },
+    verifiedDate: { type: Date },
+    rejectionReason: { type: String }
+  }],
   communities: [{
     id: { type: mongoose.Schema.Types.ObjectId, ref: 'Community', index: true },
     isAdmin: { type: Boolean, default: false },
@@ -195,7 +222,8 @@ userSchema.methods.addNotification = async function (type, message, communityId 
       (n) => n.type === type && n.message === message && String(n.communityId) === String(communityId)
     );
 
-    if (!duplicateNotification) {      this.notifications.push({
+    if (!duplicateNotification) {      
+      this.notifications.push({
         type,
         message,
         communityId,
@@ -209,6 +237,18 @@ userSchema.methods.addNotification = async function (type, message, communityId 
         details: `New notification: ${message}`,
       });
 
+      // Auto-trim notifications and activity log if they exceed maxLength
+      const maxLength = 50;
+      if (this.notifications.length > maxLength) {
+        this.notifications.sort((a, b) => b.date - a.date);
+        this.notifications = this.notifications.slice(0, maxLength);
+      }
+      
+      if (this.activityLog.length > maxLength) {
+        this.activityLog.sort((a, b) => b.date - a.date);
+        this.activityLog = this.activityLog.slice(0, maxLength);
+      }
+
       await this.save();
     }
   } catch (err) {
@@ -218,13 +258,29 @@ userSchema.methods.addNotification = async function (type, message, communityId 
 };
 
 // Clean up logs
-userSchema.methods.cleanUpLogs = async function (days = 30) {
-  const cutoffDate = new Date();
-  cutoffDate.setDate(cutoffDate.getDate() - days);
-
-  // Filter logs and notifications older than 'days'
-  this.notifications = this.notifications.filter((n) => n.date > cutoffDate);
-  this.activityLog = this.activityLog.filter((log) => log.date > cutoffDate);
+userSchema.methods.cleanUpLogs = async function (maxLength = 50, clearAll = false) {
+  // If clearAll is true, empty both arrays completely
+  if (clearAll) {
+    this.activityLog = [];
+    // We keep notifications unless explicitly asked to clear them too
+    if (maxLength === 0) {
+      this.notifications = [];
+    }
+    console.log('Cleared all activity logs. Notifications count:', this.notifications.length);
+  } else {
+    // If the arrays are longer than maxLength, keep only the most recent entries
+    if (this.notifications.length > maxLength) {
+      // Sort by date (newest first)
+      this.notifications.sort((a, b) => b.date - a.date);
+      // Keep only the most recent maxLength entries
+      this.notifications = this.notifications.slice(0, maxLength);
+    }    if (this.activityLog.length > maxLength) {
+      // Sort by date (newest first)
+      this.activityLog.sort((a, b) => b.date - a.date);
+      // Keep only the most recent maxLength entries
+      this.activityLog = this.activityLog.slice(0, maxLength);
+    }
+  }
 
   await this.save();
 };
@@ -325,6 +381,13 @@ userSchema.methods.handlePenalty = async function (amount, action, reason, commu
       details: `Penalty reduced by ${amount}: ${reason}`,
       date: new Date()
     });
+    
+    // Auto-trim activity log if it exceeds maxLength
+    const maxLength = 50;
+    if (this.activityLog.length > maxLength) {
+      this.activityLog.sort((a, b) => b.date - a.date);
+      this.activityLog = this.activityLog.slice(0, maxLength);
+    }
   }
 
   await this.save();

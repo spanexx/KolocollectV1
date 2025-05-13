@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { Observable, of } from 'rxjs';
 import { catchError, tap, shareReplay } from 'rxjs/operators';
 import { ApiService } from './api.service';
-import { User } from '../models/user.model';
+import { User, VerificationDocument } from '../models/user.model';
 
 @Injectable({
   providedIn: 'root'
@@ -26,12 +26,14 @@ export class UserService {
   getUpcomingPayouts(userId: string): Observable<any> {
     return this.api.get<any>(`/users/${userId}/upcoming-payouts`);
   }
-
   /**
    * Clean up user logs
+   * @param userId The user ID
+   * @param clearAll Whether to clear all logs (true) or just trim to maxLength (false)
+   * @param maxLength Maximum length to keep for notifications and activity logs
    */
-  cleanUpLogs(userId: string): Observable<any> {
-    return this.api.post<any>(`/users/${userId}/clean-up-logs`, {});
+  cleanUpLogs(userId: string, clearAll: boolean = false, maxLength: number = 50): Observable<any> {
+    return this.api.post<any>(`/users/${userId}/clean-up-logs?clearAll=${clearAll}&maxLength=${maxLength}`, {});
   }
 
   /**
@@ -47,11 +49,9 @@ export class UserService {
   getUserNotifications(userId: string): Observable<any> {
     return this.api.get<any>(`/users/${userId}/notifications`);
   }
-  
-  /**
+    /**
    * Get user activity logs
-   */
-  getUserActivityLog(userId: string): Observable<any> {
+   */  getUserActivityLog(userId: string): Observable<any> {
     return this.api.get<any>(`/users/${userId}/activity-log`);
   }
   
@@ -81,7 +81,44 @@ export class UserService {
    */
   markNotificationRead(userId: string, notificationId: string): Observable<any> {
     return this.api.put<any>(`/users/${userId}/notifications/${notificationId}/read`, {});
-  }  /**
+  }  
+  
+  /**
+   * Update user profile picture
+   */
+  updateProfilePicture(userId: string, pictureData: {fileId: string, url: string}): Observable<any> {
+    console.log('Updating profile picture with data:', pictureData);
+    // Ensure the pictureData is in the expected format 
+    return this.api.put<any>(`/users/${userId}/profile-picture`, pictureData);
+  }
+  
+  /**
+   * Add a verification document
+   */
+  addVerificationDocument(userId: string, documentData: {
+    fileId: string,
+    url: string,
+    documentType: string,
+    documentDescription?: string
+  }): Observable<any> {
+    return this.api.post<any>(`/users/${userId}/verification-documents`, documentData);
+  }
+  
+  /**
+   * Get verification documents
+   */
+  getVerificationDocuments(userId: string): Observable<VerificationDocument[]> {
+    return this.api.get<VerificationDocument[]>(`/users/${userId}/verification-documents`);
+  }
+  
+  /**
+   * Delete a verification document
+   */
+  deleteVerificationDocument(userId: string, documentId: string): Observable<any> {
+    return this.api.delete<any>(`/users/${userId}/verification-documents/${documentId}`);
+  }
+  
+  /**
    * Search users by name or email with caching
    * @param query The search query string
    * @param forceRefresh Whether to bypass cache and force a fresh request

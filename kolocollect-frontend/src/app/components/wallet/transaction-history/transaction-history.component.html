@@ -103,11 +103,10 @@
         </div>
 
         <div class="filter-section">
-          <h3>Search</h3>
-          <mat-form-field appearance="outline" class="search-field">
+          <h3>Search</h3>          <mat-form-field appearance="outline" class="search-field">
             <mat-label>Search in descriptions</mat-label>
             <input matInput formControlName="search" placeholder="Enter keywords...">
-            <mat-icon matSuffix>search</mat-icon>
+            <fa-icon [icon]="faSearch" matSuffix></fa-icon>
           </mat-form-field>
         </div>
       </div>

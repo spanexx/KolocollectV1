@@ -72,8 +72,38 @@ export class WalletService {
     minAmount?: number;
     maxAmount?: number;
     search?: string;
+    sort?: string;
+    order?: 'asc' | 'desc';
   } = {}): Observable<any> {
     return this.api.get<any>(`/wallet/${userId}/transactions`, params);
+  }
+  
+  /**
+   * Download transactions in CSV or PDF format
+   * @param userId User ID
+   * @param params Download parameters including filters and format
+   */  downloadTransactions(userId: string, params: { 
+    format: 'csv' | 'pdf';
+    type?: string | string[]; 
+    status?: string | string[];
+    dateFrom?: string;
+    dateTo?: string;
+    minAmount?: number;
+    maxAmount?: number;
+    search?: string;
+    sort?: string;
+    order?: 'asc' | 'desc';
+  }): Observable<any> {
+    const format = params.format || 'csv';
+    const requestParams = { ...params } as Partial<typeof params>;
+    delete requestParams.format;
+    
+    // Handle the responseType as 'text' for CSV and 'blob' for PDF to properly download
+    return this.api.get<any>(
+      `/wallet/${userId}/transactions/download/${format}`, 
+      requestParams, 
+      { responseType: format === 'csv' ? 'text' : 'blob' }
+    );
   }
 
   /**
@@ -89,35 +119,9 @@ export class WalletService {
   getFixedFunds(userId: string): Observable<any> {
     return this.api.get<any>(`/wallet/${userId}/fixed-funds`);
   }
-
   /**
    * Release a fixed fund that has matured
    */  releaseFixedFund(userId: string, fundId: string): Observable<any> {
     return this.api.post<any>(`/wallet/${userId}/release-fixed-fund`, { fundId });
-  }
-  /**
-   * Download transactions in CSV or PDF format
-   * @param userId User ID
-   * @param params Download parameters including filters and format
-   */
-  downloadTransactions(userId: string, params: { 
-    format: 'csv' | 'pdf';
-    type?: string | string[]; 
-    status?: string | string[];
-    dateFrom?: string;
-    dateTo?: string;
-    minAmount?: number;
-    maxAmount?: number;
-    search?: string;
-  }): Observable<any> {
-    const format = params.format || 'csv';
-    const requestParams = { ...params } as Partial<typeof params>;
-    requestParams.format = undefined;
-    
-    return this.api.get<any>(
-      `/wallet/${userId}/transactions/download/${format}`, 
-      requestParams, 
-      { responseType: format === 'csv' ? 'text' : 'arraybuffer' }
-    );
   }
 }

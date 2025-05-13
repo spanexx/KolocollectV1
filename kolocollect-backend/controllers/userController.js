@@ -5,6 +5,76 @@ const Wallet = require('../models/Wallet');
 const Community = require('../models/Community');
 const crypto = require('crypto');
 
+// Update User Profile
+exports.updateUserProfile = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { name, email, phone, address, bio } = req.body;
+    console.log('Updating user profile:', req.body);
+
+    if (!name && !email && !phone && !address && !bio) {
+      return res.status(400).json({
+        error: {
+          code: 'UPDATE_PROFILE_ERROR',
+          message: 'No fields to update were provided.',
+          timestamp: new Date().toISOString(),
+          documentation: "https://api.kolocollect.com/docs/errors/UPDATE_PROFILE_ERROR"
+        }
+      });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        error: {
+          code: 'USER_NOT_FOUND',
+          message: 'User not found.',
+          timestamp: new Date().toISOString(),
+          documentation: "https://api.kolocollect.com/docs/errors/USER_NOT_FOUND"
+        }
+      });
+    }
+
+    // Update only provided fields
+    if (name) user.name = name;
+    if (email) user.email = email;
+    if (phone !== undefined) user.phone = phone;
+    if (address !== undefined) user.address = address;
+    if (bio !== undefined) user.bio = bio;
+
+    // Add activity log entry
+    user.activityLog.push({
+      action: 'updated profile',
+      details: 'User profile information updated',
+      date: new Date()
+    });
+
+    await user.save();
+
+    res.status(200).json({
+      message: 'Profile updated successfully.',
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        address: user.address,
+        bio: user.bio
+      }
+    });
+  } catch (err) {
+    console.error('Error updating user profile:', err);
+    res.status(500).json({
+      error: {
+        code: 'UPDATE_PROFILE_ERROR',
+        message: 'Failed to update user profile.',
+        timestamp: new Date().toISOString(),
+        documentation: "https://api.kolocollect.com/docs/errors/UPDATE_PROFILE_ERROR"
+      }
+    });
+  }
+};
+
 const createErrorResponse = (res, status, errorCode, message, resolution) => res.status(status).json({
   error: {
     code: errorCode,
@@ -94,18 +164,34 @@ exports.getUserProfile = async (req, res) => {
         select: 'name',
       });
 
-    if (!user) return createErrorResponse(res, 404, 'User not found.');
+    if (!user) return createErrorResponse(res, 404, 'USER_NOT_FOUND', 'User not found.');
 
     const wallet = await Wallet.findOne({ userId: user._id });
 
     const nextInLineDetails = await user.nextInLineDetails;
 
-    res.json({
-      user,
-      wallet: {
+    res.status(200).json({
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        address: user.address,
+        bio: user.bio,
+        profilePicture: user.profilePicture,
+        verificationDocuments: user.verificationDocuments,
+        preferences: user.preferences,
+        activityLog: user.activityLog,
+        notifications: user.notifications,
+        communities: user.communities,
+        role: user.role,
+        status: user.status,
+        createdAt: user.createdAt
+      },
+      wallet: wallet ? {
         availableBalance: wallet.availableBalance,
         totalBalance: wallet.totalBalance,
-      },
+      } : null,
       nextInLineDetails,
     });
   } catch (err) {
@@ -273,17 +359,29 @@ exports.getUpcomingPayouts = async (req, res) => {
 exports.cleanUpLogs = async (req, res) => {
   try {
     const { userId } = req.params;
+    const maxLength = req.query.maxLength ? parseInt(req.query.maxLength) : 50;
+    const clearAll = req.query.clearAll === 'true';
 
-    // Assuming you have a Log model to handle logs
-    const result = await Log.deleteMany({ userId });
+    // Find the user
+    const user = await User.findById(userId);
+    if (!user) return createErrorResponse(res, 404, 'USER_NOT_FOUND', 'User not found.');
+
+    // Use the user's method to clean up logs with maxLength parameter and clearAll flag
+    await user.cleanUpLogs(maxLength, clearAll);
+
+    const message = clearAll 
+      ? 'Activity logs cleared successfully.' 
+      : `Logs cleaned up successfully. Keeping the most recent ${maxLength} entries.`;
 
     res.status(200).json({
-      message: 'Logs cleaned up successfully.',
-      result,
+      message: message,
+      activityLogCount: user.activityLog.length,
+      notificationsCount: user.notifications.length
     });
+    console.log('Log counts after cleanup:', user.activityLog.length, user.notifications.length);
   } catch (err) {
     console.error('Error cleaning up logs:', err);
-    createErrorResponse(res, 500, 'Error cleaning up logs.');
+    createErrorResponse(res, 500, 'LOG_CLEANUP_ERROR', 'Error cleaning up logs.');
   }
 };
 
@@ -475,8 +573,9 @@ exports.resetPassword = async (req, res) => {
 // Update password (when user is logged in)
 exports.updatePassword = async (req, res) => {
   try {
+    const { userId } = req.params;
     const { currentPassword, newPassword } = req.body;
-    const user = await User.findById(req.user._id);
+    const user = await User.findById(userId);
 
     if (!user) {
       return createErrorResponse(res, 404, 'USER_NOT_FOUND', 'User not found.');
@@ -544,5 +643,255 @@ exports.markAllNotificationsAsRead = async (req, res) => {
   } catch (err) {
     console.error('Error marking all notifications as read:', err);
     createErrorResponse(res, 500, 'Failed to mark notifications as read.');
+  }
+};
+
+// Update User Profile Picture
+exports.updateProfilePicture = async (req, res) => {
+  try {
+    const { userId } = req.params;    const { fileId, url } = req.body;
+
+    console.log('Updating profile picture:', { userId, fileId, url });
+    
+    if (!fileId || !url) {
+      return createErrorResponse(res, 400, 'MISSING_FIELDS', 'File ID and URL are required.');
+    }
+    
+    const user = await User.findById(userId);
+    if (!user) return createErrorResponse(res, 404, 'USER_NOT_FOUND', 'User not found.');
+    
+    user.profilePicture = {
+      fileId,
+      url,
+      lastUpdated: new Date()
+    };
+    
+    await user.save();
+    
+    // Add activity log entry
+    user.activityLog.push({
+      action: 'updated profile picture',
+      details: 'Profile picture updated',
+      date: new Date()
+    });
+    
+    res.status(200).json({
+      message: 'Profile picture updated successfully.',
+      profilePicture: user.profilePicture
+    });
+  } catch (err) {
+    console.error('Error updating profile picture:', err);
+    createErrorResponse(res, 500, 'PROFILE_PICTURE_ERROR', 'Failed to update profile picture.');
+  }
+};
+
+// Get User Verification Documents
+exports.getVerificationDocuments = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    
+    const user = await User.findById(userId).select('verificationDocuments');
+    if (!user) return createErrorResponse(res, 404, 'USER_NOT_FOUND', 'User not found.');
+    
+    res.status(200).json({
+      verificationDocuments: user.verificationDocuments || []
+    });
+  } catch (err) {
+    console.error('Error getting verification documents:', err);
+    createErrorResponse(res, 500, 'DOCUMENT_ERROR', 'Failed to get verification documents.');
+  }
+};
+
+// Delete Verification Document
+exports.deleteVerificationDocument = async (req, res) => {
+  try {
+    const { userId, documentId } = req.params;
+    
+    const user = await User.findById(userId);
+    if (!user) return createErrorResponse(res, 404, 'USER_NOT_FOUND', 'User not found.');
+    
+    // Find the document by fileId
+    const documentIndex = user.verificationDocuments.findIndex(
+      doc => doc.fileId === documentId
+    );
+    
+    if (documentIndex === -1) {
+      return createErrorResponse(res, 404, 'DOCUMENT_NOT_FOUND', 'Document not found.');
+    }
+    
+    // Remove the document
+    user.verificationDocuments.splice(documentIndex, 1);
+    await user.save();
+    
+    // Add activity log entry
+    user.activityLog.push({
+      action: 'deleted verification document',
+      details: `Verification document deleted: ${documentId}`,
+      date: new Date()
+    });
+    
+    res.status(200).json({
+      message: 'Verification document deleted successfully.'
+    });
+  } catch (err) {
+    console.error('Error deleting verification document:', err);
+    createErrorResponse(res, 500, 'DOCUMENT_DELETE_ERROR', 'Failed to delete verification document.');
+  }
+};
+
+// Admin: Verify a Document
+exports.verifyDocument = async (req, res) => {
+  try {
+    const { userId, documentId } = req.params;
+    
+    // Check if requesting user is admin
+    if (req.user.role !== 'admin') {
+      return createErrorResponse(res, 403, 'UNAUTHORIZED', 'Only administrators can verify documents.');
+    }
+    
+    const user = await User.findById(userId);
+    if (!user) return createErrorResponse(res, 404, 'USER_NOT_FOUND', 'User not found.');
+    
+    // Find the document
+    const document = user.verificationDocuments.find(doc => doc.fileId === documentId);
+    if (!document) {
+      return createErrorResponse(res, 404, 'DOCUMENT_NOT_FOUND', 'Document not found.');
+    }
+    
+    // Update document status
+    document.status = 'verified';
+    document.verifiedDate = new Date();
+    await user.save();
+    
+    // Add notification to user
+    await user.addNotification(
+      'info',
+      `Your ${document.documentType} document has been verified.`,
+      null
+    );
+    
+    res.status(200).json({
+      message: 'Document verified successfully.',
+      document
+    });
+  } catch (err) {
+    console.error('Error verifying document:', err);
+    createErrorResponse(res, 500, 'DOCUMENT_VERIFY_ERROR', 'Failed to verify document.');
+  }
+};
+
+// Admin: Reject a Document
+exports.rejectDocument = async (req, res) => {
+  try {
+    const { userId, documentId } = req.params;
+    const { rejectionReason } = req.body;
+    
+    // Check if requesting user is admin
+    if (req.user.role !== 'admin') {
+      return createErrorResponse(res, 403, 'UNAUTHORIZED', 'Only administrators can reject documents.');
+    }
+    
+    if (!rejectionReason) {
+      return createErrorResponse(res, 400, 'MISSING_REASON', 'Rejection reason is required.');
+    }
+    
+    const user = await User.findById(userId);
+    if (!user) return createErrorResponse(res, 404, 'USER_NOT_FOUND', 'User not found.');
+    
+    // Find the document
+    const document = user.verificationDocuments.find(doc => doc.fileId === documentId);
+    if (!document) {
+      return createErrorResponse(res, 404, 'DOCUMENT_NOT_FOUND', 'Document not found.');
+    }
+    
+    // Update document status
+    document.status = 'rejected';
+    document.rejectionReason = rejectionReason;
+    await user.save();
+    
+    // Add notification to user
+    await user.addNotification(
+      'warning',
+      `Your ${document.documentType} document was rejected: ${rejectionReason}`,
+      null
+    );
+    
+    res.status(200).json({
+      message: 'Document rejected successfully.',
+      document
+    });
+  } catch (err) {
+    console.error('Error rejecting document:', err);
+    createErrorResponse(res, 500, 'DOCUMENT_REJECT_ERROR', 'Failed to reject document.');
+  }
+};
+
+// Get User Activity Log
+exports.getUserActivityLog = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    
+    const user = await User.findById(userId);
+    if (!user) return createErrorResponse(res, 404, 'USER_NOT_FOUND', 'User not found.');
+    
+    // Return the activity log in reverse chronological order (newest first)
+    const activityLog = user.activityLog || [];
+    const sortedActivityLog = [...activityLog].sort((a, b) => 
+      new Date(b.date || b.timestamp) - new Date(a.date || a.timestamp)
+    );
+    
+    return res.status(200).json(sortedActivityLog);
+  } catch (error) {
+    console.error('Error retrieving user activity log:', error);
+    return createErrorResponse(res, 500, 'Failed to retrieve activity log.');
+  }
+};
+
+// Add a verification document
+exports.addVerificationDocument = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { fileId, url, documentType, documentDescription } = req.body;
+    
+    if (!fileId || !url || !documentType) {
+      return createErrorResponse(res, 400, 'MISSING_FIELDS', 'File ID, URL, and document type are required.');
+    }
+    
+    const user = await User.findById(userId);
+    if (!user) return createErrorResponse(res, 404, 'USER_NOT_FOUND', 'User not found.');
+    
+    // Initialize verificationDocuments array if it doesn't exist
+    if (!user.verificationDocuments) {
+      user.verificationDocuments = [];
+    }
+    
+    // Add the new document
+    const newDocument = {
+      fileId,
+      url,
+      documentType,
+      documentDescription,
+      status: 'pending',
+      uploadDate: new Date()
+    };
+    
+    user.verificationDocuments.push(newDocument);
+    
+    // Add activity log entry
+    user.activityLog.push({
+      action: 'uploaded verification document',
+      details: `Verification document uploaded: ${documentType}`,
+      date: new Date()
+    });
+    
+    await user.save();
+    
+    res.status(201).json({
+      message: 'Verification document added successfully.',
+      document: newDocument
+    });
+  } catch (err) {
+    console.error('Error adding verification document:', err);
+    createErrorResponse(res, 500, 'DOCUMENT_ADD_ERROR', 'Failed to add verification document.');
   }
 };

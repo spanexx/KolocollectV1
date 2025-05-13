@@ -3,14 +3,9 @@ const User = require('./models/User');
 
 require('dotenv').config();
 const mongoose = require('mongoose');
-mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true });
 
 (async () => {
-    try {
-        await mongoose.connect(process.env.MONGO_URI, {
-              useNewUrlParser: true,
-              useUnifiedTopology: true,
-            });
+    try {        await mongoose.connect(process.env.MONGO_URI);
         // Create a test community
         const adminId = '64ce12f1b91a3f9d8b65f001'; // Replace with a valid User ID
         const community = new Community({

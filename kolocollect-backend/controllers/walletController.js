@@ -164,18 +164,358 @@ exports.transferFunds = async (req, res) => {
 exports.getTransactionHistory = async (req, res) => {
   try {
     const { userId } = req.params;
+    const {
+      page = 1,
+      limit = 10,
+      type,
+      status,
+      dateFrom,
+      dateTo,
+      minAmount,
+      maxAmount,
+      search,
+      sort = 'date',
+      order = 'desc'
+    } = req.query;
 
     if (!isValidObjectId(userId)) {
       return createErrorResponse(res, 400, 'Invalid user ID.');
     }
 
-    const wallet = await Wallet.findOne({ userId }).select('transactions');
+    const wallet = await Wallet.findOne({ userId });
     if (!wallet) return createErrorResponse(res, 404, 'Wallet not found.');
-
-    res.status(200).json(wallet.transactions);
-  } catch (err) {
+    
+    // Start with all transactions
+    let filteredTransactions = [...wallet.transactions];
+      // Apply filters
+    if (type) {
+      const types = Array.isArray(type) ? type : [type];
+      filteredTransactions = filteredTransactions.filter(tx => tx.type && types.includes(tx.type));
+    }
+    
+    // Status field is not in the transaction schema, so we remove this filter
+    // But we'll keep accepting the parameter for API compatibility
+    
+    if (dateFrom) {
+      const fromDate = new Date(dateFrom);
+      filteredTransactions = filteredTransactions.filter(tx => new Date(tx.date) >= fromDate);
+    }
+    
+    if (dateTo) {
+      const toDate = new Date(dateTo);
+      filteredTransactions = filteredTransactions.filter(tx => new Date(tx.date) <= toDate);
+    }
+    
+    if (minAmount) {
+      filteredTransactions = filteredTransactions.filter(tx => tx.amount >= Number(minAmount));
+    }
+    
+    if (maxAmount) {
+      filteredTransactions = filteredTransactions.filter(tx => tx.amount <= Number(maxAmount));
+    }
+      if (search) {
+      const searchLower = search.toLowerCase();
+      filteredTransactions = filteredTransactions.filter(tx => 
+        (tx.description && tx.description.toLowerCase().includes(searchLower)) ||
+        (tx.communityName && tx.communityName.toLowerCase().includes(searchLower))
+      );
+    }
+    
+    // Count total filtered transactions before pagination
+    const total = filteredTransactions.length;
+    
+    // Sort transactions
+    filteredTransactions.sort((a, b) => {
+      let valueA = a[sort];
+      let valueB = b[sort];
+      
+      if (sort === 'date') {
+        valueA = new Date(valueA);
+        valueB = new Date(valueB);
+      }
+      
+      if (valueA < valueB) return order === 'asc' ? -1 : 1;
+      if (valueA > valueB) return order === 'asc' ? 1 : -1;
+      return 0;
+    });
+    
+    // Paginate results
+    const pageNum = parseInt(page);
+    const limitNum = parseInt(limit);
+    const startIndex = (pageNum - 1) * limitNum;
+    const endIndex = startIndex + limitNum;
+    
+    const paginatedTransactions = filteredTransactions.slice(startIndex, endIndex);
+    
+    // Return paginated results with metadata
+    res.status(200).json({
+      transactions: paginatedTransactions,
+      total,
+      page: pageNum,
+      limit: limitNum,
+      totalPages: Math.ceil(total / limitNum)
+    });  } catch (err) {
     console.error('Error fetching transaction history:', err);
     createErrorResponse(res, 500, 'Failed to fetch transaction history.');
+  }
+};
+
+// Export Transaction History as CSV
+exports.exportTransactionHistoryCSV = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const {
+      type,
+      status,
+      dateFrom,
+      dateTo,
+      minAmount,
+      maxAmount,
+      search,
+      sort = 'date',
+      order = 'desc'
+    } = req.query;
+
+    if (!isValidObjectId(userId)) {
+      return createErrorResponse(res, 400, 'Invalid user ID.');
+    }
+
+    const wallet = await Wallet.findOne({ userId });
+    if (!wallet) return createErrorResponse(res, 404, 'Wallet not found.');
+      // Apply the same filtering logic as getTransactionHistory
+    let filteredTransactions = [...wallet.transactions];
+    
+    if (type) {
+      const types = Array.isArray(type) ? type : [type];
+      filteredTransactions = filteredTransactions.filter(tx => tx.type && types.includes(tx.type));
+    }
+    
+    // Status field is not in the transaction schema, so we remove this filter
+    // But we'll keep accepting the parameter for API compatibility
+    
+    // Apply other filters (date, amount, search)
+    if (dateFrom) {
+      const fromDate = new Date(dateFrom);
+      filteredTransactions = filteredTransactions.filter(tx => new Date(tx.date) >= fromDate);
+    }
+    
+    if (dateTo) {
+      const toDate = new Date(dateTo);
+      filteredTransactions = filteredTransactions.filter(tx => new Date(tx.date) <= toDate);
+    }
+    
+    if (minAmount) {
+      filteredTransactions = filteredTransactions.filter(tx => tx.amount >= Number(minAmount));
+    }
+    
+    if (maxAmount) {
+      filteredTransactions = filteredTransactions.filter(tx => tx.amount <= Number(maxAmount));
+    }
+    
+    if (search) {
+      const searchLower = search.toLowerCase();
+      filteredTransactions = filteredTransactions.filter(tx => 
+        tx.description.toLowerCase().includes(searchLower) ||
+        (tx.communityName && tx.communityName.toLowerCase().includes(searchLower))
+      );
+    }
+    
+    // Sort transactions
+    filteredTransactions.sort((a, b) => {
+      let valueA = a[sort];
+      let valueB = b[sort];
+      
+      if (sort === 'date') {
+        valueA = new Date(valueA);
+        valueB = new Date(valueB);
+      }
+      
+      if (valueA < valueB) return order === 'asc' ? -1 : 1;
+      if (valueA > valueB) return order === 'asc' ? 1 : -1;
+      return 0;
+    });
+    
+    // Format date for CSV
+    const formatDate = (dateString) => {
+      const date = new Date(dateString);
+      return date.toISOString().split('T')[0];
+    };
+      // Generate CSV headers - removed Status column as it doesn't exist in the model
+    let csv = 'Type,Description,Amount,Date\n';
+      // Add transaction data
+    filteredTransactions.forEach(tx => {
+      const type = tx.type ? (tx.type.charAt(0).toUpperCase() + tx.type.slice(1)) : 'Unknown';
+      const description = tx.description ? `"${tx.description.replace(/"/g, '""')}"` : '';  // Escape quotes
+      const amount = tx.amount ? tx.amount.toFixed(2) : '0.00';
+      const date = formatDate(tx.date || new Date());
+      
+      csv += `${type},${description},${amount},${date}\n`;
+    });
+    
+    // Set response headers
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', 'attachment; filename=transaction-history.csv');
+    
+    // Send CSV data
+    res.send(csv);
+  } catch (err) {
+    console.error('Error exporting transaction history as CSV:', err);
+    createErrorResponse(res, 500, 'Failed to export transaction history.');
+  }
+};
+
+// Export Transaction History as PDF
+exports.exportTransactionHistoryPDF = async (req, res) => {
+  try {
+    const PDFDocument = require('pdfkit');
+    const { userId } = req.params;
+    const {
+      type,
+      status,
+      dateFrom,
+      dateTo,
+      minAmount,
+      maxAmount,
+      search,
+      sort = 'date',
+      order = 'desc'
+    } = req.query;
+
+    if (!isValidObjectId(userId)) {
+      return createErrorResponse(res, 400, 'Invalid user ID.');
+    }
+
+    const wallet = await Wallet.findOne({ userId });
+    if (!wallet) return createErrorResponse(res, 404, 'Wallet not found.');
+      // Apply the same filtering logic as in getTransactionHistory
+    let filteredTransactions = [...wallet.transactions];
+    
+    if (type) {
+      const types = Array.isArray(type) ? type : [type];
+      filteredTransactions = filteredTransactions.filter(tx => tx.type && types.includes(tx.type));
+    }
+    
+    // Status field is not in the transaction schema, so we remove this filter
+    // But we'll keep accepting the parameter for API compatibility
+    
+    if (dateFrom) {
+      const fromDate = new Date(dateFrom);
+      filteredTransactions = filteredTransactions.filter(tx => new Date(tx.date) >= fromDate);
+    }
+    
+    if (dateTo) {
+      const toDate = new Date(dateTo);
+      filteredTransactions = filteredTransactions.filter(tx => new Date(tx.date) <= toDate);
+    }
+    
+    if (minAmount) {
+      filteredTransactions = filteredTransactions.filter(tx => tx.amount >= Number(minAmount));
+    }
+    
+    if (maxAmount) {
+      filteredTransactions = filteredTransactions.filter(tx => tx.amount <= Number(maxAmount));
+    }
+    
+    if (search) {
+      const searchLower = search.toLowerCase();
+      filteredTransactions = filteredTransactions.filter(tx => 
+        tx.description.toLowerCase().includes(searchLower) ||
+        (tx.communityName && tx.communityName.toLowerCase().includes(searchLower))
+      );
+    }
+
+    // Format date for display
+    const formatDate = (dateString) => {
+      const date = new Date(dateString);
+      return date.toLocaleDateString();
+    };
+
+    // Create a PDF document using PDFKit
+    const doc = new PDFDocument({ margin: 50 });
+    const buffers = [];
+    doc.on('data', buffers.push.bind(buffers));
+    
+    // When document is done being created, set the response headers and send the data
+    doc.on('end', () => {
+      const pdfData = Buffer.concat(buffers);
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', 'attachment; filename=transaction-history.pdf');
+      res.setHeader('Content-Length', pdfData.length);
+      res.send(pdfData);
+    });
+
+    // Add title and generation date
+    doc.fontSize(20).text('Transaction History', { align: 'center' });
+    doc.moveDown();
+    doc.fontSize(12).text(`Generated on ${new Date().toLocaleDateString()}`, { align: 'center' });
+    doc.moveDown(2);    // Define table columns and positions
+    const tableTop = 150;
+    const typeX = 50;
+    const descX = 150;
+    const amountX = 350;
+    const dateX = 500;
+    
+    // Add table headers
+    doc.font('Helvetica-Bold');
+    doc.fontSize(12);
+    doc.text('Type', typeX, tableTop);
+    doc.text('Description', descX, tableTop);
+    doc.text('Amount', amountX, tableTop);
+    doc.text('Date', dateX, tableTop);
+    doc.moveDown();
+
+    // Add a horizontal line
+    doc.moveTo(50, tableTop + 20)
+       .lineTo(550, tableTop + 20)
+       .stroke();
+    
+    // Add transaction rows
+    let yPosition = tableTop + 30;
+    doc.font('Helvetica');
+    
+    filteredTransactions.forEach((tx, index) => {      // Add a new page if we're running out of space
+      if (yPosition > 700) {
+        doc.addPage();
+        yPosition = 50;
+      }
+      
+      // Safe check for transaction type
+      const isPositive = tx.type ? ['deposit', 'payout', 'release-fixed-funds'].includes(tx.type) : false;
+      const amountPrefix = isPositive ? '+' : '-';
+      
+      // Set color for amount (green for positive, red for negative)
+      const textColor = isPositive ? 'green' : 'red';      // Write transaction data with null checks - removed status field
+      const typeText = tx.type ? (tx.type.charAt(0).toUpperCase() + tx.type.slice(1)) : 'Unknown';
+      const descriptionText = tx.description || '';
+      const amountText = tx.amount ? tx.amount.toFixed(2) : '0.00';
+      const dateText = formatDate(tx.date || new Date());
+      
+      doc.text(typeText, typeX, yPosition);
+      doc.text(descriptionText, descX, yPosition, { width: 180 });
+      
+      // Save current text color
+      const currentColor = doc.fillColor();
+      doc.fillColor(textColor)
+         .text(`${amountPrefix}$${amountText}`, amountX, yPosition)
+         .fillColor(currentColor); // Reset to previous color
+      
+      doc.text(dateText, dateX, yPosition);
+      
+      // Move down for the next row
+      yPosition += 25;
+    });
+    
+    // Add a footer
+    doc.fontSize(10);
+    doc.text('KoloCollect - Wallet Transaction History', 50, doc.page.height - 50, {
+      align: 'center'
+    });
+    
+    // Finalize the PDF
+    doc.end();
+  } catch (err) {
+    console.error('Error exporting transaction history as PDF:', err);
+    createErrorResponse(res, 500, 'Failed to export transaction history.');
   }
 };
 

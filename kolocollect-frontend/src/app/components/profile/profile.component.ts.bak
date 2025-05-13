@@ -366,6 +366,7 @@ export class ProfileComponent implements OnInit {
       this.loadUserNotifications();
     });
   }
+
   clearActivityLog(): void {
     const userId = this.authService.currentUserValue?.id;
     
@@ -373,7 +374,7 @@ export class ProfileComponent implements OnInit {
       return;
     }
 
-    this.userService.cleanUpLogs(userId, true).pipe(
+    this.userService.cleanUpLogs(userId).pipe(
       catchError(error => {
         this.toastService.error('Failed to clear activity log');
         return throwError(() => error);
@@ -668,6 +669,7 @@ export class ProfileComponent implements OnInit {
       this.profilePictureUrl = null;
     }
   }
+  
   /**
    * Handle successful image loading
    */
@@ -691,7 +693,6 @@ export class ProfileComponent implements OnInit {
         .pipe(
           catchError(error => {
             console.error('Failed to load profile picture URL:', error);
-            this.toastService.error('Failed to load profile picture URL');
             // Return an empty URL with the correct type structure
             return of({ url: '' });
           })

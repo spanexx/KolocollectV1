@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const dotenv = require('dotenv');
+const path = require('path');
 const connectDB = require('./config/db');
 const userRoutes = require('./routes/userRoutes');
 const contributionRoutes = require('./routes/contributionRoutes');
@@ -12,6 +13,7 @@ const stripeRoutes = require('./routes/stripeRoutes');
 const memberRoutes = require('./routes/memberRoutes');
 const midcycleRoutes = require('./routes/midcycleRoutes');
 const sharingRoutes = require('./routes/sharingRoutes');
+const mediaRoutes = require('./routes/mediaRoutes');
 const webhookMiddleware = require('./middlewares/webhookMiddleware');
 
 // Import all separated models
@@ -36,6 +38,9 @@ app.use(cors());
 app.use(bodyParser.json());
 app.use(express.json());
 
+// Serve static files from the uploads directory
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
 app.use((req, res, next) => {
   console.log(`Incoming request: ${req.method} ${req.url}`);
   next();
@@ -49,6 +54,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/wallet', walletRoutes);
 app.use('/api/stripe', stripeRoutes);
 app.use('/api/members', memberRoutes);
+app.use('/api/media', mediaRoutes);
 app.use('/api/midcycles', midcycleRoutes);
 app.use('/api/sharing', sharingRoutes);
 

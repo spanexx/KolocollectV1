@@ -19,11 +19,21 @@
 
   <mat-card class="profile-card" *ngIf="!error">
     <mat-card-header>
-      <div class="profile-header">
-        <div class="profile-avatar">
-          <div class="avatar-placeholder">
-            <fa-icon [icon]="faUser" size="2x"></fa-icon>
+    <div class="profile-header">        <div class="profile-avatar">
+          <div class="avatar-container" [class.has-image]="user?.profilePicture?.fileId">
+            <img *ngIf="profilePictureUrl" [src]="profilePictureUrl" class="profile-image" alt="Profile Picture" 
+                (error)="handleImageError($event)" 
+                (load)="handleImageLoaded()">
+            <div *ngIf="!profilePictureUrl" class="avatar-placeholder">
+              <fa-icon [icon]="faUser" size="2x"></fa-icon>
+            </div>
+            <div class="avatar-overlay">
+              <button mat-icon-button class="upload-button" (click)="triggerProfilePictureUpload()">
+                <fa-icon [icon]="faCamera"></fa-icon>
+              </button>
+            </div>
           </div>
+          <input type="file" #profilePictureInput accept="image/*" style="display: none;" (change)="onProfilePictureSelected($event)">
         </div>
         <div class="profile-title">
           <mat-card-title>{{ user?.name || 'User Profile' }}</mat-card-title>
@@ -158,6 +168,100 @@
           </div>
         </mat-tab>
 
+        <!-- Document Verification Tab -->
+        <mat-tab label="Document Verification">
+          <div class="tab-content">
+            <div class="verification-section">
+              <h3>
+                <fa-icon [icon]="faIdCard" class="section-icon"></fa-icon>
+                Upload Verification Documents
+              </h3>
+              <p class="verification-info">
+                To verify your identity, please upload one or more of the following documents. 
+                Your document will be reviewed by our team and your verification status will be updated accordingly.
+              </p>
+              
+              <form [formGroup]="documentForm" class="document-upload-form">
+                <div class="form-row">
+                  <mat-form-field appearance="outline" class="form-field">
+                    <mat-label>Document Type</mat-label>
+                    <mat-select formControlName="documentType">
+                      <mat-option *ngFor="let docType of documentTypes" [value]="docType.value">
+                        {{ docType.label }}
+                      </mat-option>
+                    </mat-select>
+                    <mat-error *ngIf="documentForm.get('documentType')?.hasError('required')">
+                      Document type is required
+                    </mat-error>
+                  </mat-form-field>
+                  
+                  <mat-form-field appearance="outline" class="form-field">
+                    <mat-label>Description (Optional)</mat-label>
+                    <input matInput formControlName="documentDescription">
+                  </mat-form-field>
+                </div>
+                
+                <div class="upload-controls">
+                  <button 
+                    type="button" 
+                    mat-raised-button 
+                    color="primary" 
+                    [disabled]="documentForm.invalid" 
+                    (click)="triggerDocumentUpload()">
+                    <fa-icon [icon]="faFileUpload" class="button-icon"></fa-icon>
+                    Select Document
+                  </button>
+                  <input 
+                    type="file" 
+                    #documentFileInput 
+                    style="display: none;" 
+                    accept=".jpg,.jpeg,.png,.pdf" 
+                    (change)="onDocumentSelected($event)">
+                </div>
+              </form>
+
+              <mat-divider class="section-divider"></mat-divider>
+              
+              <h3>
+                <fa-icon [icon]="faFileAlt" class="section-icon"></fa-icon>
+                Your Uploaded Documents
+              </h3>
+                <div class="uploaded-documents">
+                <div *ngIf="!user?.verificationDocuments || user.verificationDocuments.length === 0" class="no-data-message">
+                  No documents uploaded yet
+                </div>
+                
+                <div *ngFor="let doc of user?.verificationDocuments || []" class="document-item">
+                  <div class="document-details">
+                    <div class="document-type">
+                      {{ getDocumentTypeName(doc.documentType) }}
+                    </div>
+                    <div class="document-status" [ngClass]="getVerificationStatusClass(doc.status)">
+                      <mat-icon>{{ getVerificationStatusIcon(doc.status) }}</mat-icon>
+                      <span>{{ doc.status | titlecase }}</span>
+                    </div>
+                    <div class="document-date">
+                      Uploaded: {{ formatDate(doc.uploadDate) }}
+                    </div>
+                    <div *ngIf="doc.status === 'rejected'" class="rejection-reason">
+                      <strong>Reason:</strong> {{ doc.rejectionReason }}
+                    </div>
+                  </div>
+                  <div class="document-actions">
+                    <button 
+                      mat-icon-button 
+                      color="warn" 
+                      (click)="deleteVerificationDocument(doc.fileId)"
+                      matTooltip="Delete document">
+                      <fa-icon [icon]="faTrash"></fa-icon>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </mat-tab>
+
         <!-- Notifications Tab -->
         <mat-tab label="Notifications">
           <div class="tab-content">
@@ -241,7 +345,7 @@
                   <div class="activity-content">
                     <p class="activity-action">{{ activity.action }}</p>
                     <p class="activity-details">{{ activity.details }}</p>
-                    <span class="activity-date">{{ formatDate(activity.timestamp) }}</span>
+                    <span class="activity-date">{{ formatDate(activity.date) }}</span>
                   </div>
                 </div>
               </div>

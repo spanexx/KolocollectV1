@@ -31,7 +31,7 @@ export const routes: Routes = [
       // User routes
       { 
         path: 'profile', 
-        loadComponent: () => import('./components/user/profile/profile.component').then(m => m.ProfileComponent)
+        loadComponent: () => import('./components/profile/profile.component').then(m => m.ProfileComponent)
       },
 
       // Community routes

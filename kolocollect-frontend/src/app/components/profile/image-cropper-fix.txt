@@ -1,0 +1,90 @@
+uploadProfilePicture(croppedImage: string): void {
+  const userId = this.authService.currentUserValue?.id;
+  if (!userId) {
+    this.toastService.error('User not authenticated');
+    return;
+  }
+  
+  // Verify we have valid image data
+  if (!croppedImage || !croppedImage.startsWith('data:image/')) {
+    this.toastService.error('Invalid image data received');
+    console.error('Invalid image data format:', croppedImage ? 
+      `${croppedImage.substring(0, 20)}... (length: ${croppedImage.length})` : 
+      'undefined');
+    return;
+  }
+  
+  console.log('******* PROFILE PICTURE UPLOAD FLOW *******');
+  console.log('1. Starting profile picture upload process for user:', userId);
+  console.log('2. Cropped image data received:', croppedImage.substring(0, 50) + '...');
+  console.log('3. Image data length:', croppedImage?.length || 0);
+  this.loadingService.start('upload-profile-picture');
+  
+  // Convert base64 to blob
+  console.log('4. Converting base64 to blob');
+  try {
+    fetch(croppedImage)
+      .then(res => {
+        if (!res.ok) {
+          throw new Error(`Failed to fetch blob: ${res.statusText}`);
+        }
+        return res.blob();
+      })
+      .then(blob => {
+        // Create a File object
+        console.log('5. Blob created successfully, size:', blob.size);
+        const file = new File([blob], 'profile-picture.png', { type: 'image/png' });
+        console.log('6. Created File object for upload:', {
+          name: file.name,
+          size: file.size,
+          type: file.type
+        });
+        
+        // Use MediaService to upload the profile picture
+        console.log('7. About to call mediaService.uploadFile');
+        this.mediaService.uploadFile(file, userId, 'profilePicture')
+          .pipe(
+            tap((response: UploadResponse) => {
+              console.log('8. Media upload response:', response);
+            }),
+            switchMap((response: UploadResponse) => {
+              // Use UserService's updateProfilePicture which properly sends both fileId and URL
+              console.log('9. Updating user profile picture with:', { fileId: response.fileId, url: response.url });
+              return this.userService.updateProfilePicture(userId, {
+                fileId: response.fileId,
+                url: response.url
+              });
+            }),
+            catchError(error => {
+              this.toastService.error('Failed to upload profile picture');
+              console.error('Profile picture upload error:', error);
+              return throwError(() => error);
+            }),
+            finalize(() => {
+              console.log('10. Profile picture upload process finished');
+              this.loadingService.stop('upload-profile-picture');
+            })
+          )
+          .subscribe({
+            next: (response) => {
+              console.log('11. Profile picture update successful with response:', response);
+              this.toastService.success('Profile picture updated successfully');
+              console.log('12. About to reload user profile');
+              this.loadUserProfile();
+            },
+            error: (err) => {
+              console.error('ERROR: Final error in profile picture update:', err);
+            }
+          });
+      })
+      .catch(error => {
+        console.error('Error in profile picture processing:', error);
+        this.toastService.error('Failed to process profile picture');
+        this.loadingService.stop('upload-profile-picture');
+      });
+  } catch (error) {
+    console.error('Error initiating fetch:', error);
+    this.toastService.error('Failed to process profile picture');
+    this.loadingService.stop('upload-profile-picture');
+  }
+}

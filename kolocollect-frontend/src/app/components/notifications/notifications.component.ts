@@ -117,22 +117,61 @@ export class NotificationsComponent implements OnInit {
 
   /**
    * Load notifications from the service
-   */
-  loadNotifications(): void {
+   */  loadNotifications(): void {
     this.isLoading = true;
     
     if (!this.userId) {
       this.isLoading = false;
       return;
     }
-    
-    this.notificationService.loadNotifications(this.userId).subscribe({
+      this.notificationService.loadNotifications(this.userId).subscribe({
       next: (notifications) => {
-        this.allNotifications = notifications.map(notification => ({
-          ...notification,
-          date: new Date(notification.timestamp || new Date()),
-          animationState: 'visible'
-        }));
+        console.log("Notifications: ", notifications);
+        
+        // Process notifications with proper date conversion and create varied timestamps for testing
+        this.allNotifications = notifications.map((notification, index) => {
+          // Make sure we have a valid timestamp or use current date as fallback
+          let timestamp = notification.timestamp ? notification.timestamp : new Date().toISOString();
+            // For testing: create hardcoded timestamps to see different date formats
+          // In production, remove this test code block
+          const today = new Date();
+          // Initialize with current date as default
+          let testDate: Date = new Date(today);
+          
+          // Using hardcoded dates for testing
+          switch (index % 5) {
+            case 0: // Just now
+              testDate = new Date(today); // Today's date
+              break;
+            case 1: // Minutes ago
+              testDate = new Date(today);
+              testDate.setMinutes(testDate.getMinutes() - 15); // 15 minutes ago
+              break;
+            case 2: // Hours ago
+              testDate = new Date(today);
+              testDate.setHours(testDate.getHours() - 3); // 3 hours ago
+              break;
+            case 3: // Yesterday
+              testDate = new Date(today);
+              testDate.setDate(testDate.getDate() - 1); // Yesterday
+              break;
+            case 4: // Days ago
+              testDate = new Date(today);
+              testDate.setDate(testDate.getDate() - 5); // 5 days ago
+              break;
+          }
+          
+          timestamp = testDate.toISOString();
+          
+          // Log timestamp for debugging
+          console.debug('Processing notification with timestamp:', timestamp, 'Type:', index % 5);
+          
+          return {
+            ...notification,
+            date: new Date(timestamp),
+            animationState: 'visible'
+          };
+        });
         
         // Sort notifications by date (newest first)
         this.allNotifications.sort((a, b) => b.date.getTime() - a.date.getTime());
@@ -229,9 +268,7 @@ export class NotificationsComponent implements OnInit {
    */
   getNotificationClass(type: string): string {
     return `notification-${type.toLowerCase()}`;
-  }
-
-  /**
+  }  /**
    * Format notification date to a readable format
    */
   formatDate(date: Date): string {
@@ -239,9 +276,19 @@ export class NotificationsComponent implements OnInit {
       return 'Unknown date';
     }
     
+    // Make sure we're working with date objects
+    const notificationDate = new Date(date);
     const now = new Date();
-    const diff = now.getTime() - date.getTime();
     
+    // Calculate time difference in milliseconds
+    // Handle both past and future dates (in case system clock is wrong)
+    const diff = Math.abs(now.getTime() - notificationDate.getTime());
+    const isPast = now.getTime() > notificationDate.getTime();
+    
+    // Debug log to help diagnose date issues
+    console.debug('Notification date:', notificationDate, 'Now:', now, 'Diff (ms):', diff, 'Is Past:', isPast);
+    
+    // Handle dates according to difference
     // Less than a minute
     if (diff < 60 * 1000) {
       return 'Just now';
@@ -250,13 +297,17 @@ export class NotificationsComponent implements OnInit {
     // Less than an hour
     if (diff < 60 * 60 * 1000) {
       const minutes = Math.floor(diff / (60 * 1000));
-      return `${minutes} ${minutes === 1 ? 'minute' : 'minutes'} ago`;
+      return isPast 
+        ? `${minutes} ${minutes === 1 ? 'minute' : 'minutes'} ago` 
+        : `In ${minutes} ${minutes === 1 ? 'minute' : 'minutes'}`;
     }
     
     // Less than a day
     if (diff < 24 * 60 * 60 * 1000) {
       const hours = Math.floor(diff / (60 * 60 * 1000));
-      return `${hours} ${hours === 1 ? 'hour' : 'hours'} ago`;
+      return isPast 
+        ? `${hours} ${hours === 1 ? 'hour' : 'hours'} ago` 
+        : `In ${hours} ${hours === 1 ? 'hour' : 'hours'}`;
     }
     
     // Calculate days difference
@@ -265,11 +316,18 @@ export class NotificationsComponent implements OnInit {
     if (diffDays === 0) {
       return 'Today';
     } else if (diffDays === 1) {
-      return 'Yesterday';
+      return isPast ? 'Yesterday' : 'Tomorrow';
     } else if (diffDays < 7) {
-      return `${diffDays} days ago`;
+      return isPast 
+        ? `${diffDays} days ago` 
+        : `In ${diffDays} days`;
     } else {
-      return date.toLocaleDateString();
+      // For dates older than a week, show the full date with day, month, and year
+      return notificationDate.toLocaleDateString(undefined, {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+      });
     }
   }
   

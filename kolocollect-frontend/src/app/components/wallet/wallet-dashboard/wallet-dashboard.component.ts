@@ -199,7 +199,8 @@ export class WalletDashboardComponent implements OnInit, OnDestroy {
         })
       )
       .subscribe(data => {
-        this.transactions = data || [];
+        this.transactions = data.transactions || [];
+        console.log('Transactions:', this.transactions);
         
         // Calculate monthly metrics from transactions
         this.calculateTransactionMetrics();

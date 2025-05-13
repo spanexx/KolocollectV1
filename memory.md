@@ -282,8 +282,8 @@ npm start
 _______________________________________________________
 
 This Platform will ultimately be a loan shark that will turn out to be an investment platform.
-imaagine if users can verify to loan people their backup fund.
-They would each access a person applying for loan, and the system will loan the user the money from the backupfund.
+imaagine if users/communities can verify to loan people their backup fund.
+They would each assess a person applying for loan, and the system will loan the user the money from the backupfund.
 For the investment part, the system will create assets that communities can decide to invest in or buy a share in.
 More to this later.
 

@@ -14,6 +14,8 @@ router.post('/add-funds', walletController.addFunds);
 router.post('/withdraw-funds', walletController.withdrawFunds);
 router.post('/transfer-funds', walletController.transferFunds);
 router.get('/:userId/transactions', walletController.getTransactionHistory);
+router.get('/:userId/transactions/download/csv', walletController.exportTransactionHistoryCSV);
+router.get('/:userId/transactions/download/pdf', walletController.exportTransactionHistoryPDF);
 router.post('/:userId/fix-funds', walletController.fixFunds);
 router.get('/:userId/fixed-funds', walletController.getFixedFunds);
 

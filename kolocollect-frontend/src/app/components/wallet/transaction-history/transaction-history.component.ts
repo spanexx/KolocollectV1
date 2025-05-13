@@ -345,8 +345,7 @@ export class TransactionHistoryComponent implements OnInit, OnDestroy {
       maximumFractionDigits: 2
     }).format(amount);
   }
-  
-  downloadTransactions(format: 'csv' | 'pdf'): void {
+    downloadTransactions(format: 'csv' | 'pdf'): void {
     if (!this.userId) return;
     
     this.loadingService.start(`download-transactions-${format}`);
@@ -391,28 +390,43 @@ export class TransactionHistoryComponent implements OnInit, OnDestroy {
         finalize(() => {
           this.loadingService.stop(`download-transactions-${format}`);
         })
-      )
-      .subscribe({
+      )      .subscribe({
         next: (response: any) => {
-          // Create a blob from the response
-          const blob = new Blob([response], { 
-            type: format === 'csv' ? 'text/csv' : 'application/pdf' 
-          });
-          
-          // Create a link element and trigger download
-          const url = window.URL.createObjectURL(blob);
-          const a = document.createElement('a');
-          document.body.appendChild(a);
-          a.style.display = 'none';
-          a.href = url;
-          a.download = `wallet-transactions.${format}`;
-          a.click();
-          
-          window.URL.revokeObjectURL(url);
-          this.toastService.success(`Transactions downloaded as ${format.toUpperCase()}`);
+          try {
+            // Check if response is valid
+            if (!response) {
+              throw new Error('Empty response received');
+            }
+            
+            // Create a blob from the response
+            const blob = new Blob([response], { 
+              type: format === 'csv' ? 'text/csv' : 'application/pdf' 
+            });
+            
+            // Verify the blob has content
+            if (blob.size === 0) {
+              throw new Error('Downloaded file is empty');
+            }
+            
+            // Create a link element and trigger download
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            document.body.appendChild(a);
+            a.style.display = 'none';
+            a.href = url;
+            a.download = `wallet-transactions.${format}`;
+            a.click();
+            
+            window.URL.revokeObjectURL(url);
+            this.toastService.success(`Transactions downloaded as ${format.toUpperCase()}`);
+          } catch (err) {
+            console.error('Error processing download:', err);
+            this.toastService.error(`Failed to process download: ${(err as any)?.message || 'Unknown error'}`);
+          }
         },
         error: (error) => {
-          this.toastService.error(`Failed to download transactions: ${error?.message || 'Unknown error'}`);
+          console.error('Download error:', error);
+          this.toastService.error(`Failed to download transactions: ${error?.error?.message || error?.message || 'Unknown error'}`);
         }
       });
   }

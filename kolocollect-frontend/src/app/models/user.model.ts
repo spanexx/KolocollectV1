@@ -4,14 +4,34 @@ export interface User {
   email: string;
   role: 'user' | 'admin';
   dateJoined: Date;
+  profilePicture?: ProfilePicture;
   communities: CommunityMembership[];
   contributions?: ContributionSummary[];
+}
+
+export interface ProfilePicture {
+  fileId: string;
+  url: string;
+  lastUpdated: Date;
+}
+
+export interface VerificationDocument {
+  fileId: string;
+  documentType: 'id' | 'passport' | 'driverLicense' | 'utilityBill' | 'other';
+  status: 'pending' | 'verified' | 'rejected';
+  uploadDate: Date;
+  verifiedDate?: Date;
+  rejectionReason?: string;
 }
 
 export interface UserProfile extends User {
   wallet?: WalletSummary;
   upcomingPayouts?: PayoutPreview[];
   notifications?: Notification[];
+  verificationDocuments?: VerificationDocument[];
+  phone?: string;
+  address?: string;
+  bio?: string;
 }
 
 export interface CommunityMembership {

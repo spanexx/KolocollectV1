@@ -273,3 +273,254 @@ h3 {
 .button-icon {
   margin-right: $base-unit * 2; // 0.5rem
 }
+
+// Document Verification Styles
+.document-verification-section {
+  padding: $base-unit * 6;
+
+  .info-text {
+    color: $text-secondary;
+    margin-bottom: $base-unit * 6;
+  }
+
+  .document-upload-form {
+    margin-bottom: $base-unit * 6;
+    
+    .form-row {
+      display: flex;
+      gap: $base-unit * 4;
+      margin-bottom: $base-unit * 4;
+      
+      @media (max-width: 768px) {
+        flex-direction: column;
+        gap: $base-unit * 2;
+      }
+      
+      .form-field {
+        flex: 1;
+      }
+    }
+    
+    .document-upload-container {
+      display: flex;
+      align-items: center;
+      margin-top: $base-unit * 4;
+      
+      button {
+        .button-icon {
+          margin-right: $base-unit * 2;
+        }
+      }
+    }
+  }
+
+  .documents-list {
+    margin-top: $base-unit * 4;
+    
+    .no-data-message {
+      text-align: center;
+      padding: $base-unit * 6;
+      color: $text-secondary;
+      background-color: $background-light;
+      border-radius: $base-unit * 1;
+      font-style: italic;
+    }
+    
+    .document-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: $base-unit * 4;
+      border-bottom: 1px solid $border-light;
+      
+      &:last-child {
+        border-bottom: none;
+      }
+      
+      .document-info {
+        flex: 1;
+        
+        .document-type {
+          display: flex;
+          align-items: center;
+          font-weight: 500;
+          margin-bottom: $base-unit * 2;
+          
+          .doc-icon {
+            margin-right: $base-unit * 2;
+            color: $primary;
+          }
+        }
+        
+        .document-meta {
+          display: flex;
+          align-items: center;
+          gap: $base-unit * 4;
+          color: $text-secondary;
+          font-size: 0.875rem;
+          
+          @media (max-width: 768px) {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: $base-unit * 1;
+          }
+          
+          .verification-status {
+            display: flex;
+            align-items: center;
+            
+            mat-icon {
+              font-size: 16px;
+              height: 16px;
+              width: 16px;
+              margin-right: $base-unit * 1;
+            }
+            
+            &.status-verified {
+              color: $success;
+            }
+            
+            &.status-rejected {
+              color: $error;
+            }
+            
+            &.status-pending {
+              color: $warning;
+            }
+          }
+        }
+        
+        .rejection-reason {
+          margin-top: $base-unit * 2;
+          color: $error;
+          font-size: 0.875rem;
+          padding: $base-unit * 2;
+          background-color: rgba($error, 0.1);
+          border-left: 3px solid $error;
+          border-radius: $base-unit * 1;
+        }
+      }
+      
+      .document-actions {
+        display: flex;
+      }
+    }
+  }
+}
+
+// Document verification styles
+.verification-section {
+  padding: $base-unit * 6; // 1.5rem
+  
+  .verification-info {
+    margin-top: $base-unit * 4; // 1rem
+    margin-bottom: $base-unit * 6; // 1.5rem
+    color: $text-secondary;
+    line-height: 1.6;
+  }
+  
+  .document-upload-form {
+    margin-bottom: $base-unit * 8; // 2rem
+    
+    .form-row {
+      display: flex;
+      flex-direction: row;
+      gap: $base-unit * 6; // 1.5rem
+      flex-wrap: wrap;
+      
+      .form-field {
+        flex: 1;
+        min-width: 250px;
+      }
+    }
+    
+    .upload-controls {
+      margin-top: $base-unit * 4; // 1rem
+      
+      .button-icon {
+        margin-right: $base-unit * 2; // 0.5rem
+      }
+    }
+  }
+  
+  .uploaded-documents {
+    margin-top: $base-unit * 6; // 1.5rem
+    
+    .no-data-message {
+      color: $text-secondary;
+      font-style: italic;
+      padding: $base-unit * 4 0; // 1rem 0
+      text-align: center;
+    }
+    
+    .document-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      padding: $base-unit * 4; // 1rem
+      border: 1px solid $border-light;
+      border-radius: $base-unit * 2; // 0.5rem
+      margin-bottom: $base-unit * 4; // 1rem
+      background-color: $background-light;
+      transition: box-shadow 0.3s ease;
+      
+      &:hover {
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+      
+      .document-details {
+        flex: 1;
+        
+        .document-type {
+          font-weight: 600;
+          margin-bottom: $base-unit * 2; // 0.5rem
+        }
+        
+        .document-status {
+          display: flex;
+          align-items: center;
+          margin-bottom: $base-unit * 2; // 0.5rem
+          
+          mat-icon {
+            margin-right: $base-unit * 2; // 0.5rem
+            font-size: 18px;
+            height: 18px;
+            width: 18px;
+            line-height: 18px;
+          }
+          
+          &.status-pending {
+            color: $warning;
+          }
+          
+          &.status-verified {
+            color: $success;
+          }
+          
+          &.status-rejected {
+            color: $error;
+          }
+        }
+        
+        .document-date {
+          font-size: 0.85rem;
+          color: $text-secondary;
+          margin-bottom: $base-unit * 2; // 0.5rem
+        }
+        
+        .rejection-reason {
+          margin-top: $base-unit * 2; // 0.5rem
+          padding: $base-unit * 2; // 0.5rem
+          background-color: rgba($error, 0.1);
+          border-radius: $base-unit; // 0.25rem
+          font-size: 0.9rem;
+        }
+      }
+      
+      .document-actions {
+        display: flex;
+        align-items: flex-start;
+      }
+    }
+  }
+}

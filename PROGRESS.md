@@ -1,10 +1,94 @@
 # KoloCollect Frontend Implementation Progress
 
-## Last Updated: May 11, 2025
+## Last Updated: May 13, 2025
 
 This document tracks the progress of implementing the frontend for KoloCollect application based on the integration plan in PLAN.md.
 
-## Latest Updates (May 11, 2025)
+## Latest Updates (May 13, 2025)
+
+- [🔄] **New Feature: Enhanced Profile Component**
+  - Goal: Implement profile picture upload and document verification features
+  - Status: In progress
+  - Implementation Steps:
+    1. Planning Phase ✅
+       - Created detailed implementation plan for profile enhancements
+       - Identified necessary backend and frontend changes
+       - Established technical requirements and considerations
+    2. Backend Implementation ⏳
+       - Planning creation of `mediaController.js` for file management
+       - Planning User model updates for profile picture and document storage
+       - Researching S3-compatible storage options for media files
+    3. Next Steps:
+       - Create media service for backend
+       - Implement file upload endpoints
+       - Update User model with new fields
+
+## Previous Updates (May 12, 2025)
+
+- [✅] **New Feature: Transaction History Component**
+  - Goal: Implement a dedicated transaction history component for the wallet section
+  - Status: Completed
+  - Implementation Summary:
+    1. Backend Enhancements
+       - Enhanced `getTransactionHistory` API with pagination, filtering, and sorting
+       - Implemented export endpoints for CSV and PDF formats
+    2. Frontend Service Updates
+       - Updated wallet service with enhanced API methods
+       - Added transaction export functionality
+    3. Component Implementation
+       - Implemented responsive UI with filter panel and transaction table
+       - Implemented all planned features including filtering, sorting, and pagination
+       - Added export functionality for CSV/PDF formats
+    4. Bug Fixes
+       - Fixed TypeError in WalletDashboardComponent where transactions were not properly extracted from API response
+  
+  ### Transaction History Component Implementation Steps
+  
+  #### 1. Backend Enhancements ✅
+  
+  - [x] Enhanced `getTransactionHistory` in `walletController.js` to support pagination, filtering, and sorting
+  - [x] Implemented CSV export endpoint
+  - [x] Implemented PDF export endpoint
+  
+  #### 2. Frontend Service Updates ✅
+  
+  - [x] Updated `wallet.service.ts` to support enhanced API features
+  - [x] Added transaction export methods
+  
+  #### 3. Transaction History Component Implementation ✅
+
+  - [x] Created responsive layout
+  - [x] Implemented filter panel with:
+    - [x] Transaction type filters
+    - [x] Date range filters
+    - [x] Amount range filters 
+    - [x] Status filters
+    - [x] Search functionality
+  - [x] Implemented transaction table with:
+    - [x] Pagination
+    - [x] Sorting
+    - [x] Responsive design
+  - [x] Added export functionality (CSV/PDF)
+  
+#### 4. Bug Fixes ✅
+  - [x] Fixed TypeError in WalletDashboardComponent where transactions were not properly extracted from API response
+    - Error: `TypeError: this.transactions.forEach is not a function`
+    - Fix: Changed `this.transactions = data || []` to `this.transactions = data.transactions || []`  - [x] Fixed PDF export functionality
+    - Error: 500 Internal Server Error when trying to export transactions as PDF
+    - Fix: Implemented proper PDF generation using PDFKit library instead of HTML output
+    - Added null checks for transaction properties to prevent "Cannot read properties of undefined" errors
+    - Removed usage of non-existent status field in transaction schema
+    - Updated CSV and PDF exports to match actual transaction schema
+  - [x] Replaced Material icons with Font Awesome icons in transaction history component
+    - Replaced `<mat-icon>search</mat-icon>` with `<fa-icon [icon]="faSearch"></fa-icon>`
+  - [x] Updated wallet service to handle PDF downloads correctly with 'blob' responseType
+  
+  #### 4. Integration and Testing ✅
+  
+  - [x] Integrated with Wallet Dashboard for navigation
+  - [x] Tested all filtering, sorting, and pagination features
+  - [x] Tested export functionality
+  - [x] Ensured responsive design works on all device sizes
 
 - [⏳] **Refactoring: Community Detail Component**
   - Problem: The community detail component has become too large and complex, containing over 800 lines of HTML and 1200+ lines of TypeScript, making it difficult to maintain and extend
