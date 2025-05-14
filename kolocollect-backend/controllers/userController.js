@@ -140,7 +140,13 @@ exports.loginUser = async (req, res) => {
 
     res.json({
       token,
-      user: { id: user._id, name: user.name, email: user.email },
+      user: { 
+        id: user._id, 
+        name: user.name,
+         email: user.email,
+          profilePicture: user.profilePicture,
+           
+      },
       wallet: { id: wallet._id, availableBalance: wallet.availableBalance, totalBalance: wallet.totalBalance },
     });
   } catch (err) {

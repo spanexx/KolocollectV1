@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { MatToolbarModule } from '@angular/material/toolbar';
@@ -7,10 +7,12 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatBadgeModule } from '@angular/material/badge';
 import { AuthService } from '../../services/auth.service';
-import { User } from '../../models/user.model';
-import { Observable, tap } from 'rxjs';
+import { User, ProfilePicture } from '../../models/user.model';
+import { Observable, tap, of, Subscription } from 'rxjs';
 import { NotificationService } from '../../services/notification.service';
+import { MediaService } from '../../services/media.service';
 import { trigger, state, style, transition, animate, stagger, query, keyframes } from '@angular/animations';
+import { environment } from '../../../environments/environment';
 
 // Import FontAwesome
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
@@ -60,7 +62,7 @@ import {
     ])
   ]
 })
-export class HeaderComponent implements OnInit {
+export class HeaderComponent implements OnInit, OnDestroy {
   // FontAwesome icons
   faBell = faBell;
   faChevronDown = faChevronDown;
@@ -72,6 +74,7 @@ export class HeaderComponent implements OnInit {
   faCalendarCheck = faCalendarCheck;
   currentUser$: Observable<User | null>;
   notificationCount = 0;
+  private subscriptions: Subscription[] = [];
   notifications: Array<{
     id: string;
     message: string;
@@ -81,29 +84,35 @@ export class HeaderComponent implements OnInit {
     animationState: 'visible' | 'hidden';
   }> = [];
   isClosingNotifications = false;
-
+  userProfilePicture: string | null = null;
   constructor(
     private authService: AuthService,
-    private notificationService: NotificationService
+    private notificationService: NotificationService,
+    private mediaService: MediaService
   ) {
     this.currentUser$ = this.authService.currentUser$.pipe(
       tap(user => {
         if (user && user.id) {
           this.loadNotifications(user.id);
+          this.loadProfilePicture(user);
         }
       })
     );
+    
+    // Subscribe to the currentUser$ observable to make sure it's active
+    const userSubscription = this.currentUser$.subscribe();
+    this.subscriptions.push(userSubscription);
   }
 
   ngOnInit(): void {
     // Subscribe to the notification service's unread count
-    this.notificationService.unreadCount$.subscribe(count => {
+    const subscription = this.notificationService.unreadCount$.subscribe(count => {
       this.notificationCount = count;
     });
+    this.subscriptions.push(subscription);
   }
-
   loadNotifications(userId: string): void {
-    this.notificationService.loadNotifications(userId).subscribe({
+    const subscription = this.notificationService.loadNotifications(userId).subscribe({
       next: (notificationsResponse: any) => {
         if (notificationsResponse) {
           const notificationsArray = Array.isArray(notificationsResponse) ? 
@@ -139,6 +148,7 @@ export class HeaderComponent implements OnInit {
         console.error('Error fetching user notifications:', error);
       }
     });
+    this.subscriptions.push(subscription);
   }
   
   private mapNotificationType(type: string): string {
@@ -180,7 +190,7 @@ export class HeaderComponent implements OnInit {
   }  markAllNotificationsAsRead(): void {
     if (this.isClosingNotifications) return;
     
-    this.authService.currentUser$.subscribe(user => {
+    const subscription = this.authService.currentUser$.subscribe(user => {
       if (!user?.id || this.notifications.length === 0) {
         return;
       }
@@ -192,7 +202,7 @@ export class HeaderComponent implements OnInit {
       
       // Wait for animation to complete before making API call
       setTimeout(() => {
-        this.notificationService.markAllAsRead(user.id).subscribe({
+        const markAllSub = this.notificationService.markAllAsRead(user.id).subscribe({
           next: () => {
             // The notification service will update the unread count
             this.notifications = this.notifications.map(n => ({...n, read: true}));
@@ -205,14 +215,15 @@ export class HeaderComponent implements OnInit {
             this.isClosingNotifications = false;
           }
         });
+        this.subscriptions.push(markAllSub);
       }, 300); // Match the animation duration
     });
+    this.subscriptions.push(subscription);
   }
-  
-  markNotificationAsRead(notification: any): void {
+    markNotificationAsRead(notification: any): void {
     if (notification.read) return;
     
-    this.authService.currentUser$.subscribe(user => {
+    const subscription = this.authService.currentUser$.subscribe(user => {
       if (!user?.id) return;
       
       // Set the animation state to hidden
@@ -220,7 +231,7 @@ export class HeaderComponent implements OnInit {
       
       // Wait for animation to complete before marking as read
       setTimeout(() => {
-        this.notificationService.markAsRead(user.id, notification.id).subscribe({
+        const markReadSub = this.notificationService.markAsRead(user.id, notification.id).subscribe({
           next: () => {
             notification.read = true;
           },
@@ -229,11 +240,76 @@ export class HeaderComponent implements OnInit {
             notification.animationState = 'visible';
           }
         });
+        this.subscriptions.push(markReadSub);
       }, 300);
     });
+    this.subscriptions.push(subscription);
+  }  /**
+   * Loads the user's profile picture using the MediaService to get a signed URL
+   * Based on the working implementation from profile component
+   */
+  loadProfilePicture(user: User): void {
+    // Reset profile picture URL
+    this.userProfilePicture = null;
+    console.log('[Header] Loading profile picture for user:', user);
+    
+    // Check if user has a profile picture
+    if (user.profilePicture?.fileId) {
+      console.log('[Header] Loading profile picture URL for fileId:', user.profilePicture.fileId);
+      
+      const subscription = this.mediaService.getFileUrl(user.profilePicture.fileId).subscribe({
+        next: (response) => {
+          // Check if the URL is available
+          if (response && response.url) {
+            // First check if the URL is relative and convert to absolute if needed
+            if (response.url.startsWith('/')) {
+              // It's a relative URL, prepend the base API URL from environment
+              const baseUrl = environment.apiUrl.replace('/api', ''); // Remove '/api' from the end
+              this.userProfilePicture = `${baseUrl}${response.url}`;
+              console.log('[Header] Profile picture URL created from relative path:', this.userProfilePicture);
+            } else {
+              // It's already an absolute URL
+              this.userProfilePicture = response.url;
+              console.log('[Header] Profile picture URL (already absolute):', this.userProfilePicture);
+            }          } else {
+            console.warn('[Header] No URL returned for profile picture');
+          }
+        },
+        error: (err) => {
+          console.error('[Header] Error fetching profile image URL:', err);
+          this.userProfilePicture = null;
+        }
+      });
+      this.subscriptions.push(subscription);
+    } else {
+      console.log('[Header] User has no profile picture fileId');
+    }
+  }
+
+  /**
+   * Get user initials for avatar placeholder
+   */
+  getUserInitials(name: string): string {
+    if (!name) return '';
+    const names = name.split(' ');
+    if (names.length === 1) return names[0].charAt(0).toUpperCase();
+    return (names[0].charAt(0) + names[names.length - 1].charAt(0)).toUpperCase();
+  }
+
+  /**
+   * Handle profile image loading error
+   */
+  handleProfileImageError(event: any): void {
+    console.error('Profile image failed to load:', event);
+    this.userProfilePicture = null;
   }
 
   logout(): void {
     this.authService.logout();
+  }
+
+  ngOnDestroy(): void {
+    // Unsubscribe from all subscriptions
+    this.subscriptions.forEach(sub => sub.unsubscribe());
   }
 }
