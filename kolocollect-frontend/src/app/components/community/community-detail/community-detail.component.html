@@ -134,10 +134,13 @@
           <div class="tab-button" [class.active]="activeTab === 'midcycle'" (click)="setActiveTab('midcycle')">
             <fa-icon [icon]="faChartPie"></fa-icon>
             <span>Mid-Cycle</span>
-          </div>
-          <div class="tab-button" [class.active]="activeTab === 'contributionHistory'" (click)="setActiveTab('contributionHistory')">
+          </div>        <div class="tab-button" [class.active]="activeTab === 'contributionHistory'" (click)="setActiveTab('contributionHistory')">
             <fa-icon [icon]="faHistory"></fa-icon>
             <span>Contribution History</span>
+          </div>
+          <div class="tab-button" [class.active]="activeTab === 'owingMembers'" (click)="setActiveTab('owingMembers')">
+            <fa-icon [icon]="faUserPlus"></fa-icon>
+            <span>Owing Members</span>
           </div>
           <div class="tab-button" [class.active]="activeTab === 'votes'" (click)="setActiveTab('votes')">
             <fa-icon [icon]="faBallotCheck"></fa-icon>
@@ -609,8 +612,7 @@
             </div>
           </div>
         </div>
-          <!-- Removed Contributions Tab --><!-- Contribution History Tab (Hierarchical) -->
-        <div class="tab-panel" *ngIf="activeTab === 'contributionHistory' && isMember">
+          <!-- Removed Contributions Tab --><!-- Contribution History Tab (Hierarchical) -->        <div class="tab-panel" *ngIf="activeTab === 'contributionHistory' && isMember">
           <div class="tab-content">
             <div class="section-header-with-action">
               <h2>Community Contribution History</h2>
@@ -625,6 +627,21 @@
             <div class="debug-section" *ngIf="false">
               <pre>{{ contributionHistoryDebug | json }}</pre>
             </div>
+          </div>
+        </div>
+        
+        <!-- Owing Members Tab -->
+        <div class="tab-panel" *ngIf="activeTab === 'owingMembers' && isMember">
+          <div class="tab-content">
+            <div class="section-header-with-action">
+              <h2>Mid-Cycle Joining Members</h2>
+              <app-custom-button *ngIf="isAdmin && !loading" variant="primary" size="medium" 
+                [icon]="faUserPlus" 
+                (buttonClick)="navigateToInvitePage()">
+                Invite Member
+              </app-custom-button>
+            </div>
+            <app-owing-members [communityId]="communityId" [isAdmin]="isAdmin"></app-owing-members>
           </div>
         </div>
         

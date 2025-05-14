@@ -1,6 +1,9 @@
 # KoloCollect Implementation Memory
 
-## Last Updated: May 10, 2025
+## Last Updated: May 14, 2025
+
+the filter and the search is behaving weird.
+make sure the upcoming payout expected is calculated with active members only
 
 This document serves as a reference for important information related to the KoloCollect project implementation.
 

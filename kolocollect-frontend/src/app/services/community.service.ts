@@ -61,6 +61,14 @@ export class CommunityService {
   }
 
   /**
+   * Get the required contribution amount for joining a community mid-cycle
+   * Returns the minimum contribution for first cycle or calculated amount for mid-cycle
+   */
+  getRequiredContribution(communityId: string): Observable<any> {
+    return this.api.get<any>(`/communities/${communityId}/required-contribution`);
+  }
+
+  /**
    * Update community settings
    */
   updateSettings(communityId: string, settings: any): Observable<any> {
@@ -142,12 +150,14 @@ export class CommunityService {
   memberUpdate(communityId: string, userId: string, memberData: any): Observable<any> {
     return this.api.put<any>(`/communities/${communityId}/members/${userId}`, memberData);
   }
-
   /**
-   * Pay second installment
+   * Pay second installment for a member that joined during mid-cycle
+   * @param communityId The ID of the community
+   * @param userId The ID of the user making the payment
+   * @returns Observable with payment result
    */
-  paySecondInstallment(communityId: string, userId: string, paymentData: any): Observable<any> {
-    return this.api.post<any>(`/communities/${communityId}/members/${userId}/paySecondInstallment`, paymentData);
+  paySecondInstallment(communityId: string, userId: string): Observable<any> {
+    return this.api.post<any>(`/communities/${communityId}/members/${userId}/paySecondInstallment`, {});
   }
   /**
    * Back payment distribute (using midcycle service instead)
@@ -165,6 +175,15 @@ export class CommunityService {
   getCurrentMidCycleDetails(communityId: string): Observable<any> {
     console.warn('This method is deprecated. Please use MidcycleService.getCurrentMidCycleDetails instead.');
     return this.api.get<any>(`/communities/${communityId}/current-midcycle`);
+  }
+
+  /**
+   * Get all mid-cycle joiners for a community
+   * @param communityId The ID of the community
+   * @returns Observable with all mid-cycle joiners
+   */
+  getAllMidCycleJoiners(communityId: string): Observable<any> {
+    return this.api.get<any>(`/communities/${communityId}/midcycle_joiners`);
   }
 
   /**
@@ -202,6 +221,14 @@ export class CommunityService {
    */
   getCommunityContributionHistory(communityId: string): Observable<any> {
     return this.api.get<any>(`/communities/${communityId}/contribution-history`);
+  }
+
+  /**
+   * Get owing members for a community
+   * These are members who joined mid-cycle and have remaining payments
+   */
+  getOwingMembers(communityId: string): Observable<any> {
+    return this.api.get<any>(`/communities/${communityId}/owing-members`);
   }
 
   /**

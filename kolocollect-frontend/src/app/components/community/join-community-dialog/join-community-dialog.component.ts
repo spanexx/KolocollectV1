@@ -30,10 +30,14 @@ import { Community } from '../../../models/community.model';
 export class JoinCommunityDialogComponent implements OnInit {
   joinForm: FormGroup;
   loading = false;
+  loadingContribution = false;
   currentUser: User | null = null;
   minContribution = 0; 
+  requiredContribution = 0;
   communityName = '';
   isFirstCycle = false; // Added to track if it's the first cycle
+  contributionExplanation: string = '';
+  midCycleInfo: any = null;
   
   constructor(
     private fb: FormBuilder,
@@ -49,7 +53,6 @@ export class JoinCommunityDialogComponent implements OnInit {
       contributionAmount: [''] // Remove validators initially
     });
   }
-
   ngOnInit(): void {
     this.currentUser = this.authService.currentUserValue;
     
@@ -58,24 +61,11 @@ export class JoinCommunityDialogComponent implements OnInit {
       this.minContribution = this.data.community.settings?.minContribution || 0;
       this.communityName = this.data.community.name || '';
       
-      // Check if this is the first cycle
+      // Check if this is the first cycle from community data
       this.isFirstCycle = !this.data.community.cycles || this.data.community.cycles.length <= 1;
       
-      // Update validators based on cycle status
-      const contributionControl = this.joinForm.get('contributionAmount');
-      if (contributionControl) {
-        if (this.isFirstCycle) {
-          // First cycle - only min validation if a value is provided
-          contributionControl.setValidators(Validators.min(this.minContribution));
-        } else {
-          // Not first cycle - required with min validation
-          contributionControl.setValidators([
-            Validators.required,
-            Validators.min(this.minContribution)
-          ]);
-        }
-        contributionControl.updateValueAndValidity();
-      }
+      // Fetch the required contribution amount from the API
+      this.fetchRequiredContribution();
     }
     
     // Pre-fill form with user data if available
@@ -85,6 +75,59 @@ export class JoinCommunityDialogComponent implements OnInit {
         email: this.currentUser.email
       });
     }
+  }
+  
+  /**
+   * Fetch the required contribution amount from the backend
+   * This uses the calculation from Community.addNewMemberMidCycle
+   */
+  fetchRequiredContribution(): void {
+    this.loadingContribution = true;
+    
+    this.communityService.getRequiredContribution(this.data.communityId)
+      .subscribe({
+        next: (response) => {
+          this.isFirstCycle = response.isFirstCycle;
+          this.requiredContribution = response.requiredContribution || this.minContribution;
+          this.contributionExplanation = response.explanation || '';
+          this.midCycleInfo = response;
+          
+          // Update validators based on cycle status
+          const contributionControl = this.joinForm.get('contributionAmount');
+          if (contributionControl) {
+            if (this.isFirstCycle) {
+              // First cycle - only min validation if a value is provided
+              contributionControl.setValidators(Validators.min(this.minContribution));
+              contributionControl.setValue(this.minContribution);
+            } else {
+              // Not first cycle - required with min validation using required contribution
+              contributionControl.setValidators([
+                Validators.required,
+                Validators.min(this.requiredContribution)
+              ]);
+              contributionControl.setValue(this.requiredContribution);
+            }
+            contributionControl.updateValueAndValidity();
+          }
+        },
+        error: (error) => {
+          console.error('Error fetching required contribution:', error);
+          this.toastService.error('Failed to get contribution requirements');
+          
+          // Fallback to basic validation using minContribution
+          const contributionControl = this.joinForm.get('contributionAmount');
+          if (contributionControl) {
+            contributionControl.setValidators([
+              Validators.required,
+              Validators.min(this.minContribution)
+            ]);
+            contributionControl.updateValueAndValidity();
+          }
+        },
+        complete: () => {
+          this.loadingContribution = false;
+        }
+      });
   }
 
   onSubmit(): void {

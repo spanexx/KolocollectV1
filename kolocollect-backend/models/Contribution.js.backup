@@ -100,26 +100,18 @@ ContributionSchema.statics.createContribution = async function(userId, community
   console.log(`Creating contribution: userId=${userId}, communityId=${communityId}, amount=${amount}, midCycleId=${midCycleId}`);
   const session = await mongoose.startSession();
   try {
-    session.startTransaction();    
-    // Get community with all necessary references
+    session.startTransaction();    // Get community with all necessary references
     const Community = mongoose.model('Community');
     const community = await Community.findById(communityId)
       .populate('members')
       .populate('midCycle')
       .session(session);
-    
-    if (!community) throw new Error('Community not found.');
-    
-    // Validate mid-cycle    
-    const MidCycle = mongoose.model('MidCycle');
+    if (!community) throw new Error('Community not found.');// Validate mid-cycle    const MidCycle = mongoose.model('MidCycle');
     const activeMidCycle = await MidCycle.findOne({
       _id: midCycleId,
       isComplete: false
     }).session(session);
-    
-    if (!activeMidCycle) throw new Error('MidCycle not found or already complete.');
-    
-    // Validate member status
+    if (!activeMidCycle) throw new Error('MidCycle not found or already complete.');    // Validate member status
     const Member = mongoose.model('Member');
     const member = await Member.findOne({
       userId,
@@ -130,8 +122,9 @@ ContributionSchema.statics.createContribution = async function(userId, community
     
     if (!member) throw new Error('Member not found in this community.');
     
-    // Any status is acceptable for new members joining mid-cycle
+    // Accept contributions from members with any status during the joining process
     console.log(`Member status: ${member.status}`);
+    }
 
     // Validate minimum contribution
     if (amount < community.settings.minContribution) {
@@ -150,7 +143,7 @@ ContributionSchema.statics.createContribution = async function(userId, community
       communityId,
       amount,
       midCycleId,
-      cycleNumber: activeMidCycle.cycleNumber,
+      cycleNumber: activeMidCycle.cycleNumber.length,
       status: 'completed'
     });
     const savedContribution = await newContribution.save({ session });
@@ -168,21 +161,20 @@ ContributionSchema.statics.createContribution = async function(userId, community
     // Record in community
     await community.record({
       contributorId: userId,
-      recipientId: activeMidCycle.nextInLine.userId,
+      recipientId: midCycleId,
       amount,
       contributionId: savedContribution._id
-    }, { session });    
-    
-    // Add to user's profile
+    }, { session });    // Add to user's profile
     const user = await mongoose.model('User').findById(userId).session(session);
     if (user) {
       await user.addContribution(savedContribution._id, amount, { session });
-    }    
-      // Log activity
+    }    // Log activity
     const activityLog = new mongoose.model('CommunityActivityLog')({
-      communityId,      userId,
-      activityType: 'contribution_created',
-      timestamp: new Date()
+      communityId,
+      userId,
+      actionType: 'contribution_created',
+      details: `User contributed €${amount} to mid-cycle ${midCycleId}`,
+      referenceId: savedContribution._id
     });
     await activityLog.save({ session });
 
@@ -236,11 +228,11 @@ ContributionSchema.statics.createContributionWithInstallment = async function (u
   community.activityLog.push(activityLog._id);
   await community.save();
 
-  // Check wallet balance
-  const wallet = await mongoose.model('Wallet').findOne({ userId });
-  if (!wallet || wallet.availableBalance < amount) {
-    throw new Error('Insufficient wallet balance.');
-  }
+     // Check wallet balance
+    const wallet = await mongoose.model('Wallet').findOne({ userId })
+    if (!wallet || wallet.availableBalance < amount) {
+      throw new Error('Insufficient wallet balance.');
+    }
 
   // Update user's contribution records
   const user = await User.findById(userId);
@@ -248,14 +240,14 @@ ContributionSchema.statics.createContributionWithInstallment = async function (u
     await user.addContribution(contribution._id, amount);
   }
 
-  // Update wallet
-  await wallet.addTransaction(
-    amount,
-    'contribution',
-    `Contribution to community ${community.name}`,
-    null,
-    communityId
-  );
+      // Update wallet
+    await wallet.addTransaction(
+      amount,
+      'contribution',
+      `Contribution to community ${community.name}`,
+      null,
+      communityId,
+    );
 
   // Record the contribution in community
   await community.record({
@@ -269,3 +261,4 @@ ContributionSchema.statics.createContributionWithInstallment = async function (u
 };
 
 module.exports = mongoose.model('Contribution', ContributionSchema);
+

@@ -61,3 +61,31 @@ html, body {
     forced-color-adjust: none;
   }
 }
+
+/* Global responsive dialog styles */
+.responsive-dialog {
+  .mat-mdc-dialog-container {
+    .mdc-dialog__surface {
+      @media (max-width: 599px) {
+        border-radius: 8px !important;
+      }
+    }
+    
+    .mat-mdc-dialog-content {
+      @media (max-width: 599px) {
+        padding: 16px !important;
+        max-height: 65vh !important;
+      }
+      
+      @media (max-height: 600px) and (orientation: landscape) {
+        max-height: 50vh !important;
+      }
+    }
+    
+    .mat-mdc-dialog-actions {
+      @media (max-width: 599px) {
+        padding: 8px 16px 16px !important;
+      }
+    }
+  }
+}

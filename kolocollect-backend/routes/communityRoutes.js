@@ -14,10 +14,12 @@ router.get('/filter', communityController.filterCommunity);    // Changed to GET
 // Public routes (no auth required)
 router.get('/all', communityController.getAllCommunities);
 router.get('/:id', communityController.getCommunityById);
+router.get('/:communityId/required-contribution', communityController.getRequiredContribution); // New route to get required contribution
 router.get('/:communityId/midcycles/:midcycleId', communityController.getMidcycleById); // New route to get midcycle by ID
 router.get('/:communityId/current-midcycle', communityController.getCurrentMidCycleDetails); // Get current mid-cycle details
 router.get('/:communityId/midcycle-contributions', communityController.getMidCycleContributions); // Get mid-cycle contributions
 router.get('/:communityId/contribution-history', communityHistoryController.getCommunityContributionHistory); // Get contribution history in hierarchical format
+router.get('/:communityId/owing-members', communityController.getOwingMembers); // Get owing members who joined mid-cycle
 router.get('/:communityId/votes', communityController.getVotes); // Get all votes for a community
 
 // Protected routes (auth required)
@@ -61,8 +63,6 @@ router.post('/:communityId/members/:userId/payPenaltyAndMissedContribution', com
 // Route to skip contribution and mark mid-cycle as ready
 router.post('/:communityId/midCycles/:midCycleId/skipContributionAndMarkReady', communityController.skipContributionAndMarkReady);
 
-// Route to update member details
-router.put('/:communityId/members/:userId', communityController.memberUpdate);
 
 // Route to pay second installment
 router.post('/:communityId/members/:userId/paySecondInstallment', communityController.paySecondInstallment);
@@ -72,6 +72,9 @@ router.post('/:communityId/midcycle_joiners/:midCycleJoinersId/back_payments', c
 
 // Route for searchMidcycleJoiners
 router.get('/:communityId/midcycle_joiners/:midCycleJoinersId', communityController.searchMidcycleJoiners);
+
+// Route to get all mid-cycle joiners for a community
+router.get('/:communityId/midcycle_joiners', communityController.getAllMidCycleJoiners);
 
 // Route to handle wallet operations for defaulters
 router.post('/:communityId/defaulters/:userId/wallet', communityController.handleWalletForDefaulters);

@@ -178,11 +178,14 @@ ContributionSchema.statics.createContribution = async function(userId, community
     if (user) {
       await user.addContribution(savedContribution._id, amount, { session });
     }    
-      // Log activity
+    
+    // Log activity
     const activityLog = new mongoose.model('CommunityActivityLog')({
-      communityId,      userId,
-      activityType: 'contribution_created',
-      timestamp: new Date()
+      communityId,
+      userId,
+      actionType: 'contribution_created',
+      details: `User contributed €${amount} to mid-cycle ${midCycleId}`,
+      referenceId: savedContribution._id
     });
     await activityLog.save({ session });
 

@@ -24,7 +24,7 @@ import {
   faArrowRight, faMoneyBillTransfer, faCircleInfo, faCheckCircle,
   faTimesCircle, faHourglassHalf, faFireAlt, faSpinner, faChartPie,
   faArrowsRotate, faHistory, faVoteYea as faBallotCheck, faPlus, faMinus,
-  faShare, faDownload, faFilePdf, faEnvelope, faLink
+  faShare, faDownload, faFilePdf, faEnvelope, faLink, faUserPlus
 } from '@fortawesome/free-solid-svg-icons';
 import { 
   faTwitter, faFacebook, faWhatsapp 
@@ -41,6 +41,7 @@ import { Subject, throwError } from 'rxjs';
 import { formatDate } from '@angular/common';
 import { JoinCommunityDialogComponent } from '../join-community-dialog/join-community-dialog.component';
 import { ContributionHistoryHierarchicalComponent } from '../../contribution/contribution-history-hierarchical/contribution-history-hierarchical.component';
+import { OwingMembersComponent } from '../owing-members/owing-members.component';
 import { UserProfileDialogComponent } from '../../profile/user-profile-dialog/user-profile-dialog.component';
 import { User } from '../../../models/user.model';
 import { CustomButtonComponent } from '../../../shared/components/custom-button/custom-button.component';
@@ -64,6 +65,7 @@ import { CustomButtonComponent } from '../../../shared/components/custom-button/
     FontAwesomeModule,
     CustomButtonComponent,
     ContributionHistoryHierarchicalComponent,
+    OwingMembersComponent,
     FormsModule,
     ReactiveFormsModule,
     MatFormFieldModule,
@@ -96,6 +98,7 @@ export class CommunityDetailComponent implements OnInit, OnDestroy {  // Font Aw
   faBallotCheck = faBallotCheck;
   faPlus = faPlus;
   faMinus = faMinus;
+  faUserPlus = faUserPlus;
   // Sharing icons
   faShare = faShare;
   faDownload = faDownload;
@@ -208,6 +211,7 @@ export class CommunityDetailComponent implements OnInit, OnDestroy {  // Font Aw
       )
       .subscribe(response => {
         this.community = response.community;
+        console.log('Community details response:', this.community);
         this.communitySettings = response.community.settings;
         
         // After loading community, fetch mid-cycle details
@@ -325,10 +329,15 @@ export class CommunityDetailComponent implements OnInit, OnDestroy {  // Font Aw
     if (!this.community) {
       this.toastService.error('Community details not available.');
       return;
-    }
-
+    }    // Get the current screen size for responsive dialog
+    const screenWidth = window.innerWidth;
+    const dialogWidth = screenWidth < 600 ? '95%' : '500px';
+    const maxWidth = screenWidth < 600 ? '100%' : '95vw';
+    
     const dialogRef = this.dialog.open(JoinCommunityDialogComponent, {
-      width: '500px',
+      width: dialogWidth,
+      maxWidth: maxWidth,
+      panelClass: 'responsive-dialog',
       data: {
         communityId: this.communityId,
         community: this.community
@@ -608,6 +617,24 @@ export class CommunityDetailComponent implements OnInit, OnDestroy {  // Font Aw
         communityId: this.communityId,
         cycleId: currentCycle.id,
         midcycleId: currentMidcycle?.id
+      }
+    });
+  }
+
+  /**
+   * Navigate to the invite page for this community
+   * Used by the CTA button in the owing members tab
+   */
+  navigateToInvitePage(): void {
+    if (!this.currentUserId || !this.isAdmin) {
+      this.toastService.error('You must be an admin to invite new members');
+      return;
+    }
+
+    // Navigate to invite page with community ID
+    this.router.navigate(['/communities/invite'], { 
+      queryParams: { 
+        communityId: this.communityId
       }
     });
   }

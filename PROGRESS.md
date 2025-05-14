@@ -1,8 +1,39 @@
 # KoloCollect Frontend Implementation Progress
 
-## Last Updated: May 13, 2025
+## Last Updated: May 14, 2025
 
 This document tracks the progress of implementing the frontend for KoloCollect application based on the integration plan in PLAN.md.
+
+## Latest Updates (May 14, 2025)
+
+- [✅] **Enhancement: Join Community Dialog for Mid-Cycle Contributions**
+  - Goal: Improve user experience by showing required contribution amount when joining mid-cycle
+  - Status: Completed
+  - Problem: Users receive 500 errors when trying to join with insufficient contribution amount
+  - Implementation Summary:
+    1. Backend Changes ✅
+       - Added `getRequiredContribution` endpoint in communityController.js
+       - Added new route in communityRoutes.js: `GET /communities/:communityId/required-contribution`
+       - Used the same calculation logic from addNewMemberMidCycle method
+    2. Frontend Service Update ✅
+       - Added new method in community.service.ts to fetch required contribution
+       - Created reusable API call to get mid-cycle joining requirements
+    3. Dialog Component Enhancement ✅
+       - Modified JoinCommunityDialogComponent to fetch and display required contribution
+       - Added UI elements to clearly show mid-cycle joining requirements
+       - Updated form validation to use the required contribution amount
+       - Added helpful explanation text about why higher contribution is needed
+       - Improved styling for better user experience
+    4. Testing ✅
+       - Verified API endpoint returns correct calculation
+       - Confirmed dialog displays both first-cycle and mid-cycle cases correctly
+       - Validated form validation works with required contribution amount
+  
+  - Results:
+    - Users now see the correct required contribution amount before attempting to join
+    - Error message "Insufficient contribution" is prevented by proper validation
+    - Clear explanation is provided about why higher contribution is required during mid-cycle
+    - User experience is improved with visual indicators and accurate information
 
 ## Latest Updates (May 13, 2025)
 

@@ -1,5 +1,32 @@
 # Frontend Integration Plan
 
+## Latest Plan Update (May 14, 2025)
+
+### Mid-Cycle Joining Contribution Enhancement
+
+#### Overview
+When users try to join a community mid-cycle, they're not informed about the higher required contribution amount until after submitting the form, which results in a 500 error. This plan addresses how to properly inform users of the required contribution amount before they submit the join form.
+
+#### Key Improvements
+1. **Backend API Enhancement**
+   - Create a new endpoint to calculate required mid-cycle contribution
+   - Reuse the same calculation logic from `addNewMemberMidCycle` method
+   
+2. **Frontend Dialog Enhancement**
+   - Fetch and display required contribution amount
+   - Update validation to match the required amount
+   - Add explanatory text about mid-cycle contribution requirements
+
+#### Implementation Steps
+1. **Backend**
+   - Add a new endpoint in communityController
+   - Create a method to calculate required contribution without creating the member
+   
+2. **Frontend**
+   - Update join dialog component to fetch required amount
+   - Display prominent notice about mid-cycle contribution
+   - Update form validation based on this amount
+
 ## Latest Plan Update (May 13, 2025)
 
 ### Profile Enhancement Plan

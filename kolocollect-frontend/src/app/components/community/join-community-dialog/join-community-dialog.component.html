@@ -2,9 +2,26 @@
   <h2 mat-dialog-title>Join {{ communityName }}</h2>
 
   <mat-dialog-content>
-    <p class="description">
-      Please confirm your details to join this community. The minimum contribution amount is ${{ minContribution }}.
-    </p>
+    <div *ngIf="loadingContribution" class="loading-contribution">
+      <mat-spinner diameter="30"></mat-spinner>
+      <span>Calculating required contribution...</span>
+    </div>
+    
+    <ng-container *ngIf="!loadingContribution">
+      <p class="description" *ngIf="isFirstCycle">
+        Please confirm your details to join this community. The minimum contribution amount is ${{ minContribution }}.
+      </p>
+      
+      <div *ngIf="!isFirstCycle" class="mid-cycle-notice">
+        <h3>Mid-Cycle Joining</h3>
+        <p class="description">
+          This community is in the middle of a cycle. The minimum required contribution is <strong>${{ requiredContribution }}</strong>.
+        </p>
+        <p class="explanation" *ngIf="contributionExplanation">
+          {{ contributionExplanation }}
+        </p>
+      </div>
+    </ng-container>
 
     <form [formGroup]="joinForm" class="join-form">
       <mat-form-field appearance="outline" class="full-width">
@@ -24,20 +41,28 @@
         <mat-error *ngIf="joinForm.get('email')?.hasError('email')">
           Please enter a valid email address
         </mat-error>
-      </mat-form-field>
-
-      <mat-form-field appearance="outline" class="full-width">
+      </mat-form-field>      <mat-form-field appearance="outline" class="full-width">
         <mat-label>Contribution Amount {{ isFirstCycle ? '(Optional)' : '' }}</mat-label>
-        <input matInput formControlName="contributionAmount" type="number" min="{{ minContribution }}" placeholder="Enter amount">
+        <input matInput formControlName="contributionAmount" type="number" 
+               min="{{ isFirstCycle ? minContribution : requiredContribution }}" 
+               placeholder="Enter amount">
         <span matTextPrefix>$&nbsp;</span>
         <mat-error *ngIf="joinForm.get('contributionAmount')?.hasError('required')">
           Contribution amount is required
         </mat-error>
         <mat-error *ngIf="joinForm.get('contributionAmount')?.hasError('min')">
-          Minimum contribution is ${{ minContribution }}
+          <ng-container *ngIf="isFirstCycle">
+            Minimum contribution is ${{ minContribution }}
+          </ng-container>
+          <ng-container *ngIf="!isFirstCycle">
+            Required contribution for mid-cycle join is ${{ requiredContribution }}
+          </ng-container>
         </mat-error>
         <mat-hint *ngIf="isFirstCycle">
           Since this is the first cycle, contribution is optional
+        </mat-hint>
+        <mat-hint *ngIf="!isFirstCycle" class="mid-cycle-hint">
+          Mid-cycle joining requires a higher contribution
         </mat-hint>
       </mat-form-field>
     </form>
@@ -49,16 +74,17 @@
       </p>
     </div>
   </mat-dialog-content>
-
-  <mat-dialog-actions align="end">
-    <button mat-button (click)="cancel()">Cancel</button>
+  <mat-dialog-actions align="end" class="responsive-actions">
+    <button mat-button (click)="cancel()" class="cancel-btn">Cancel</button>
     <button 
       mat-raised-button 
       color="primary" 
       [disabled]="joinForm.invalid || loading" 
-      (click)="onSubmit()">
-      <span *ngIf="!loading">Join Community</span>
-      <mat-spinner *ngIf="loading" diameter="20" color="accent"></mat-spinner>
+      (click)="onSubmit()"
+      class="submit-btn">      <span *ngIf="!loading">Join Community</span>
+      <span *ngIf="loading" class="spinner-container">
+        <mat-spinner diameter="20" color="accent"></mat-spinner>
+      </span>
     </button>
   </mat-dialog-actions>
 </div>

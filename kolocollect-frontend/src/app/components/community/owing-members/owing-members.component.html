@@ -1,0 +1,176 @@
+<div class="owing-members-container">
+  <div class="section-header">
+    <!-- <h2 class="section-title">Mid-Cycle Joining Members</h2> -->
+    <button mat-button color="primary" class="refresh-button" (click)="loadOwingMembers()" [disabled]="isLoading"
+           matTooltip="Refresh owing members list" aria-label="Refresh owing members list">
+      <fa-icon [icon]="faSync" [spin]="isLoading"></fa-icon>
+      <span>{{ isLoading ? 'Loading...' : 'Refresh' }}</span>
+    </button>
+  </div>
+  
+  <!-- Summary cards -->
+  <div class="summary-container" *ngIf="!isLoading && owingMembers && owingMembers.length > 0">
+    <div class="summary-cards">
+      <mat-card class="summary-card">
+        <div class="summary-card-content">
+          <div class="summary-number">{{ owingMembers.length }}</div>
+          <div class="summary-label">Total Members</div>
+        </div>
+        <div class="summary-icon">
+          <fa-icon [icon]="faUsers"></fa-icon>
+        </div>
+      </mat-card>
+      
+      <mat-card class="summary-card">
+        <div class="summary-card-content">
+          <div class="summary-number">{{ getTotalRemainingAmount() | currency }}</div>
+          <div class="summary-label">Total Remaining</div>
+        </div>
+        <div class="summary-icon">
+          <fa-icon [icon]="faExclamationTriangle"></fa-icon>
+        </div>
+      </mat-card>
+      
+      <mat-card class="summary-card">
+        <div class="summary-card-content">
+          <div class="summary-number">{{ getTotalPaidAmount() | currency }}</div>
+          <div class="summary-label">Total Paid</div>
+        </div>
+        <div class="summary-icon">
+          <fa-icon [icon]="faMoneyBillWave"></fa-icon>
+        </div>
+      </mat-card>
+        <mat-card class="summary-card">
+        <div class="summary-card-content">
+          <div class="summary-number">{{ getCompletedPaymentsCount() }}</div>
+          <div class="summary-label">Completed Payments</div>
+        </div>
+        <div class="summary-icon">
+          <fa-icon [icon]="faCheckCircle"></fa-icon>
+        </div>
+      </mat-card>
+    </div>
+  </div>
+  
+  <!-- Loading spinner -->
+  <div class="loading-container" *ngIf="isLoading">
+    <fa-icon [icon]="faSpinner" [spin]="true" size="2x"></fa-icon>
+    <span class="loading-text">Loading owing members data...</span>
+  </div>
+  
+  <!-- Empty state -->
+  <mat-card class="empty-state-card" *ngIf="!isLoading && (!owingMembers || owingMembers.length === 0)">
+    <mat-card-content class="empty-state-content">
+      <fa-icon [icon]="faUsers" class="empty-state-icon" size="2x"></fa-icon>
+      <h3>No owing members found</h3>
+      <p>There are no members who joined mid-cycle and have remaining payments in this community.</p>
+    </mat-card-content>
+  </mat-card>
+  
+  <!-- Members table -->
+  <div class="table-container" *ngIf="!isLoading && owingMembers && owingMembers.length > 0">
+    <table mat-table [dataSource]="owingMembers" class="owing-members-table">
+      <!-- User Name Column -->
+      <ng-container matColumnDef="userName">
+        <th mat-header-cell *matHeaderCellDef>Member</th>
+        <td mat-cell *matCellDef="let member">
+          <div class="member-info">
+            <fa-icon [icon]="faUser" class="member-icon"></fa-icon>
+            {{ member.userName }}
+          </div>
+        </td>
+      </ng-container>
+      
+      <!-- Remaining Amount Column -->
+      <ng-container matColumnDef="remainingAmount">
+        <th mat-header-cell *matHeaderCellDef>Remaining</th>
+        <td mat-cell *matCellDef="let member">
+          <span class="amount-text" [ngClass]="{'zero-amount': member.remainingAmount === 0}">
+            {{ member.remainingAmount | currency }}
+          </span>
+        </td>
+      </ng-container>
+      
+      <!-- Paid Amount Column -->
+      <ng-container matColumnDef="paidAmount">
+        <th mat-header-cell *matHeaderCellDef>Paid</th>
+        <td mat-cell *matCellDef="let member">
+          {{ member.paidAmount | currency }}
+        </td>
+      </ng-container>
+      
+      <!-- Installments Column -->
+      <ng-container matColumnDef="installments">
+        <th mat-header-cell *matHeaderCellDef>Installments</th>
+        <td mat-cell *matCellDef="let member">
+          <div class="installments-info">
+            <fa-icon [icon]="faCalendarAlt" class="installment-icon"></fa-icon>
+            {{ member.installments }}
+          </div>
+        </td>
+      </ng-container>        <!-- Status Column -->
+      <ng-container matColumnDef="status">
+        <th mat-header-cell *matHeaderCellDef>Status</th>
+        <td mat-cell *matCellDef="let member">
+          <div class="status-chip" [ngClass]="getPaymentStatus(member)">
+            {{ getStatusLabel(member) }}
+          </div>
+        </td>
+      </ng-container>
+        <!-- Distribution Status Column -->
+      <ng-container matColumnDef="distribution">
+        <th mat-header-cell *matHeaderCellDef>Distribution Status</th>
+        <td mat-cell *matCellDef="let member">
+          <div class="status-chip" [ngClass]="{'status-success': member.isDistributed === true, 'status-pending': !member.isDistributed && member.remainingAmount === 0 && member.installments === 2, 'status-inactive': member.remainingAmount > 0 || member.installments < 2}">
+            <fa-icon [icon]="faCheckCircle" *ngIf="member.isDistributed === true"></fa-icon>
+            {{ member.isDistributed === true ? 'Distributed' : 
+               (member.remainingAmount === 0 && member.installments === 2) ? 'Ready to Distribute' : 'Not Ready' }}
+          </div>
+        </td>
+      </ng-container>
+        <!-- Actions Column -->
+      <ng-container matColumnDef="actions">
+        <th mat-header-cell *matHeaderCellDef>Actions</th>
+        <td mat-cell *matCellDef="let member">
+          <!-- Debug info to help understand why button might not be showing -->
+          <div *ngIf="member.remainingAmount > 0" class="debug-info" style="display: none;">
+            MemberID: {{member.userId}} | CurrentID: {{currentUserId}}
+          </div>
+          
+          <!-- Show pay button only for current user and if there's remaining amount -->
+          <button 
+            mat-raised-button 
+            color="primary" 
+            *ngIf="member.remainingAmount > 0 && member.installments === 1"
+            (click)="paySecondInstallment(member)"
+            [disabled]="isPaymentProcessing"
+            class="pay-button"
+          >
+            <fa-icon [icon]="faCreditCard" [spin]="isPaymentProcessing" class="mr-2"></fa-icon>
+            <span>{{ isPaymentProcessing ? 'Processing...' : 'Pay Now' }}</span>
+          </button>          <!-- Show distribute button only for admins when payment is complete, remaining amount is 0, and not yet distributed -->
+          <button 
+            mat-raised-button 
+            color="accent" 
+            *ngIf="isAdmin && member.remainingAmount === 0 && member.isDistributed !== true"
+            (click)="distributeBackPayment(member)"
+            [disabled]="isDistributing"
+            class="distribute-button"
+          >
+            <fa-icon [icon]="faMoneyBillTransfer" [spin]="isDistributing" class="mr-2"></fa-icon>
+            <span>{{ isDistributing ? 'Processing...' : 'Distribute Back Payment' }}</span>
+          </button>
+          
+          <!-- Show distributed message when already distributed -->
+          <div class="distributed-message" *ngIf="member.isDistributed === true">
+            <fa-icon [icon]="faCheckCircle" class="success-icon"></fa-icon>
+            <span>Back payment distributed</span>
+          </div>
+        </td>
+      </ng-container>
+      
+      <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+    </table>
+  </div>
+</div>

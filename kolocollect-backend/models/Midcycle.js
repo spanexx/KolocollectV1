@@ -5,13 +5,15 @@ const MidCycleSchema = new mongoose.Schema({
     contributions: [{
         user: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
         contributions: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Contribution' }]
-    }],
-    midCycleJoiners: [{
+    }],    midCycleJoiners: [{
         joiners: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
         paidMembers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }], // Define as an array of ObjectIds
         isComplete: { type: Boolean, default: false },
-
-    }],    nextInLine: {
+        secondInstallmentPaid: { type: Boolean, default: false },
+        backPaymentDistributed: { type: Boolean, default: false },
+        distributionDate: { type: Date },
+        distributionAmount: { type: Number }
+    }],nextInLine: {
         userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
         memberReference: { type: mongoose.Schema.Types.ObjectId, ref: 'Member' },
         userName: { type: String },

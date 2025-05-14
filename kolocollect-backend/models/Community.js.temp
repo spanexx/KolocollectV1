@@ -1,0 +1,44 @@
+/**
+ * Activates members with waiting status if cycleLockEnabled is false
+ * @returns {Promise<Object>} Result of activating waiting members
+ * 
+ * If cycleLockEnabled is false, this function changes the status of all members
+ * with status 'waiting' to 'active' at the beginning of a new cycle.
+ * Returns information about how many members were activated.
+ */
+CommunitySchema.methods.activateWaitingMembers = async function() {
+    try {
+        // If cycle lock is enabled, do nothing
+        if (this.cycleLockEnabled) {
+            return { message: 'Cycle lock is enabled. No waiting members activated.', activatedCount: 0 };
+        }
+        
+        const Member = mongoose.model('Member');
+        
+        // Find all waiting members for this community
+        const waitingMembers = await Member.find({
+            communityId: this._id,
+            status: 'waiting'
+        });
+        
+        if (waitingMembers.length === 0) {
+            return { message: 'No waiting members found.', activatedCount: 0 };
+        }
+        
+        // Activate all waiting members
+        for (const member of waitingMembers) {
+            member.status = 'active';
+            await member.save();
+        }
+        
+        console.log(`Activated ${waitingMembers.length} waiting members in community ${this.name}`);
+        
+        return { 
+            message: `${waitingMembers.length} waiting members have been activated.`,
+            activatedCount: waitingMembers.length 
+        };
+    } catch (err) {
+        console.error('Error activating waiting members:', err);
+        throw err;
+    }
+};

@@ -1,4 +1,5 @@
 const { calculateTotalOwed, processBackPayment } = require('../utils/contributionUtils');
+const { processContributionsMap } = require('../utils/mapUtils');
 const redis = require('redis');
 const Community = require('../models/Community');
 const User = require('../models/User');
@@ -950,16 +951,103 @@ exports.paySecondInstallment = async (req, res) => {
 exports.backPaymentDistribute = async (req, res) => {
   try {
     const { midCycleJoinersId } = req.params;
-    const community = await Community.findById(req.params.communityId);
+    const communityId = req.params.communityId;
+    
+    // Log the request for debugging
+    console.log(`Processing back payment distribution request:`, {
+      communityId,
+      midCycleJoinersId,
+      paramTypes: {
+        communityId: typeof communityId,
+        midCycleJoinersId: typeof midCycleJoinersId
+      }
+    });
+    
+    // Validate ID format first to avoid database errors
+    if (!midCycleJoinersId || !mongoose.Types.ObjectId.isValid(midCycleJoinersId)) {
+      return createErrorResponse(res, 400, 'INVALID_ID', 'Invalid mid-cycle joiner ID format.');
+    }
+    
+    const community = await Community.findById(communityId);
     if (!community) {
       return createErrorResponse(res, 404, 'COMMUNITY_NOT_FOUND', 'Community not found.');
     }
+    
+    // Additional check - try to verify if the mid-cycle joiner exists in any mid-cycle
+    const MidCycle = mongoose.model('MidCycle');
+    const allMidCycles = await MidCycle.find({
+      _id: { $in: community.midCycle }
+    });
+    
+    // Log mid-cycles information for debugging
+    console.log(`Found ${allMidCycles.length} mid-cycles for debugging`);
+    
+    // Use direct database query to check for the joiner across all mid-cycles
+    let foundInMidCycle = false;
+    let foundJoinerId = null;
+    
+    for (const mc of allMidCycles) {
+      if (mc.midCycleJoiners && Array.isArray(mc.midCycleJoiners)) {
+        for (const joiner of mc.midCycleJoiners) {
+          if (joiner._id && joiner._id.toString() === midCycleJoinersId.toString()) {
+            foundInMidCycle = true;
+            foundJoinerId = joiner._id.toString();
+            console.log(`Found joiner directly in mid-cycle ${mc._id}, ID: ${foundJoinerId}`);
+            break;
+          }
+        }
+      }
+      if (foundInMidCycle) break;
+    }
+    
+    if (!foundInMidCycle) {
+      console.log(`Warning: Joiner with ID ${midCycleJoinersId} not found in any mid-cycle during pre-check.`);
+    }
 
+    // Continue with the back payment distribution
     const result = await community.backPaymentDistribute(midCycleJoinersId);
+    
+    // Check if the operation was not successful
+    if (result && result.success === false) {
+      // Use the appropriate status code based on the type of failure
+      const statusCode = result.message.includes('No mid-cycle joiner found') ? 404 : 400;
+      const errorCode = result.message.includes('No mid-cycle joiner found') ? 
+        'JOINER_NOT_FOUND' : 'PAYMENT_REQUIREMENTS_NOT_MET';
+      
+      return createErrorResponse(res, statusCode, errorCode, result.message);
+    }
+    
     res.status(200).json(result);
   } catch (err) {
     console.error('Error in backPaymentDistribute controller:', err);
-    return createErrorResponse(res, 500, 'BACK_PAYMENT_DISTRIBUTE_ERROR', 'Internal server error: ' + err.message);
+    
+    // Provide a more descriptive error message based on the error type
+    let errorCode = 'BACK_PAYMENT_DISTRIBUTE_ERROR';
+    let statusCode = 500;
+    let errorMessage = 'Internal server error while distributing back payments.';
+    
+    if (err.message.includes('No mid-cycle joiner found')) {
+      errorCode = 'JOINER_NOT_FOUND';
+      statusCode = 404;
+      errorMessage = 'No mid-cycle joiner found with the provided ID.';
+    } else if (err.message.includes('Member has not completed their payment plan') ||
+              err.message.includes('Second installment must be paid') ||
+              err.message.includes('Member must complete two installments')) {
+      errorCode = 'PAYMENT_REQUIREMENTS_NOT_MET';
+      statusCode = 400;
+      errorMessage = 'Member must complete both installments before back payments can be distributed.';
+    } else if (err.name === 'CastError') {
+      errorCode = 'INVALID_ID_FORMAT';
+      statusCode = 400;
+      errorMessage = 'Invalid ID format provided.';
+    }
+    
+    return createErrorResponse(
+      res, 
+      statusCode, 
+      errorCode, 
+      errorMessage
+    );
   }
 };
 
@@ -971,12 +1059,73 @@ exports.searchMidcycleJoiners = async (req, res) => {
     if (!community) {
       return createErrorResponse(res, 404, 'COMMUNITY_NOT_FOUND', 'Community not found.');
     }
-
-    const result = community.searchMidcycleJoiners(midCycleJoinersId);
-    res.status(200).json(result);
+    
+    // Validate the ID format
+    if (!mongoose.Types.ObjectId.isValid(midCycleJoinersId)) {
+      return createErrorResponse(res, 400, 'INVALID_ID_FORMAT', 'Invalid mid-cycle joiner ID format.');
+    }
+    
+    try {
+      const result = await community.searchMidcycleJoiners(midCycleJoinersId);
+      res.status(200).json(result);
+    } catch (err) {
+      if (err.message.includes('No mid-cycle joiner found')) {
+        return createErrorResponse(res, 404, 'MIDCYCLE_JOINER_NOT_FOUND', err.message);
+      }
+      throw err; // Re-throw for the outer catch block
+    }
   } catch (err) {
     console.error('Error in searchMidcycleJoiners controller:', err);
     return createErrorResponse(res, 500, 'SEARCH_MIDCYCLE_JOINERS_ERROR', 'Internal server error: ' + err.message);
+  }
+};
+
+// Get all mid-cycle joiners for a community
+exports.getAllMidCycleJoiners = async (req, res) => {
+  try {
+    const { communityId } = req.params;
+    
+    // Validate ID
+    if (!mongoose.Types.ObjectId.isValid(communityId)) {
+      return createErrorResponse(res, 400, 'INVALID_COMMUNITY_ID', 'Invalid community ID format.');
+    }
+    
+    // Find the community
+    const community = await Community.findById(communityId);
+    if (!community) {
+      return createErrorResponse(res, 404, 'COMMUNITY_NOT_FOUND', 'Community not found.');
+    }
+    
+    // Get the MidCycle model
+    const MidCycle = mongoose.model('MidCycle');
+    
+    // Find all mid-cycles for this community
+    const midCycles = await MidCycle.find({
+      _id: { $in: community.midCycle }
+    }).sort({ cycleNumber: -1 }); // Sort by cycle number, newest first
+    
+    // Extract all joiners from all mid-cycles
+    const allJoiners = [];
+    
+    for (const midCycle of midCycles) {
+      if (midCycle.midCycleJoiners && Array.isArray(midCycle.midCycleJoiners)) {
+        const joinersWithContext = midCycle.midCycleJoiners.map(joiner => ({
+          ...joiner.toObject(),
+          midCycleId: midCycle._id,
+          cycleNumber: midCycle.cycleNumber
+        }));
+        
+        allJoiners.push(...joinersWithContext);
+      }
+    }
+    
+    res.status(200).json({
+      count: allJoiners.length,
+      joiners: allJoiners
+    });
+  } catch (err) {
+    console.error('Error getting all mid-cycle joiners:', err);
+    return createErrorResponse(res, 500, 'GET_ALL_JOINERS_ERROR', 'Error retrieving mid-cycle joiners: ' + err.message);
   }
 };
 
@@ -1379,7 +1528,7 @@ exports.getCurrentMidCycleDetails = async (req, res) => {
       contributions: enhancedContributions,
       defaulters: activeMidCycle.defaulters || [],
       midCycleJoiners: activeMidCycle.midCycleJoiners || [],
-      contributionsToNextInLine: activeMidCycle.contributionsToNextInLine || {},
+      contributionsToNextInLine: processContributionsMap(activeMidCycle.contributionsToNextInLine),
       contributionProgress: {
         percentage: contributionProgressPercentage,
         made: totalContributionsMade,
@@ -1551,3 +1700,97 @@ exports.getMidcycleJoiners = async (req, res) => {
     return createErrorResponse(res, 500, 'GET_MIDCYCLE_JOINERS_ERROR', 'Error retrieving mid-cycle joiners: ' + err.message);
   }
 };
+
+/**
+ * Calculate the required contribution amount for joining mid-cycle
+ * This uses the same calculation logic as addNewMemberMidCycle but without creating a member
+ */
+exports.getRequiredContribution = async (req, res) => {
+  try {
+    const { communityId } = req.params;
+    
+    const community = await Community.findById(communityId);
+    if (!community) {
+      return res.status(404).json({ message: 'Community not found' });
+    }
+    
+    // Get active cycle information
+    const activeCycle = await Cycle.findOne({
+      communityId,
+      isComplete: false
+    });
+    
+    // If no active cycle or it's the first cycle, return the minimum contribution
+    if (!activeCycle || activeCycle.cycleNumber <= 1) {
+      return res.status(200).json({ 
+        requiredContribution: community.settings.minContribution,
+        isFirstCycle: true,
+        explanation: 'This is the first cycle, so only the minimum contribution is required.'
+      });
+    }
+    
+    // Get current members count for calculation
+    const currentMembers = await Member.find({ communityId });
+    const missedCycles = activeCycle.paidMembers ? activeCycle.paidMembers.length : 0;
+    const totalAmount = (missedCycles + 1) * community.settings.minContribution;
+    
+    // Calculate required contribution using the same logic as in addNewMemberMidCycle
+    let requiredContribution;
+    let explanation;
+    
+    if (missedCycles <= Math.floor(currentMembers.length / 2)) {
+      requiredContribution = community.settings.minContribution + totalAmount * 0.5;
+      explanation = `Since ${missedCycles} out of ${currentMembers.length} members have already received payouts in this cycle, you need to make a higher contribution to join.`;
+    } else {
+      const missedPercentage = missedCycles / currentMembers.length;
+      requiredContribution = missedPercentage * totalAmount;
+      explanation = `Since ${missedCycles} out of ${currentMembers.length} members have already received payouts (over 50%), you need to make a proportionally higher contribution to join.`;
+    }
+    
+    return res.status(200).json({
+      requiredContribution,
+      isFirstCycle: false,
+      missedCycles,
+      totalMembers: currentMembers.length,
+      totalAmount,
+      explanation
+    });
+  } catch (err) {
+    console.error('Error calculating required contribution:', err);
+    res.status(500).json({ message: err.message });
+  }
+};
+
+/**
+ * Get all members who joined mid-cycle and still have remaining payments
+ */
+exports.getOwingMembers = async (req, res) => {
+  try {
+    const { communityId } = req.params;
+
+    // Validate ObjectId if needed (assuming you have isValidObjectId function elsewhere)
+    if (typeof isValidObjectId === 'function' && !isValidObjectId(communityId)) {
+      return createErrorResponse(res, 400, 'INVALID_ID', 'Invalid community ID');
+    }
+
+    // Find the community and select only the owingMembers field
+    const community = await Community.findById(communityId).select('owingMembers');
+
+    if (!community) {
+      return createErrorResponse(res, 404, 'COMMUNITY_NOT_FOUND', 'Community not found');
+    }
+
+    // Return the owing members array
+    res.status(200).json({
+      status: 'success',
+      message: 'Owing members retrieved successfully',
+      data: community.owingMembers || []
+    });
+  } catch (err) {
+    console.error('Error fetching owing members:', err);
+    return createErrorResponse(res, 500, 'FETCH_OWING_MEMBERS_ERROR', 'Error fetching owing members: ' + err.message);
+  }
+};
+
+// Helper utility functions
+// processContributionsMap function moved to utils/mapUtils.js
