@@ -45,6 +45,7 @@ import { OwingMembersComponent } from '../owing-members/owing-members.component'
 import { UserProfileDialogComponent } from '../../profile/user-profile-dialog/user-profile-dialog.component';
 import { User } from '../../../models/user.model';
 import { CustomButtonComponent } from '../../../shared/components/custom-button/custom-button.component';
+import { CommunityVotesComponent } from '../community-votes/community-votes.component';
 
 @Component({
   selector: 'app-community-detail',
@@ -61,11 +62,10 @@ import { CustomButtonComponent } from '../../../shared/components/custom-button/
     MatChipsModule,
     MatBadgeModule,
     MatDialogModule,
-    MatMenuModule,
-    FontAwesomeModule,
-    CustomButtonComponent,
-    ContributionHistoryHierarchicalComponent,
+    MatMenuModule,    FontAwesomeModule,
+    CustomButtonComponent,    ContributionHistoryHierarchicalComponent,
     OwingMembersComponent,
+    CommunityVotesComponent, // Used in template
     FormsModule,
     ReactiveFormsModule,
     MatFormFieldModule,

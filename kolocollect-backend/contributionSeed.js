@@ -59,7 +59,6 @@ const seedContributionsForEligibleUsers = async (exemptUserId) => {
         continue;
       }
 
-      console.log(`User Wallet Balance: €${wallet.availableBalance}`);
 
       const req = {
         body: {

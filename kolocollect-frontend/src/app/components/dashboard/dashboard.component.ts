@@ -173,7 +173,6 @@ export class DashboardComponent implements OnInit {
     
     walletRequest.subscribe({
       next: (balance) => {
-        console.log('Wallet balance:', balance);
         this.walletBalance = balance
       },
       error: (error: any) => {
@@ -187,7 +186,6 @@ export class DashboardComponent implements OnInit {
     
     communitiesRequest.subscribe({
       next: (communitiesData: any) => {
-        console.log('User communities:', communitiesData);        
         // Check if the data is in the format {communities: Array}
         if (communitiesData && communitiesData.communities && Array.isArray(communitiesData.communities)) {
           this.communities = communitiesData.communities.map((community: any) => {
@@ -216,7 +214,6 @@ export class DashboardComponent implements OnInit {
         console.log('Processed communities:', this.communities);
       },
       error: (error: any) => {
-        console.error('Error fetching user communities:', error);
       }
     });
     

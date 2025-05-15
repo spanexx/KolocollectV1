@@ -405,7 +405,6 @@ exports.getUserCommunities = async (req, res) => {
       communities: validCommunities,
     });
   } catch (err) {
-    console.error('Error fetching user communities:', err);
     createErrorResponse(res, 500, 'Error fetching user communities.');
   }
 }

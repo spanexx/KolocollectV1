@@ -647,7 +647,6 @@ exports.getWalletBalance = async (req, res) => {
       totalBalance: wallet.totalBalance,
     });
   } catch (err) {
-    console.error('Error fetching wallet balance:', err);
     createErrorResponse(res, 500, 'Failed to fetch wallet balance.');
   }
 };

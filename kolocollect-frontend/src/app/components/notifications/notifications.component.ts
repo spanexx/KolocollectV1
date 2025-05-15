@@ -286,7 +286,7 @@ export class NotificationsComponent implements OnInit {
     const isPast = now.getTime() > notificationDate.getTime();
     
     // Debug log to help diagnose date issues
-    console.debug('Notification date:', notificationDate, 'Now:', now, 'Diff (ms):', diff, 'Is Past:', isPast);
+    // console.debug('Notification date:', notificationDate, 'Now:', now, 'Diff (ms):', diff, 'Is Past:', isPast);
     
     // Handle dates according to difference
     // Less than a minute

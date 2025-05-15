@@ -195,7 +195,6 @@ export class MakeContributionComponent implements OnInit {
             return normalizedCommunity;
           });
           
-          console.log('Normalized user communities:', this.userCommunities);
           
           // If we have a communityId from the route params, select it
           if (this.communityId && this.userCommunities.length > 0) {
@@ -212,7 +211,6 @@ export class MakeContributionComponent implements OnInit {
       error: (error) => {
         this.toastService.error('Failed to load communities');
         this.loadingService.stop('communities');
-        console.error('Error loading user communities:', error);
       }
     });
   }

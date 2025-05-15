@@ -647,129 +647,13 @@
         
         <!-- Votes Tab -->
         <div class="tab-panel" *ngIf="activeTab === 'votes' && isMember">
-          <div class="tab-content">
-            <div class="section-header-with-action">
-              <h2>Community Votes</h2>
-              <div class="action" *ngIf="isAdmin">
-                <app-custom-button variant="primary" size="small" (buttonClick)="createNewVote()">
-                  Create New Vote
-                </app-custom-button>
-              </div>
-            </div>            <!-- Create Vote Form (Admins Only) -->
-            <div class="custom-card vote-create-section" *ngIf="isAdmin">
-              <h3>Create a New Vote</h3>
-              <div class="vote-form">
-                <div class="form-group">
-                  <label for="voteTopic">Vote Topic</label>
-                  <select id="voteTopic" [(ngModel)]="newVote.topic" class="form-control" (change)="onVoteTopicChange()">
-                    <option value="">Select a topic to vote on</option>
-                    <option *ngFor="let topic of voteTopics" [value]="topic.value">
-                      {{ topic.label }}
-                    </option>
-                  </select>
-                    <!-- Topic description for guidance -->
-                  <div class="topic-description" *ngIf="newVote.topic">
-                    <p>
-                      {{ getVoteTopicDescription(newVote.topic) }}
-                    </p>
-                  </div>
-                </div>
-                  <!-- Predefined options display -->
-                <div class="options-container" *ngIf="newVote.topic && isPredefinedTopic(newVote.topic)">
-                  <label>Available Options</label>
-                  <div class="predefined-options">
-                    <div class="option-badge" *ngFor="let option of getOptionsForSelectedTopic()">
-                      {{ option }}
-                    </div>
-                    <p class="option-helper-text">These options are predefined based on your selected topic.</p>
-                  </div>
-                </div>
-                
-                <!-- Custom options (shown only for non-predefined topics) -->
-                <div class="options-container" *ngIf="newVote.topic && !isPredefinedTopic(newVote.topic)">
-                  <label>Options</label>
-                  <div class="option-row" *ngFor="let option of newVote.options; let i = index">
-                    <input type="text" [(ngModel)]="newVote.options[i]" 
-                           placeholder="Option {{i+1}}" class="form-control">                    <button type="button" class="option-button remove" 
-                            (click)="removeVoteOption(i)" *ngIf="newVote.options.length > 2">
-                      <fa-icon [icon]="faMinus"></fa-icon>
-                    </button>
-                  </div>
-                  <button type="button" class="option-button add" (click)="addVoteOption()">
-                    <fa-icon [icon]="faPlus"></fa-icon> Add Option
-                  </button>
-                </div>
-                
-                <div class="form-actions">
-                  <app-custom-button variant="secondary" size="small" 
-                    [disabled]="!newVote.topic"
-                    (buttonClick)="createNewVote()">
-                    Create Vote
-                  </app-custom-button>
-                </div>
-              </div>
-            </div>
-
-            <!-- Votes List -->
-            <div class="votes-list" *ngIf="votes.length > 0">              <div class="vote-item custom-card" *ngFor="let vote of votes">
-                <div class="vote-header">
-                  <h3>{{ getTopicDisplayLabel(vote.topic) }}</h3>
-                  <span class="vote-status" [class.resolved]="vote.resolved">
-                    {{ vote.resolved ? 'Resolved' : 'Active' }}
-                  </span>
-                </div>
-                
-                <div class="vote-options">
-                  <div class="option-item" *ngFor="let option of vote.options">
-                    <div class="option-details">
-                      <div class="option-text">{{ option }}</div>
-                      <div class="option-count">{{ getVoteCount(vote, option) }} votes</div>
-                    </div>
-                    
-                    <div class="progress-container">
-                      <div class="progress-bar" [style.width.%]="getVotePercentage(vote, option)"></div>
-                      <div class="progress-text">{{ getVotePercentage(vote, option) }}%</div>
-                    </div>
-                    
-                    <button *ngIf="!vote.resolved && isMember && !hasUserVoted(vote)" 
-                            class="vote-button" (click)="castVote(vote._id, option)">
-                      Vote
-                    </button>
-                    <span *ngIf="getUserVoteChoice(vote) === option" class="user-voted">
-                      <fa-icon [icon]="faCheckCircle"></fa-icon> Your vote
-                    </span>
-                  </div>
-                </div>
-                
-                <div class="vote-footer">
-                  <div class="vote-stats">
-                    <span>Total Votes: {{ vote.numVotes }}</span>
-                    <span>Created: {{ formatDate(vote.createdAt) }}</span>
-                  </div>
-                  <div class="vote-actions" *ngIf="vote.resolved">
-                    <span class="resolution">Resolution: {{ vote.resolution }}</span>
-                    <span class="applied-status" [class.applied]="vote.applied">
-                      {{ vote.applied ? 'Applied' : 'Pending Application' }}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            <!-- Empty State -->
-            <div class="empty-state" *ngIf="!loadingVotes && votes.length === 0">
-              <fa-icon [icon]="faBallotCheck" class="empty-icon"></fa-icon>
-              <h3>No Votes Yet</h3>
-              <p>There are no votes in this community yet.</p>
-              <span *ngIf="isAdmin">You can create a new vote to get community feedback on important decisions.</span>
-            </div>
-            
-            <!-- Loading State -->
-            <div class="loading-indicator" *ngIf="loadingVotes">
-              <fa-icon [icon]="faSpinner" [spin]="true"></fa-icon>
-              <span>Loading votes...</span>
-            </div>
-          </div>
+          <!-- Using the standalone community-votes component here -->
+          <app-community-votes 
+            [communityId]="communityId" 
+            [isAdmin]="isAdmin" 
+            [isMember]="isMember">
+          </app-community-votes>
+          
         </div>
         
         <!-- Payouts Tab -->
@@ -817,7 +701,9 @@
               </div>
             </div>
           </div>
-        </div>      </div>
+        </div>  
+            
+      </div>
     </div>
 
   </ng-container>

@@ -71,7 +71,6 @@ const seedContributionsForAllCommunities = async () => {
             continue;
           }
 
-          console.log(`User Wallet Balance: €${wallet.availableBalance}`);
 
           const req = {
             body: {
