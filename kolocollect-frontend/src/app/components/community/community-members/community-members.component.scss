@@ -1,0 +1,11 @@
+/**
+ * Community Members Component Styles
+ * 
+ * Styles have been moved to separate partial files:
+ * - members-base.scss
+ * - members-list.scss
+ * - members-feedback.scss
+ * 
+ * These partials are imported directly in the component TypeScript file
+ * via the styleUrls array to meet Angular budget requirements.
+ */

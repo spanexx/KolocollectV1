@@ -1,0 +1,326 @@
+// Import variables - must use the same ones from community-detail-base.scss
+$primary-color: #6D28D9;
+$primary-dark: #5B21B6;
+$primary-light: #C4B5FD;
+
+$secondary-color: #10B981;
+$secondary-dark: #059669;
+$secondary-light: #A7F3D0;
+
+$accent-color: #F59E0B;
+$accent-dark: #D97706;
+$accent-light: #FCD34D;
+
+$destructive-color: #EF4444;
+$destructive-dark: #DC2626;
+$destructive-light: #FECACA;
+
+$neutral-100: #F3F4F6;
+$neutral-200: #E5E7EB;
+$neutral-300: #D1D5DB;
+$neutral-400: #9CA3AF;
+$neutral-500: #6B7280;
+$neutral-600: #4B5563;
+$neutral-700: #374151;
+$neutral-800: #1F2937;
+$neutral-900: #111827;
+
+$breakpoint-sm: 640px;
+$breakpoint-md: 768px;
+$breakpoint-lg: 1024px;
+$breakpoint-xl: 1280px;
+
+// Community header action buttons
+.community-header-action {
+  display: flex;
+  justify-content: flex-end;
+  padding: 0.75rem 1rem 0;
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 10;
+  gap: 0.5rem;
+
+  .refresh-button, .share-button {
+    background-color: rgba(255, 255, 255, 0.9);
+    color: $primary-color;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+    transition: all 0.2s ease;
+    
+    &:hover {
+      background-color: $primary-color;
+      color: white;
+      transform: scale(1.05);
+    }
+    
+    &:disabled {
+      color: $neutral-400;
+      background-color: $neutral-200;
+      cursor: not-allowed;
+      transform: none;
+    }
+  }
+
+  .refresh-button:hover {
+    transform: rotate(15deg);
+  }
+}
+
+// Share menu icons
+.menu-icon {
+  margin-right: 0.5rem;
+  width: 16px;
+  text-align: center;
+  
+  &.twitter-icon {
+    color: #1DA1F2;
+  }
+  
+  &.facebook-icon {
+    color: #4267B2;
+  }
+  
+  &.whatsapp-icon {
+    color: #25D366;
+  }
+}
+
+// Community Information Elements
+.community-info {
+  flex: 1;
+  
+  h1 {
+    margin: 0 0 0.5rem;
+    color: $neutral-900;
+    font-weight: 700;
+    font-size: 1.75rem;
+    line-height: 1.3;
+    font-family: 'Poppins', sans-serif;
+  }
+  
+  .description {
+    color: $neutral-600;
+    margin: 0 0 1.5rem;
+    font-size: 1rem;
+    line-height: 1.5;
+  }
+}
+
+.community-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+  
+  @media (max-width: $breakpoint-sm) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .stat-item {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem;
+    background: $neutral-100;
+    border-radius: 0.5rem;
+    transition: transform 0.2s ease;
+    
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    }
+    
+    .stat-icon {
+      color: $primary-color;
+      font-size: 1.25rem;
+      margin-right: 0.75rem;
+      min-width: 20px;
+    }
+    
+    .stat-content {
+      display: flex;
+      flex-direction: column;
+      
+      .stat-label {
+        font-size: 0.75rem;
+        color: $neutral-500;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+      
+      .stat-value {
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: $neutral-800;
+      }
+    }
+  }
+}
+
+.community-actions {
+  display: flex;
+  align-items: flex-start;
+  margin-left: 1rem;
+  
+  @media (max-width: $breakpoint-md) {
+    margin: 1.5rem 0 0;
+    justify-content: flex-start;
+    width: 100%;
+  }
+  
+  app-custom-button + app-custom-button {
+    margin-left: 0.5rem;
+  }
+}
+
+// Status indicators and chips
+.status-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.75rem;
+  border-radius: 1rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  
+  &.active-chip {
+    background-color: rgba($secondary-color, 0.1);
+    color: $secondary-dark;
+  }
+  
+  &.inactive-chip {
+    background-color: rgba($neutral-500, 0.1);
+    color: $neutral-600;
+  }
+  
+  &.complete-chip {
+    background-color: rgba($secondary-color, 0.1);
+    color: $secondary-dark;
+  }
+  
+  &.in-progress-chip {
+    background-color: rgba($accent-color, 0.1);
+    color: $accent-dark;
+  }
+  
+  &.ready-chip {
+    background-color: rgba($primary-color, 0.1);
+    color: $primary-dark;
+  }
+}
+
+.status-badge {
+  padding: 0.35rem 0.75rem;
+  border-radius: 1rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  
+  &.ready {
+    background-color: rgba($primary-color, 0.1);
+    color: $primary-dark;
+  }
+  
+  &.in-progress {
+    background-color: rgba($accent-color, 0.1);
+    color: $accent-dark;
+  }
+  
+  &.completed {
+    background-color: rgba($secondary-color, 0.1);
+    color: $secondary-dark;
+  }
+}
+
+// Overview section
+.overview-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+  
+  @media (max-width: $breakpoint-lg) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  @media (max-width: $breakpoint-sm) {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .overview-item {
+    border-bottom: 1px solid $neutral-200;
+    padding-bottom: 0.75rem;
+    
+    .item-label {
+      color: $neutral-500;
+      font-size: 0.875rem;
+      margin-bottom: 0.25rem;
+    }
+    
+    .item-value {
+      color: $neutral-800;
+      font-weight: 500;
+      font-size: 1rem;
+      
+      &.admin-info {
+        display: flex;
+        align-items: center;
+        
+        .admin-icon {
+          color: $primary-color;
+          margin-right: 0.5rem;
+        }
+      }
+    }
+  }
+}
+
+// Loading indicator
+.loading-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  color: $neutral-600;
+  
+  fa-icon {
+    margin-right: 0.75rem;
+    font-size: 1.25rem;
+    color: $accent-color;
+  }
+  
+  span {
+    font-size: 1rem;
+    font-weight: 500;
+  }
+}
+
+// Information message
+.info-message {
+  display: flex;
+  align-items: center;
+  
+  .info-icon {
+    font-size: 2rem;
+    color: $accent-color;
+    margin-right: 1.5rem;
+  }
+  
+  .info-text {
+    h4 {
+      margin: 0 0 0.5rem;
+      font-weight: 600;
+      color: $neutral-800;
+    }
+    
+    p {
+      margin: 0 0 1rem;
+      color: $neutral-600;
+    }
+  }
+}

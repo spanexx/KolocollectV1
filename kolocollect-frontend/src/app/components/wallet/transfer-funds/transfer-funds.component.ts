@@ -56,9 +56,13 @@ interface UserSearchResult {
     MatAutocompleteModule,
     FontAwesomeModule,
     RouterModule
-  ],
-  templateUrl: './transfer-funds.component.html',
-  styleUrls: ['./transfer-funds.component.scss']
+  ],  templateUrl: './transfer-funds.component.html',
+  styleUrls: [
+    './transfer-funds-base.scss',
+    './transfer-funds-user.scss',
+    './transfer-funds-feedback.scss',
+    './transfer-funds-animations.scss'
+  ]
 })
 export class TransferFundsComponent implements OnInit, OnDestroy {
   // Icons

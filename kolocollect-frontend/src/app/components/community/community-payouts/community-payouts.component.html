@@ -1,1 +1,72 @@
-<p>community-payouts works!</p>
+<div class="tab-content">
+  <div class="section-header-with-action">
+    <h2>Payout Schedule</h2>
+  </div>
+
+  <!-- Payouts content -->
+  <div class="custom-card">
+    <div class="card-content">
+      <div *ngIf="loadingPayouts" class="loading-indicator">
+        <fa-icon [icon]="faSpinner" [spin]="true"></fa-icon>
+        <span>Loading payout information...</span>
+      </div>
+
+      <div *ngIf="!loadingPayouts && (!community.cycles || community.cycles.length === 0 || !community.payoutDetails)" class="empty-state">
+        <fa-icon [icon]="faMoneyBillTransfer" class="empty-icon"></fa-icon>
+        <h3>No Payouts Scheduled</h3>
+        <p>No payout information is available yet. Payouts will be scheduled once the community cycle begins.</p>
+        <span *ngIf="isAdmin">As an admin, you'll be able to manage payouts when the cycle is active.</span>
+      </div>
+      
+      <div *ngIf="!loadingPayouts && community.payoutDetails && community.cycles && community.cycles.length > 0" class="payout-info">
+        <div class="next-payout-large">
+          <h3>Next Payout</h3>
+          <div class="payout-details">
+            <div class="payout-stat">
+              <fa-icon [icon]="faUser" class="payout-icon"></fa-icon>
+              <div class="payout-content">
+                <span class="payout-label">Recipient: </span>
+                <span class="payout-value">{{ community.payoutDetails.nextRecipient || 'Not assigned yet' }}</span>
+              </div>
+            </div>
+            
+            <div class="payout-stat">
+              <fa-icon [icon]="faMoneyBillTransfer" class="payout-icon"></fa-icon>
+              <div class="payout-content">
+                <span class="payout-label">Amount</span>
+                <span class="payout-value">${{ community.payoutDetails.payoutAmount || 0 }}</span>
+              </div>
+            </div>
+            
+            <div class="payout-stat">
+              <fa-icon [icon]="faCalendarDays" class="payout-icon"></fa-icon>
+              <div class="payout-content">
+                <span class="payout-label">Date: </span>
+                <span class="payout-value">{{ formatDate(payDate) }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Payout History -->
+        <div class="payout-history" *ngIf="community.payouts && community.payouts.length > 0">
+          <h3>Payout History</h3>
+          <div class="payouts-list">
+            <div class="payout-item" *ngFor="let payout of community.payouts">
+              <div class="payout-header">
+                <span class="payout-date">{{ formatDate(payout.date) }}</span>
+                <span class="payout-amount">${{ payout.amount }}</span>
+              </div>
+              <div class="payout-recipient">
+                <span class="recipient-name">{{ payout.recipientName }}</span>
+              </div>
+              <div class="payout-details">
+                <span class="payout-status" [ngClass]="payout.status">{{ payout.status }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

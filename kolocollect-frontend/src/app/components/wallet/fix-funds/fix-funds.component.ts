@@ -51,9 +51,12 @@ import { takeUntil, finalize } from 'rxjs/operators';
     MatSliderModule,
     FontAwesomeModule,
     RouterModule
-  ],
-  templateUrl: './fix-funds.component.html',
-  styleUrls: ['./fix-funds.component.scss']
+  ],  templateUrl: './fix-funds.component.html',
+  styleUrls: [
+    './fix-funds-base.scss',
+    './fix-funds-form.scss',
+    './fix-funds-feedback.scss'
+  ]
 })
 export class FixFundsComponent implements OnInit, OnDestroy {
   // Icons

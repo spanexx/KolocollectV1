@@ -1,0 +1,82 @@
+// Feedback states and animations for fix-funds component
+.success-container {
+  text-align: center;
+  padding: 30px 0;
+
+  .success-icon {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 24px;
+    border-radius: 50%;
+    background-color: #ECFDF5;
+    color: #10B981;
+    font-size: 40px;
+    animation: scaleIn 0.5s ease;
+
+    mat-icon {
+      font-size: 40px;
+      width: 40px;
+      height: 40px;
+    }
+  }
+
+  h2 {
+    color: #10B981;
+    margin-bottom: 12px;
+  }
+}
+
+.spinner {
+  animation: spin 1s infinite linear;
+}
+
+/* Font Awesome styles */
+.error-icon {
+  color: #f44336;
+  margin-right: 8px;
+  font-size: 20px;
+}
+
+.success-icon {
+  fa-icon {
+    color: #4caf50;
+    font-size: 48px;
+  }
+}
+
+.form-error {
+  display: flex;
+  align-items: center;
+  color: #f44336;
+  margin: 10px 0;
+  padding: 10px;
+  border-radius: 4px;
+  background-color: rgba(244, 67, 54, 0.1);
+
+  fa-icon {
+    margin-right: 8px;
+  }
+}
+
+@keyframes scaleIn {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}

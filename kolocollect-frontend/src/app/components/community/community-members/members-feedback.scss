@@ -1,0 +1,45 @@
+// Feedback states (empty state, loading indicators, etc)
+$text-medium: #666;
+$border-color-light: #ddd;
+$background-light: #f9f9f9;
+$primary-color: #007bff;
+
+// Empty state
+.empty-state {
+  text-align: center;
+  padding: clamp(20px, 5vw, 40px);
+  background-color: $background-light;
+  border-radius: 10px;
+  border: 1px dashed $border-color-light;
+  margin: 10px auto;
+  max-width: 100%;
+  
+  .empty-icon {
+    font-size: clamp(2rem, 5vw, 3rem);
+    color: #bbb;
+    margin-bottom: clamp(10px, 3vw, 16px);
+  }
+  
+  p {
+    color: $text-medium;
+    font-size: clamp(0.9rem, 3vw, 1.1rem);
+  }
+}
+
+// Loading indicator
+.loading-indicator {
+  text-align: center;
+  padding: clamp(20px, 5vw, 40px);
+  width: 100%;
+  
+  .loading-icon {
+    font-size: clamp(1.5rem, 4vw, 2rem);
+    color: $primary-color;
+    margin-bottom: clamp(10px, 3vw, 16px);
+  }
+  
+  p {
+    color: $text-medium;
+    font-size: clamp(0.9rem, 2.5vw, 1rem);
+  }
+}

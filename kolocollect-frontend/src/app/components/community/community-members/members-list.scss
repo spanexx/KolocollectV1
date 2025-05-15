@@ -1,0 +1,130 @@
+// Member list styles
+$active-color: #34c759;
+$inactive-color: #ff453a;
+$waiting-color: #ff9f0a;
+$text-dark: #333;
+$text-medium: #666;
+$border-color: #e0e0e0;
+$background-light: #f9f9f9;
+$background-hover: #f0f0f0;
+
+// Members list specific styles
+.members-list {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(8px, 2.5vw, 12px);
+  width: 100%;
+}
+
+.member-item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  padding: clamp(10px, 2vw, 12px);
+  border-radius: 8px;
+  background-color: $background-light;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+
+  &:hover {
+    background-color: $background-hover;
+    transform: translateY(-2px);
+  }
+
+  .member-avatar {
+    width: clamp(40px, 10vw, 48px);
+    height: clamp(40px, 10vw, 48px);
+    min-width: clamp(40px, 10vw, 48px);
+    border-radius: 50%;
+    background-color: $border-color;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 16px;
+    
+    fa-icon {
+      font-size: clamp(1.2rem, 3vw, 1.5rem);
+      color: $text-medium;
+    }
+  }
+
+  .member-info {
+    flex: 1;
+    min-width: 150px;
+    
+    .member-name {
+      font-weight: 600;
+      font-size: clamp(0.95rem, 2.5vw, 1.1rem);
+      margin-bottom: 4px;
+    }
+    
+    .member-joined, .member-position {
+      font-size: clamp(0.75rem, 2vw, 0.9rem);
+      color: $text-medium;
+    }
+  }
+
+  .member-status {
+    margin-left: auto;
+    margin-top: 5px;
+    
+    @media (max-width: 480px) {
+      width: 100%;
+      margin-top: 10px;
+      margin-left: 0;
+      display: flex;
+      justify-content: flex-start;
+      padding-left: calc(clamp(40px, 10vw, 48px) + 16px); /* Align with member info */
+    }
+    
+    .status-indicator {
+      display: flex;
+      align-items: center;
+      padding: 4px 8px;
+      border-radius: 12px;
+      font-size: clamp(0.75rem, 2vw, 0.85rem);
+      white-space: nowrap;
+      
+      fa-icon {
+        margin-right: 6px;
+        font-size: clamp(0.75rem, 2vw, 0.85rem);
+      }
+      
+      &.member-status-active {
+        background-color: rgba($active-color, 0.15);
+        color: $active-color;
+      }
+      
+      &.member-status-inactive {
+        background-color: rgba($inactive-color, 0.15);
+        color: $inactive-color;
+      }
+      
+      &.member-status-waiting {
+        background-color: rgba($waiting-color, 0.15);
+        color: $waiting-color;
+      }
+    }
+  }
+
+  .member-details {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    
+    @media (min-width: 768px) {
+      flex-direction: row;
+      gap: 12px;
+      
+      .member-position:before {
+        content: '•';
+        margin-right: 8px;
+      }
+    }
+  }
+
+  .status-text {
+    display: inline-block;
+    text-transform: capitalize;
+  }
+}

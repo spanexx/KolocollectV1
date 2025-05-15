@@ -434,47 +434,15 @@
             </div>
           </div>
         </div>
-          <!-- Members Tab - Only visible to members -->
-        <div class="tab-panel" *ngIf="activeTab === 'members' && isMember">
+
+
+          <!-- Members Tab - Only visible to members -->        <div class="tab-panel" *ngIf="activeTab === 'members' && isMember">
           <div class="tab-content">
-            <h2>Community Members</h2>
-            <div class="custom-card">
-              <div class="card-content">
-                <div *ngIf="!community.members || community.members.length === 0" class="empty-state">
-                  <fa-icon [icon]="faUsers" class="empty-icon"></fa-icon>
-                  <p>No members have joined this community yet.</p>
-                </div>
-                
-                <div class="members-list" *ngIf="community.members && community.members.length > 0">                  <div class="member-item" *ngFor="let member of community.members; let last = last" 
-                       (click)="navigateToMemberDetail(member.userId)">
-                    <div class="member-avatar">
-                      <fa-icon [icon]="faUser"></fa-icon>
-                    </div>
-                    <div class="member-info">
-                      <div class="member-name">{{ member.name }}</div>
-                      <div class="member-joined">Joined: {{ formatDate(member.joinedAt || undefined) }}</div>
-                      <div class="member-position" *ngIf="member.position !== undefined && member.position !== null">
-                        Position: {{ member.position }}
-                      </div>
-                    </div>
-                    <div class="member-status">
-                      <span class="status-indicator" [ngClass]="getMemberStatusClass(member.status)">
-                        <fa-icon [icon]="getMemberStatusIcon(member.status)"></fa-icon>
-                        {{ member.status }}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-                  <!-- Leave Community Button at the bottom of the page -->
-    <div class="leave-community-container" *ngIf="isMember">
-      <app-custom-button variant="destructive" size="medium" 
-        [icon]="faRightFromBracket" [disabled]="loading"
-        (buttonClick)="leaveCommunity()">
-        Leave Community
-      </app-custom-button>
-    </div>
+            <app-community-members 
+              [communityId]="communityId" 
+              [isAdmin]="isAdmin"
+              [isMember]="isMember">
+            </app-community-members>
           </div>
         </div>
         
@@ -526,7 +494,8 @@
                   </div>
                 </div>
                 
-                <!-- Mid-cycle Status -->                <div class="custom-card mb-4">
+                <!-- Mid-cycle Status -->                
+                 <div class="custom-card mb-4">
                   <div class="card-header">
                     <h3>Mid-Cycle Status</h3>
                     <div class="status-badge" [ngClass]="{'ready': midCycleDetails.isReady, 'in-progress': !midCycleDetails.isReady && !midCycleDetails.isComplete, 'completed': midCycleDetails.isComplete}">
@@ -612,6 +581,8 @@
             </div>
           </div>
         </div>
+
+
           <!-- Removed Contributions Tab --><!-- Contribution History Tab (Hierarchical) -->        <div class="tab-panel" *ngIf="activeTab === 'contributionHistory' && isMember">
           <div class="tab-content">
             <div class="section-header-with-action">
@@ -655,60 +626,19 @@
           </app-community-votes>
           
         </div>
-        
-        <!-- Payouts Tab -->
-        <div class="tab-panel" *ngIf="activeTab === 'payouts' && isMember">
-          <div class="tab-content">
-            <h2>Payout Schedule</h2>
-            <div class="custom-card">
-              <div class="card-content">
-                <div *ngIf="!community.cycles || community.cycles.length === 0 || !community.payoutDetails" class="empty-state">
-                  <fa-icon [icon]="faMoneyBillTransfer" class="empty-icon"></fa-icon>
-                  <p>No payout information is available yet. Payouts will be scheduled once the community cycle begins.</p>
-                </div>
-                
-                <div *ngIf="community.payoutDetails && community.cycles && community.cycles.length > 0" class="payout-info">
-                  <div class="next-payout-large">
-                    <h3>Next Payout</h3>
-                    <div class="payout-details">
-                      <div class="payout-stat">
-                        <fa-icon [icon]="faUser" class="payout-icon"></fa-icon>
-                        <div class="payout-content">
-                          <span class="payout-label">Recipient: </span>
-                          <span class="payout-value">{{ community.payoutDetails.nextRecipient || 'Not assigned yet' }}</span>
-                        </div>
-                      </div>
-                      
-                      <div class="payout-stat">
-                        <fa-icon [icon]="faMoneyBillTransfer" class="payout-icon"></fa-icon>
-                        <div class="payout-content">
-                          <span class="payout-label">Amount</span>
-                          <span class="payout-value">${{ community.payoutDetails.payoutAmount || 0 }}</span>
-                        </div>
-                      </div>
-                      
-                      <div class="payout-stat">
-                        <fa-icon [icon]="faCalendarDays" class="payout-icon"></fa-icon>
-                        <div class="payout-content">
-                          <span class="payout-label">Date: </span>
-                          <span class="payout-value">{{ formatDate(payDate) }}</span>
-                          <!-- <span>{{payDate}}</span> -->
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>  
-            
-      </div>
-    </div>
 
-  </ng-container>
+
+          <!-- Payouts Tab -->
+        <div class="tab-panel" *ngIf="activeTab === 'payouts' && isMember">
+          <!-- Using the standalone community-payouts component here -->
+          <app-community-payouts 
+            [communityId]="communityId"
+            [isAdmin]="isAdmin"
+            [isMember]="isMember">
+          </app-community-payouts>
+          
+        </div>
   
-  <!-- Information box for non-members -->
   <div class="section" *ngIf="!isMember && currentUserId">
     <div class="custom-card info-card">
       <div class="card-content">

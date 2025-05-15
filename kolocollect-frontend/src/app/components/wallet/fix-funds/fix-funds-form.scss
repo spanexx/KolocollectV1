@@ -1,0 +1,96 @@
+// Form sections and elements for fix-funds component
+.form-error {
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  background-color: #FEF2F2;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  color: #DC2626;
+
+  mat-icon {
+    margin-right: 8px;
+  }
+}
+
+.duration-section, .purpose-section {
+  margin-bottom: 24px;
+
+  p {
+    margin-top: 0;
+    margin-bottom: 16px;
+    color: #6B7280;
+    font-size: 0.9rem;
+  }
+}
+
+.slider-container {
+  display: flex;
+  align-items: center;
+  margin-bottom: 16px;
+
+  .duration-slider {
+    flex: 1;
+    margin-right: 16px;
+  }
+
+  .slider-value {
+    width: 80px;
+    text-align: center;
+    font-weight: 500;
+    color: #6D28D9;
+    padding: 8px;
+    background-color: #F5F3FF;
+    border-radius: 4px;
+  }
+}
+
+.date-info {
+  display: flex;
+  background-color: #F9FAFB;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 16px;
+
+  .date-card {
+    flex: 1;
+    padding: 12px;
+    text-align: center;
+
+    .date-label {
+      font-size: 0.8rem;
+      color: #6B7280;
+      margin-bottom: 4px;
+    }
+
+    .date-value {
+      font-weight: 500;
+      color: #1F2937;
+    }
+  }
+
+  mat-divider {
+    height: 100%;
+  }
+}
+
+.form-actions {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 24px;
+
+  .submit-button {
+    min-width: 120px;
+    background-image: linear-gradient(135deg, #6D28D9, #8B5CF6);
+    transition: background-image 0.3s ease;
+
+    &:hover {
+      background-image: linear-gradient(135deg, #5B21B6, #7C3AED);
+    }
+
+    .button-icon {
+      margin-right: 8px;
+    }
+  }
+}

@@ -1,0 +1,327 @@
+$primary-color: #6D28D9;
+$primary-light: rgba(109, 40, 217, 0.1);
+$primary-dark: #4C1D95;
+$secondary-color: #10B981;
+$secondary-light: rgba(16, 185, 129, 0.1);
+$secondary-dark: #059669;
+$accent-color: #F59E0B;
+$accent-light: rgba(245, 158, 11, 0.1);
+$accent-dark: #D97706;
+$destructive-color: #EF4444;
+$destructive-light: #FECACA;
+$destructive-dark: #B91C1C;
+$neutral-100: #F3F4F6;
+$neutral-200: #E5E7EB;
+$neutral-300: #D1D5DB;
+$neutral-400: #9CA3AF;
+$neutral-500: #6B7280;
+$neutral-600: #4B5563;
+$neutral-700: #374151;
+$neutral-800: #1F2937;
+$neutral-900: #111827;
+
+.tab-content {
+  padding: 2rem;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  
+  @media (max-width: 768px) {
+    padding: 1rem;
+  }
+  
+  @media (max-width: 480px) {
+    padding: 0.75rem;
+  }
+}
+
+.section-header-with-action {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+  gap: 1rem;
+  
+  h2 {
+    margin: 0;
+    color: $neutral-900;
+    font-weight: 600;
+    font-size: 1.25rem;
+    font-family: 'Poppins', sans-serif;
+  }
+  
+  @media (max-width: 480px) {
+    flex-direction: column;
+    align-items: flex-start;
+    
+    h2 {
+      margin-bottom: 0.5rem;
+    }
+    
+    .action {
+      width: 100%;
+    }
+  }
+}
+
+.custom-card {
+  background-color: white;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid $neutral-200;
+  overflow: hidden;
+  margin-bottom: 1.5rem;
+  width: 100%;
+  box-sizing: border-box;
+  
+  .card-content {
+    padding: 1.5rem;
+    
+    @media (max-width: 480px) {
+      padding: 1rem;
+    }
+  }
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1rem;
+  text-align: center;
+  background-color: white;
+  border-radius: 0.5rem;
+  border: 1px dashed $neutral-300;
+  margin: 1rem 0;
+  width: 100%;
+  box-sizing: border-box;
+  
+  .empty-icon {
+    font-size: 3rem;
+    color: $neutral-400;
+    margin-bottom: 1rem;
+  }
+  
+  h3 {
+    margin: 0 0 0.5rem;
+    color: $neutral-800;
+    font-weight: 600;
+  }
+  
+  p {
+    margin: 0 0 0.5rem;
+    color: $neutral-600;
+    max-width: 80%;
+  }
+  
+  span {
+    color: $neutral-500;
+    font-size: 0.9rem;
+  }
+  
+  @media (max-width: 480px) {
+    padding: 2rem 0.75rem;
+    
+    .empty-icon {
+      font-size: 2.5rem;
+    }
+    
+    p {
+      max-width: 100%;
+    }
+  }
+}
+
+.loading-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  color: $neutral-600;
+  
+  fa-icon {
+    margin-right: 0.75rem;
+    font-size: 1.25rem;
+    color: $primary-color;
+  }
+  
+  span {
+    font-size: 1rem;
+  }
+  
+  @media (max-width: 480px) {
+    padding: 1.5rem 0.5rem;
+  }
+}
+
+.payout-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  
+  .next-payout-large {
+    background-color: $accent-light;
+    padding: 1.5rem;
+    border-radius: 0.5rem;
+    border: 1px solid rgba($accent-color, 0.2);
+    
+    h3 {
+      margin: 0 0 1rem;
+      color: $accent-dark;
+      font-weight: 600;
+      font-size: 1.125rem;
+    }
+    
+    .payout-details {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      
+      .payout-stat {
+        display: flex;
+        align-items: flex-start;
+        
+        .payout-icon {
+          color: $accent-dark;
+          font-size: 1.25rem;
+          margin-right: 1rem;
+          margin-top: 0.25rem;
+        }
+        
+        .payout-content {
+          .payout-label {
+            display: block;
+            color: $neutral-700;
+            font-size: 0.875rem;
+            font-weight: 500;
+            margin-bottom: 0.25rem;
+          }
+          
+          .payout-value {
+            font-size: 1rem;
+            color: $neutral-800;
+            font-weight: 600;
+          }
+        }
+      }
+    }
+    
+    @media (max-width: 480px) {
+      padding: 1.25rem 1rem;
+      
+      h3 {
+        font-size: 1rem;
+        margin-bottom: 0.75rem;
+      }
+      
+      .payout-details .payout-stat {
+        .payout-icon {
+          font-size: 1.125rem;
+          margin-right: 0.75rem;
+        }
+        
+        .payout-content {
+          .payout-value {
+            font-size: 0.9375rem;
+          }
+        }
+      }
+    }
+  }
+}
+
+.payout-history {
+  h3 {
+    margin: 0 0 1rem;
+    color: $neutral-800;
+    font-weight: 600;
+    font-size: 1.125rem;
+  }
+  
+  .payouts-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    
+    .payout-item {
+      border: 1px solid $neutral-200;
+      border-radius: 0.5rem;
+      background-color: $neutral-100;
+      padding: 1.25rem;
+      
+      .payout-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.75rem;
+        
+        .payout-date {
+          font-weight: 600;
+          color: $neutral-800;
+        }
+        
+        .payout-amount {
+          color: $secondary-dark;
+          font-weight: 600;
+        }
+      }
+      
+      .payout-recipient {
+        margin-bottom: 0.75rem;
+        
+        .recipient-name {
+          color: $neutral-700;
+          font-size: 0.9375rem;
+        }
+      }
+      
+      .payout-details {
+        .payout-status {
+          display: inline-block;
+          padding: 0.25rem 0.5rem;
+          border-radius: 1rem;
+          font-size: 0.75rem;
+          font-weight: 600;
+          text-transform: uppercase;
+          
+          &.completed {
+            background-color: $secondary-light;
+            color: $secondary-dark;
+          }
+          
+          &.pending {
+            background-color: $accent-light;
+            color: $accent-dark;
+          }
+          
+          &.failed {
+            background-color: $destructive-light;
+            color: $destructive-dark;
+          }
+        }
+      }
+      
+      @media (max-width: 480px) {
+        padding: 1rem;
+        
+        .payout-header {
+          flex-direction: column;
+          align-items: flex-start;
+          gap: 0.5rem;
+          
+          .payout-date {
+            font-size: 0.9375rem;
+          }
+        }
+      }
+    }
+  }
+  
+  @media (max-width: 480px) {
+    h3 {
+      font-size: 1rem;
+    }
+  }
+}

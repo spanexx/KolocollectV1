@@ -1,1 +1,53 @@
-<p>community-members works!</p>
+<div class="members-container">
+  <h2>Community Members</h2>
+  
+  <!-- Loading indicator -->
+  <div *ngIf="loading" class="loading-indicator">
+    <fa-icon [icon]="faUsers" [spin]="true" class="loading-icon"></fa-icon>
+    <p>Loading members...</p>
+  </div>
+  
+  <!-- Empty state -->
+  <div *ngIf="!loading && (!members || members.length === 0)" class="empty-state">
+    <fa-icon [icon]="faUsers" class="empty-icon"></fa-icon>
+    <p>No members have joined this community yet.</p>
+  </div>
+  
+  <!-- Members list -->
+  <div class="custom-card" *ngIf="!loading && members && members.length > 0">
+    <div class="card-content">
+      <div class="members-list">
+        <div class="member-item" *ngFor="let member of members; let last = last" 
+             (click)="navigateToMemberDetail(member.userId)">
+          <div class="member-avatar">
+            <fa-icon [icon]="faUser"></fa-icon>
+          </div>
+          <div class="member-info">
+            <div class="member-name">{{ member.name }}</div>
+            <div class="member-details">
+              <div class="member-joined">Joined: {{ formatDate(member.joinedAt || undefined) }}</div>
+              <div class="member-position" *ngIf="member.position !== undefined && member.position !== null">
+                Position: {{ member.position }}
+              </div>
+            </div>
+          </div>
+          <div class="member-status">
+            <span class="status-indicator" [ngClass]="getMemberStatusClass(member.status)">
+              <fa-icon [icon]="getMemberStatusIcon(member.status)"></fa-icon>
+              <span class="status-text">{{ member.status }}</span>
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Leave Community Button -->
+  <div class="leave-community-container" *ngIf="isMember">
+    <app-custom-button variant="destructive" size="medium" 
+      [icon]="faRightFromBracket" [disabled]="loading"
+      (buttonClick)="leaveCommunity()">
+      Leave Community
+    </app-custom-button>
+  </div>
+</div>

@@ -1,0 +1,252 @@
+// Colors from design system
+$primary-color: #6D28D9; // Deep Purple
+$primary-dark: #5B21B6; // Darker purple
+$primary-light: #C4B5FD; // Light purple
+
+$secondary-color: #10B981; // Emerald Green
+$secondary-dark: #059669; // Darker green
+$secondary-light: #A7F3D0; // Light green
+
+$accent-color: #F59E0B; // Amber
+$accent-dark: #D97706; // Darker amber
+$accent-light: #FCD34D; // Light amber
+
+$destructive-color: #EF4444; // Red
+$destructive-dark: #DC2626; // Darker red
+$destructive-light: #FECACA; // Light red
+
+$neutral-100: #F3F4F6;
+$neutral-200: #E5E7EB;
+$neutral-300: #D1D5DB;
+$neutral-400: #9CA3AF;
+$neutral-500: #6B7280;
+$neutral-600: #4B5563;
+$neutral-700: #374151;
+$neutral-800: #1F2937;
+$neutral-900: #111827;
+
+// CSS Variables for animations
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+// Responsive breakpoints
+$breakpoint-sm: 640px;
+$breakpoint-md: 768px;
+$breakpoint-lg: 1024px;
+$breakpoint-xl: 1280px;
+
+// Container and general styling
+.community-detail-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1rem;
+  font-family: 'Inter', sans-serif;
+  position: relative;
+  
+  @media (max-width: $breakpoint-md) {
+    padding: 0.5rem;
+  }
+}
+
+// Top-level Layout sections
+.community-header {
+  margin-bottom: 2rem;
+  
+  .custom-card {
+    border-radius: 0.75rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.1);
+    background: white;
+    transition: box-shadow 0.3s ease;
+    overflow: hidden;
+
+    &:hover {
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+    }
+  }
+  
+  .community-header-content {
+    display: flex;
+    justify-content: space-between;
+    padding: 2rem;
+    
+    @media (max-width: $breakpoint-md) {
+      flex-direction: column;
+      padding: 1.5rem;
+    }
+  }
+}
+
+.custom-tabs-container {
+  margin-bottom: 2rem;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  background: white;
+}
+
+.tab-content {
+  padding: 2rem;
+  animation: fadeIn 0.3s ease-in;
+  
+  @media (max-width: $breakpoint-md) {
+    padding: 1rem;
+  }
+}
+
+.section {
+  margin-bottom: 2.5rem;
+  
+  &:last-child {
+    margin-bottom: 0;
+  }
+  
+  h2 {
+    margin: 0 0 1rem;
+    color: $neutral-900;
+    font-weight: 600;
+    font-size: 1.25rem;
+    font-family: 'Poppins', sans-serif;
+  }
+}
+
+.section-header-with-action {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+  
+  @media (max-width: $breakpoint-sm) {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  
+  h2 {
+    margin: 0;
+  }
+}
+
+// Custom Card Components
+.custom-card {
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  background: white;
+  margin-bottom: 1.5rem;
+  overflow: hidden;
+  
+  &:last-child {
+    margin-bottom: 0;
+  }
+  
+  .card-header {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid $neutral-200;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    
+    h3 {
+      margin: 0;
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: $neutral-800;
+    }
+  }
+  
+  .card-content {
+    padding: 1.5rem;
+    
+    @media (max-width: $breakpoint-sm) {
+      padding: 1rem;
+    }
+  }
+  
+  &.info-card {
+    border-left: 4px solid $accent-color;
+  }
+}
+
+// Loading and error states
+.loading-spinner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  color: $primary-color;
+  
+  .spinner-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 60px;
+    height: 60px;
+    
+    fa-icon {
+      color: $primary-color;
+      font-size: 2em;
+    }
+  }
+  
+  p {
+    margin-top: 1rem;
+    font-size: 1rem;
+    color: $neutral-600;
+  }
+}
+
+.error-container {
+  padding: 2rem;
+  
+  .error-card {
+    background-color: $neutral-100;
+    border-radius: 0.5rem;
+    border-left: 4px solid $destructive-color;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    
+    .error-card-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem;
+      text-align: center;
+      
+      .error-icon {
+        font-size: 3rem;
+        color: $destructive-color;
+        margin-bottom: 1rem;
+      }
+      
+      h3 {
+        margin: 0 0 0.5rem;
+        color: $neutral-800;
+        font-weight: 600;
+      }
+      
+      p {
+        margin: 0 0 1.5rem;
+        color: $neutral-600;
+      }
+    }
+  }
+}
+
+.mb-2 {
+  margin-bottom: 0.5rem;
+}
+
+.mb-4 {
+  margin-bottom: 1rem;
+}
+
+.ml-2 {
+  margin-left: 0.5rem;
+}

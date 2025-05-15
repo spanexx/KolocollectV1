@@ -46,6 +46,9 @@ import { UserProfileDialogComponent } from '../../profile/user-profile-dialog/us
 import { User } from '../../../models/user.model';
 import { CustomButtonComponent } from '../../../shared/components/custom-button/custom-button.component';
 import { CommunityVotesComponent } from '../community-votes/community-votes.component';
+import { CommunityPayoutsComponent } from '../community-payouts/community-payouts.component';
+import { CommunityMembersComponent } from '../community-members/community-members.component';
+import { CommunityMidcycleComponent } from '../community-midcycle/community-midcycle.component';
 
 @Component({
   selector: 'app-community-detail',
@@ -62,10 +65,10 @@ import { CommunityVotesComponent } from '../community-votes/community-votes.comp
     MatChipsModule,
     MatBadgeModule,
     MatDialogModule,
-    MatMenuModule,    FontAwesomeModule,
-    CustomButtonComponent,    ContributionHistoryHierarchicalComponent,
-    OwingMembersComponent,
+    MatMenuModule,    FontAwesomeModule,    CustomButtonComponent,    ContributionHistoryHierarchicalComponent,    OwingMembersComponent,
     CommunityVotesComponent, // Used in template
+    CommunityPayoutsComponent, // Used in template
+    CommunityMembersComponent, // Used in template
     FormsModule,
     ReactiveFormsModule,
     MatFormFieldModule,

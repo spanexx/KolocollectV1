@@ -7,9 +7,11 @@ import { RouterModule } from '@angular/router';
 @Component({
   selector: 'app-custom-button',
   standalone: true,
-  imports: [CommonModule, FontAwesomeModule, RouterModule],
-  templateUrl: './custom-button.component.html',
-  styleUrl: './custom-button.component.scss'
+  imports: [CommonModule, FontAwesomeModule, RouterModule],  templateUrl: './custom-button.component.html',
+  styleUrls: [
+    './button-base.scss',
+    './button-variants.scss'
+  ]
 })
 export class CustomButtonComponent {
   @Input() variant: 'primary' | 'secondary' | 'tertiary' | 'destructive' = 'primary';
