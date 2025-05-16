@@ -1,0 +1,124 @@
+@import '../base.styles';
+@import '../elements';
+
+// Upcoming payouts specific styles
+:host {
+  display: block;
+  height: 100%;
+}
+
+.payouts-list {
+  max-height: 300px;
+  overflow-y: auto;
+  padding: 0 $spacing-1;
+  margin: 0 (-$spacing-1);
+  
+  @include hide-scrollbar;
+}
+
+.payout-item {
+  display: flex;
+  align-items: center;
+  padding: $spacing-3;
+  border-bottom: 1px dashed rgba($terracotta, 0.2);
+  transition: all $transition-quick;
+  
+  &:last-child {
+    border-bottom: none;
+  }
+    &:hover {
+    background-color: rgba($terracotta, 0.05);
+    transform: translateX(5px);
+    padding-left: $spacing-4;
+  }
+  
+  .payout-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 40px;
+    height: 40px;
+    background-color: rgba($terracotta, 0.1);
+    border-radius: $border-radius-full;
+    color: $terracotta;
+    margin-right: $spacing-3;
+    transition: all $transition-normal;
+    position: relative;
+    
+    // Add decorative dashed circle around icon on hover
+    &::after {
+      content: '';
+      position: absolute;
+      top: -3px;
+      left: -3px;
+      right: -3px;
+      bottom: -3px;
+      border: 1px dashed rgba($terracotta, 0.3);
+      border-radius: $border-radius-full;
+      opacity: 0;
+      transition: opacity $transition-normal;
+    }
+  }
+  
+  &:hover .payout-icon {
+    transform: scale(1.1);
+    background-color: rgba($terracotta, 0.15);
+  }
+  
+  &:hover .payout-icon::after {
+    opacity: 1;
+    animation: spin 10s linear infinite;
+  }
+  
+  .payout-details {
+    flex: 1;
+  }
+  
+  .payout-community {
+    @include body-small;
+    font-weight: $font-weight-medium;
+    color: $text-primary;
+    margin: 0 0 $spacing-1;
+  }
+  
+  .payout-info {
+    display: flex;
+    align-items: center;
+    gap: $spacing-2;
+    
+    .payout-date, .payout-cycle {
+      @include caption;
+      color: $text-tertiary;
+    }
+    
+    .dot-separator {
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background-color: $neutral-400;
+    }
+  }
+  
+  .payout-amount {
+    @include body-normal;
+    font-weight: $font-weight-semibold;
+    color: $terracotta;
+    text-align: right;
+    white-space: nowrap;
+  }
+}
+
+// African-inspired pattern background
+.payouts-list:not(:empty)::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 80px;
+  background-image: url('/assets/images/patterns/mud-cloth-pattern.svg');
+  background-repeat: repeat-y;
+  background-size: 60px;
+  opacity: 0.03;
+  pointer-events: none;
+}

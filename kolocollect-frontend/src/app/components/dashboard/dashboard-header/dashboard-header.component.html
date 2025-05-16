@@ -1,0 +1,6 @@
+    <h1>Welcome{{ currentUser?.name ? ', ' + currentUser?.name : '' }}</h1>
+    <p class="subheading">Here's an overview of your KoloCollect activity</p>
+    <div *ngIf="isLoading" class="loading-overlay">
+      <mat-spinner diameter="40"></mat-spinner>
+      <span class="loading-text">Loading your dashboard...</span>
+    </div>

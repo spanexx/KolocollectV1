@@ -1,0 +1,185 @@
+// Base styles for dashboard
+@import '../../../styles/abstracts/variables';
+@import '../../../styles/abstracts/mixins';
+
+// Dashboard container styles
+.dashboard-container {
+  padding: $spacing-5;
+  background-color: $background-secondary;
+  min-height: 100vh;
+  
+  @include respond-to(xs) {
+    padding: $spacing-4;
+  }
+  
+  @include respond-to(md) {
+    padding: $spacing-5;
+  }
+}
+
+// Dashboard grid layout
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: $spacing-5;
+  margin-top: $spacing-5;
+  
+  @include respond-to(xs) {
+    grid-template-columns: 1fr;
+    gap: $spacing-4;
+  }
+  
+  @include respond-to(sm) {
+    grid-template-columns: repeat(2, 1fr);
+    gap: $spacing-4;
+  }
+  
+  @include respond-to(lg) {
+    grid-template-columns: repeat(3, 1fr);
+    gap: $spacing-5;
+  }
+  
+  @include respond-to(xl) {
+    grid-template-columns: repeat(12, 1fr);
+    gap: $spacing-5;
+  }
+}
+
+// Dashboard item placement in grid
+.dashboard-item {
+  @include respond-to(xs) {
+    grid-column: span 1;
+  }
+  
+  @include respond-to(sm) {
+    grid-column: span 1;
+    
+    &.financial-summary,
+    &.notifications {
+      grid-column: span 2;
+    }
+  }
+  
+  @include respond-to(lg) {
+    grid-column: span 1;
+    
+    &.financial-summary {
+      grid-column: span 2;
+    }
+  }
+  
+  @include respond-to(xl) {
+    &.financial-summary {
+      grid-column: span 6;
+    }
+    
+    &.notifications {
+      grid-column: span 6;
+    }
+    
+    &.my-communities {
+      grid-column: span 4;
+    }
+    
+    &.upcoming-payouts {
+      grid-column: span 4;
+    }
+    
+    &.recent-contributions {
+      grid-column: span 4;
+    }
+  }
+}
+
+// Common card styling for all dashboard components
+mat-card {
+  @include card;
+  height: 100%;
+  transition: transform $transition-normal, box-shadow $transition-normal;
+  border-radius: $card-border-radius;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  
+  &:hover {
+    box-shadow: $card-shadow-hover;
+    transform: translateY(-2px);
+  }
+  
+  mat-card-header {
+    padding: $card-header-padding-y $card-header-padding-x;
+    border-bottom: 1px solid $card-header-border-color;
+    @include flex-between;
+    
+    mat-card-title {
+      margin: 0;
+      @include heading-5;
+      color: $text-primary;
+    }
+    
+    .header-icon {
+      font-size: 1.5rem;
+      
+      &.primary-color {
+        color: $kente-gold;
+      }
+      
+      &.accent-color {
+        color: $indigo-blue;
+      }
+      
+      &.success-color {
+        color: $success-color;
+      }
+      
+      &.warning-color {
+        color: $warning-color;
+      }
+    }
+  }
+    mat-card-content {
+    padding: $card-padding;
+    flex-grow: 1;
+  }
+  
+  mat-card-actions {
+    padding: $spacing-2 $card-footer-padding-x;
+    border-top: 1px solid $card-footer-border-color;
+    background-color: $card-footer-bg;
+    @include flex-between;
+    flex-wrap: wrap;
+    
+    a, button {
+      margin: $spacing-1;
+    }
+  }
+}
+
+// Loading styles
+.loading-container {
+  @include flex-center;
+  flex-direction: column;
+  padding: $spacing-5;
+  color: $text-secondary;
+  gap: $spacing-3;
+}
+
+// No data state
+.no-data {
+  @include flex-center;
+  flex-direction: column;
+  padding: $spacing-5;
+  color: $text-tertiary;
+  text-align: center;
+  gap: $spacing-3;
+  
+  fa-icon {
+    color: $neutral-400;
+  }
+}
+
+// Focus styles for interactive elements
+:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px $focus-ring-color;
+}

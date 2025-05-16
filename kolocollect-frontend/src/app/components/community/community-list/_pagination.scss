@@ -1,0 +1,21 @@
+@import '../../../../styles/index.scss';
+
+// Pagination styling
+.pagination-controls {
+  display: flex;
+  justify-content: center;
+  margin-top: $spacing-6;
+  
+  ::ng-deep .ngx-pagination {
+    padding: 0;
+    margin: 0;
+    
+    .current {
+      background-color: $primary-color !important;
+    }
+    
+    a:hover {
+      background-color: rgba($primary-color, 0.1);
+    }
+  }
+}

@@ -1,0 +1,76 @@
+// Measurements for KoloCollect
+// These variables help maintain consistency in spacing and sizing
+
+// Spacing scale based on 0.25rem (4px) increments
+// Already defined in _variables.scss
+
+// Container widths
+$container-max-width-sm: 540px;
+$container-max-width-md: 720px;
+$container-max-width-lg: 960px;
+$container-max-width-xl: 1140px;
+$container-max-width-2xl: 1320px;
+
+// Grid variables
+$grid-columns: 12;
+$grid-gutter-width: 1.5rem; // 24px
+$grid-row-gap: 1rem;        // 16px
+
+// Layout measurements
+$header-height: 4rem;       // 64px
+$header-height-mobile: 3.5rem; // 56px
+$sidebar-width: 16rem;      // 256px
+$sidebar-width-collapsed: 4.5rem; // 72px
+$footer-height: 3.5rem;     // 56px
+
+// Avatar and icon sizes
+$icon-size-xs: 1rem;        // 16px
+$icon-size-sm: 1.25rem;     // 20px 
+$icon-size-md: 1.5rem;      // 24px
+$icon-size-lg: 2rem;        // 32px
+$icon-size-xl: 2.5rem;      // 40px
+
+$avatar-size-xs: 1.5rem;    // 24px
+$avatar-size-sm: 2rem;      // 32px
+$avatar-size-md: 2.5rem;    // 40px
+$avatar-size-lg: 3rem;      // 48px
+$avatar-size-xl: 4rem;      // 64px
+
+// Component specific measurements
+// For buttons
+$button-height-sm: 2rem;    // 32px
+$button-height-md: 2.5rem;  // 40px
+$button-height-lg: 3rem;    // 48px
+
+// For inputs
+$input-height-sm: 2rem;     // 32px
+$input-height-md: 2.5rem;   // 40px
+$input-height-lg: 3rem;     // 48px
+
+// For checkboxes and radio buttons
+$checkbox-size: 1rem;       // 16px
+$radio-size: 1rem;          // 16px
+
+// For pagination
+$pagination-item-size: 2rem; // 32px
+
+// Maximum number of lines for truncation
+$line-clamp-1: 1;
+$line-clamp-2: 2;
+$line-clamp-3: 3;
+$line-clamp-4: 4;
+
+// Z-index stacking
+// (Duplicated from variables for easy reference)
+// $z-index-dropdown: 1000;
+// $z-index-sticky: 1020;
+// $z-index-fixed: 1030;
+// $z-index-modal-backdrop: 1040;
+// $z-index-modal: 1050;
+// $z-index-popover: 1060;
+// $z-index-tooltip: 1070;
+
+// Animation timings
+$animation-fast: 150ms;
+$animation-normal: 300ms;
+$animation-slow: 500ms;

@@ -1,0 +1,52 @@
+@import '../../../../styles/index.scss';
+
+// Header section styling
+.header-section {
+  @include flex-between;
+  margin-bottom: $spacing-8;
+  padding-bottom: $spacing-4;
+  border-bottom: 1px solid rgba($neutral-500, 0.1);
+  
+  h1 {
+    font-size: $font-size-3xl;
+    font-weight: $font-weight-bold;
+    color: $text-primary;
+    margin: 0;
+    font-family: $font-family-heading;
+    display: flex;
+    align-items: center;
+    
+    .section-icon {
+      color: $primary-color;
+      margin-right: $spacing-3;
+      font-size: $font-size-2xl;
+    }
+  }
+  
+  .actions {
+    .custom-button {
+      padding: $spacing-3 $spacing-6;
+      font-weight: $font-weight-semibold;
+      font-size: $font-size-base;
+      min-width: 180px;
+      
+      .button-icon {
+        margin-right: $spacing-2-5;
+      }
+    }
+  }
+  
+  @media (max-width: $screen-md) {
+    flex-direction: column;
+    align-items: flex-start;
+    
+    h1 {
+      margin-bottom: $spacing-5;
+      font-size: $font-size-2xl;
+    }
+    
+    .actions {
+      align-self: stretch;
+    }
+  }
+}

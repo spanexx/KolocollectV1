@@ -1,0 +1,369 @@
+@import 'variables';
+@import 'measurements';
+@import 'mixins';
+
+// Card components
+.card {
+  @include card;
+  margin-bottom: $spacing-4;
+  
+  &-hover {
+    @include card-hover;
+  }
+  
+  &-header {
+    padding: $spacing-3 $spacing-4;
+    border-bottom: 1px solid $border-light;
+    @include flex-between;
+    
+    h3, h4, h5, h6 {
+      margin-bottom: 0;
+    }
+  }
+  
+  &-body {
+    padding: $spacing-4;
+  }
+  
+  &-footer {
+    padding: $spacing-3 $spacing-4;
+    border-top: 1px solid $border-light;
+    background-color: $background-secondary;
+    border-radius: 0 0 $border-radius-md $border-radius-md;
+  }
+}
+
+// Badge components
+.badge {
+  display: inline-block;
+  padding: $spacing-1 $spacing-2;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-medium;
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: middle;
+  border-radius: $border-radius-full;
+  
+  &-primary {
+    background-color: $primary-color;
+    color: #fff;
+  }
+  
+  &-secondary {
+    background-color: $secondary-color;
+    color: #fff;
+  }
+  
+  &-success {
+    background-color: $success-color;
+    color: #fff;
+  }
+  
+  &-warning {
+    background-color: $warning-color;
+    color: #fff;
+  }
+  
+  &-danger {
+    background-color: $destructive-color;
+    color: #fff;
+  }
+  
+  &-info {
+    background-color: $info-color;
+    color: #fff;
+  }
+  
+  &-light {
+    background-color: $neutral-200;
+    color: $neutral-800;
+  }
+  
+  &-dark {
+    background-color: $neutral-800;
+    color: #fff;
+  }
+}
+
+// Alert components
+.alert {
+  position: relative;
+  padding: $spacing-3 $spacing-4;
+  margin-bottom: $spacing-4;
+  border: 1px solid transparent;
+  border-radius: $border-radius-md;
+  
+  &-primary {
+    background-color: rgba($primary-color, 0.1);
+    border-color: rgba($primary-color, 0.2);
+    color: $primary-dark;
+  }
+  
+  &-secondary {
+    background-color: rgba($secondary-color, 0.1);
+    border-color: rgba($secondary-color, 0.2);
+    color: $secondary-dark;
+  }
+  
+  &-success {
+    background-color: rgba($success-color, 0.1);
+    border-color: rgba($success-color, 0.2);
+    color: $success-dark;
+  }
+  
+  &-warning {
+    background-color: rgba($warning-color, 0.1);
+    border-color: rgba($warning-color, 0.2);
+    color: $warning-dark;
+  }
+  
+  &-danger {
+    background-color: rgba($destructive-color, 0.1);
+    border-color: rgba($destructive-color, 0.2);
+    color: $destructive-dark;
+  }
+  
+  &-info {
+    background-color: rgba($info-color, 0.1);
+    border-color: rgba($info-color, 0.2);
+    color: $info-dark;
+  }
+}
+
+// Button base styles
+.btn {
+  @include button-base;
+  
+  &-primary {
+    @include button-primary;
+  }
+  
+  &-secondary {
+    @include button-secondary;
+  }
+  
+  &-outline {
+    @include button-outline;
+  }
+  
+  &-text {
+    @include button-text-only;
+  }
+  
+  &-danger {
+    @include button-destructive;
+  }
+  
+  // Size variants
+  &-sm {
+    padding: $spacing-1 $spacing-2;
+    font-size: $font-size-xs;
+  }
+  
+  &-lg {
+    padding: $spacing-3 $spacing-5;
+    font-size: $font-size-lg;
+  }
+  
+  // With icon
+  &-icon {
+    display: inline-flex;
+    align-items: center;
+    
+    i, fa-icon, mat-icon {
+      margin-right: $spacing-2;
+    }
+    
+    &.btn-icon-right {
+      i, fa-icon, mat-icon {
+        margin-right: 0;
+        margin-left: $spacing-2;
+      }
+    }
+  }
+}
+
+// Progress bars
+.progress {
+  display: flex;
+  height: 0.5rem;
+  overflow: hidden;
+  font-size: $font-size-xs;
+  background-color: $neutral-200;
+  border-radius: $border-radius-full;
+  
+  &-bar {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    color: #fff;
+    text-align: center;
+    white-space: nowrap;
+    background-color: $primary-color;
+    transition: width 0.6s ease;
+    
+    &-striped {
+      background-image: linear-gradient(
+        45deg,
+        rgba(255, 255, 255, 0.15) 25%,
+        transparent 25%,
+        transparent 50%,
+        rgba(255, 255, 255, 0.15) 50%,
+        rgba(255, 255, 255, 0.15) 75%,
+        transparent 75%,
+        transparent
+      );
+      background-size: 1rem 1rem;
+    }
+    
+    &-animated {
+      animation: progress-bar-stripes 1s linear infinite;
+    }
+  }
+  
+  &-sm {
+    height: 0.25rem;
+  }
+  
+  &-lg {
+    height: 1rem;
+  }
+}
+
+@keyframes progress-bar-stripes {
+  from { background-position: 1rem 0; }
+  to { background-position: 0 0; }
+}
+
+// Tables
+.table {
+  width: 100%;
+  margin-bottom: $spacing-4;
+  color: $text-primary;
+  border-collapse: collapse;
+  
+  th,
+  td {
+    padding: $spacing-3 $spacing-4;
+    vertical-align: top;
+    border-top: 1px solid $border-light;
+  }
+  
+  thead th {
+    vertical-align: bottom;
+    border-bottom: 2px solid $border-light;
+    font-weight: $font-weight-semibold;
+    text-align: left;
+  }
+  
+  tbody + tbody {
+    border-top: 2px solid $border-light;
+  }
+  
+  &-sm {
+    th,
+    td {
+      padding: $spacing-2;
+    }
+  }
+  
+  &-bordered {
+    border: 1px solid $border-light;
+    
+    th,
+    td {
+      border: 1px solid $border-light;
+    }
+  }
+  
+  &-hover {
+    tbody tr {
+      &:hover {
+        background-color: rgba($primary-color, 0.05);
+      }
+    }
+  }
+  
+  &-striped {
+    tbody tr:nth-of-type(odd) {
+      background-color: rgba($neutral-800, 0.025);
+    }
+  }
+}
+
+// Form controls
+.form-control {
+  @include input-base;
+  
+  &-sm {
+    height: calc(1.5em + #{$spacing-2} + 2px);
+    padding: $spacing-1 $spacing-2;
+    font-size: $font-size-sm;
+  }
+  
+  &-lg {
+    height: calc(1.5em + #{$spacing-6} + 2px);
+    padding: $spacing-3 $spacing-4;
+    font-size: $font-size-lg;
+  }
+}
+
+.form-group {
+  margin-bottom: $spacing-4;
+}
+
+.form-label {
+  @include label;
+  display: inline-block;
+  margin-bottom: $spacing-2;
+}
+
+.form-text {
+  display: block;
+  margin-top: $spacing-1;
+  color: $text-tertiary;
+  font-size: $font-size-sm;
+}
+
+.form-check {
+  position: relative;
+  display: block;
+  padding-left: 1.25rem;
+  
+  &-input {
+    position: absolute;
+    margin-top: 0.3rem;
+    margin-left: -1.25rem;
+  }
+  
+  &-label {
+    margin-bottom: 0;
+  }
+  
+  &-inline {
+    display: inline-flex;
+    align-items: center;
+    padding-left: 0;
+    margin-right: 0.75rem;
+    
+    .form-check-input {
+      position: static;
+      margin-top: 0;
+      margin-right: 0.3125rem;
+      margin-left: 0;
+    }
+  }
+}
+
+// Interactive elements
+.clickable {
+  cursor: pointer;
+}
+
+.pressable {
+  transition: transform $transition-quick;
+  
+  &:active {
+    transform: scale(0.98);
+  }
+}

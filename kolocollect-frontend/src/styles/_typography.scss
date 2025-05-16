@@ -1,0 +1,76 @@
+@import 'variables';
+@import 'measurements';
+@import 'mixins';
+
+// Base typography styles
+body {
+  font-family: $font-family-base;
+  font-size: $font-size-base;
+  line-height: $line-height-normal;
+  color: $text-primary;
+  background-color: $background-secondary;
+}
+
+h1, .h1 {
+  @include heading-1;
+  margin-bottom: $spacing-4;
+}
+
+h2, .h2 {
+  @include heading-2;
+  margin-bottom: $spacing-3;
+}
+
+h3, .h3 {
+  @include heading-3;
+  margin-bottom: $spacing-3;
+}
+
+h4, .h4 {
+  @include heading-4;
+  margin-bottom: $spacing-2;
+}
+
+h5, .h5 {
+  @include heading-5;
+  margin-bottom: $spacing-2;
+}
+
+h6, .h6 {
+  @include heading-6;
+  margin-bottom: $spacing-2;
+}
+
+p {
+  margin-bottom: $spacing-3;
+}
+
+// Links
+a {
+  color: $primary-color;
+  text-decoration: none;
+  transition: color $transition-quick;
+  
+  &:hover {
+    color: $primary-dark;
+    text-decoration: underline;
+  }
+  
+  &:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px $focus-ring-color;
+  }
+}
+
+// Common text styles
+.lead {
+  @include body-large;
+}
+
+.small {
+  @include body-small;
+}
+
+.caption {
+  @include caption;
+}

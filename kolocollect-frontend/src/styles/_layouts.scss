@@ -1,0 +1,242 @@
+@import 'variables';
+@import 'measurements';
+@import 'mixins';
+
+// Common layout patterns
+
+// Basic container
+.container {
+  @include container;
+}
+
+// Fixed width centered container for app content
+.app-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 $spacing-4;
+  
+  @include respond-to(md) {
+    padding: 0 $spacing-6;
+  }
+}
+
+// Layout with sidebar
+.layout-with-sidebar {
+  display: flex;
+  min-height: 100vh;
+  
+  .sidebar-container {
+    flex-shrink: 0;
+    z-index: $z-index-fixed;
+    
+    @include respond-to(md) {
+      position: relative;
+      z-index: $z-index-base;
+    }
+  }
+  
+  .main-content {
+    flex: 1;
+    min-width: 0; // Fix for flexbox overflow issues
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    
+    .header-container {
+      flex-shrink: 0;
+      z-index: $z-index-fixed;
+      position: sticky;
+      top: 0;
+    }
+    
+    .content-container {
+      flex: 1;
+      padding: $spacing-4;
+      
+      @include respond-to(md) {
+        padding: $spacing-6;
+      }
+    }
+    
+    .footer-container {
+      flex-shrink: 0;
+    }
+  }
+}
+
+// Page layout with header
+.page-layout {
+  .page-header {
+    margin-bottom: $spacing-6;
+    
+    h1, h2 {
+      margin-bottom: $spacing-2;
+    }
+    
+    .page-description {
+      color: $text-secondary;
+    }
+    
+    .page-actions {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: $spacing-2;
+      margin-top: $spacing-4;
+    }
+  }
+  
+  .page-content {
+    margin-bottom: $spacing-8;
+  }
+  
+  .page-footer {
+    margin-top: $spacing-8;
+    padding-top: $spacing-4;
+    border-top: 1px solid $border-light;
+  }
+}
+
+// Grid layouts
+.grid-auto-columns {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: $spacing-4;
+  
+  @include respond-to(md) {
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: $spacing-6;
+  }
+}
+
+.grid-1-2 {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: $spacing-4;
+  
+  @include respond-to(md) {
+    grid-template-columns: 1fr 2fr;
+    gap: $spacing-6;
+  }
+}
+
+.grid-2-1 {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: $spacing-4;
+  
+  @include respond-to(md) {
+    grid-template-columns: 2fr 1fr;
+    gap: $spacing-6;
+  }
+}
+
+.grid-1-1 {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: $spacing-4;
+  
+  @include respond-to(md) {
+    grid-template-columns: 1fr 1fr;
+    gap: $spacing-6;
+  }
+}
+
+.grid-1-1-1 {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: $spacing-4;
+  
+  @include respond-to(md) {
+    grid-template-columns: 1fr 1fr;
+    gap: $spacing-5;
+  }
+  
+  @include respond-to(lg) {
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: $spacing-6;
+  }
+}
+
+// Sidebar layouts
+.sidebar-layout {
+  display: flex;
+  flex-direction: column;
+  
+  @include respond-to(md) {
+    flex-direction: row;
+  }
+  
+  .sidebar {
+    flex-shrink: 0;
+    width: 100%;
+    
+    @include respond-to(md) {
+      width: 280px;
+      margin-right: $spacing-6;
+    }
+  }
+  
+  .content {
+    flex: 1;
+    min-width: 0; // Fix for flexbox overflow issues
+  }
+}
+
+// Common sections
+.section {
+  margin-bottom: $spacing-8;
+  
+  .section-header {
+    margin-bottom: $spacing-4;
+    
+    .section-title {
+      margin-bottom: $spacing-2;
+    }
+    
+    .section-subtitle {
+      color: $text-secondary;
+    }
+  }
+  
+  .section-body {
+    margin-bottom: $spacing-4;
+  }
+  
+  .section-footer {
+    margin-top: $spacing-4;
+  }
+}
+
+// Stackable content - mobile-first with proper spacing
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-4;
+  
+  @include respond-to(md) {
+    gap: $spacing-6;
+  }
+}
+
+.hstack {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: $spacing-4;
+  
+  @include respond-to(md) {
+    gap: $spacing-6;
+  }
+}
+
+// For sticky headers within content
+.sticky-section-header {
+  position: sticky;
+  top: $header-height;
+  background-color: $background-primary;
+  padding: $spacing-3 0;
+  margin-bottom: $spacing-4;
+  z-index: $z-index-sticky;
+  border-bottom: 1px solid $border-light;
+}

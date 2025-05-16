@@ -1,0 +1,170 @@
+/* Reset and base styles for KoloCollect
+ * African-inspired, classy design system
+ */
+
+/* Box sizing */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* Reset margins and padding */
+html, body,
+h1, h2, h3, h4, h5, h6,
+p, blockquote, figure, figcaption,
+dl, dd, ol, ul {
+  margin: 0;
+  padding: 0;
+}
+
+/* Set core body defaults */
+body {
+  min-height: 100vh;
+  scroll-behavior: smooth;
+  text-rendering: optimizeSpeed;
+  line-height: 1.5;
+  font-family: $font-family-base;
+  color: $text-primary;
+  background-color: $background-secondary;
+}
+
+/* Set core root defaults */
+html:focus-within {
+  scroll-behavior: smooth;
+}
+
+/* Make images easier to work with */
+img,
+picture {
+  max-width: 100%;
+  display: block;
+}
+
+/* Inherit fonts for inputs and buttons */
+input,
+button,
+textarea,
+select {
+  font: inherit;
+}
+
+/* Remove all animations, transitions and smooth scroll for people that prefer not to see them */
+@media (prefers-reduced-motion: reduce) {
+  html:focus-within {
+   scroll-behavior: auto;
+  }
+  
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Add accessible line-height and text spacing */
+p, h1, h2, h3, h4, h5, h6 {
+  overflow-wrap: break-word;
+}
+
+/* Remove list styles on ul, ol elements with a list role */
+ul[role='list'],
+ol[role='list'] {
+  list-style: none;
+}
+
+/* Links */
+a {
+  color: $indigo-blue;
+  text-decoration: none;
+  transition: color $transition-quick;
+  
+  &:hover {
+    text-decoration: underline;
+    color: darken($indigo-blue, 10%);
+  }
+  
+  &:focus {
+    outline: 3px solid $focus-ring-color;
+    outline-offset: 2px;
+  }
+}
+
+/* Focus styles */
+:focus {
+  outline: 3px solid $focus-ring-color;
+  outline-offset: 2px;
+}
+
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+:focus-visible {
+  outline: 3px solid $focus-ring-color;
+  outline-offset: 2px;
+}
+
+/* Visually hidden but accessible to screen readers */
+.sr-only {
+  @include sr-only;
+}
+
+/* Base container */
+.container {
+  @include container;
+}
+
+/* Add vertical rhythm to stacked elements */
+* + h1, * + h2, * + h3, * + h4, * + h5, * + h6, * + p, * + ul, * + ol {
+  margin-top: $spacing-4;
+}
+
+/* Set basic heading styles */
+h1, h2, h3, h4, h5, h6 {
+  color: $text-primary;
+  font-family: $font-family-heading;
+  font-weight: $font-weight-bold;
+  line-height: $line-height-tight;
+}
+
+h1 {
+  @include heading-1;
+}
+
+h2 {
+  @include heading-2;
+}
+
+h3 {
+  @include heading-3;
+}
+
+h4 {
+  @include heading-4;
+}
+
+h5 {
+  @include heading-5;
+}
+
+h6 {
+  @include heading-6;
+}
+
+/* Basic paragraph and inline text */
+p {
+  @include body-normal;
+  margin-bottom: $spacing-4;
+}
+
+small {
+  @include body-small;
+}
+
+strong {
+  font-weight: $font-weight-bold;
+}

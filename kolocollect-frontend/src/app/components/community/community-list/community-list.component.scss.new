@@ -1,0 +1,12 @@
+@import '../../../../styles/index.scss';
+@import './_header.scss';
+@import './_filters.scss';
+@import './_states.scss';
+@import './_grid.scss';
+@import './_community-card.scss';
+@import './_pagination.scss';
+
+// Main container styling
+.community-list-container {
+  margin: $spacing-6;
+}

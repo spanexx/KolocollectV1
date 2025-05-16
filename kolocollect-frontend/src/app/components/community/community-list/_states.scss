@@ -1,0 +1,33 @@
+@import '../../../../styles/index.scss';
+
+// Loading, error, and no results states
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 20rem;
+  
+  p {
+    margin-top: $spacing-4;
+    font-size: $font-size-base;
+    color: $text-secondary;
+  }
+}
+
+.error-container, .no-results {
+  text-align: center;
+  padding: $spacing-12 $spacing-4;
+  
+  .error-message {
+    color: $destructive-color;
+    font-size: $font-size-lg;
+    margin-bottom: $spacing-4;
+  }
+  
+  p {
+    font-size: $font-size-lg;
+    color: $text-secondary;
+    margin-bottom: $spacing-6;
+  }
+}

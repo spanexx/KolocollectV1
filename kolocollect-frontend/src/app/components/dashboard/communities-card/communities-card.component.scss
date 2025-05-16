@@ -1,0 +1,170 @@
+@import '../base.styles';
+@import '../elements';
+
+// Communities card specific styles
+:host {
+  display: block;
+  height: 100%;
+}
+
+.communities-list {
+  max-height: 320px;
+  overflow-y: auto;
+  
+  @include hide-scrollbar;
+  
+  // African-inspired subtle background texture
+  background-image: url('/assets/images/patterns/bark-cloth-light.svg');
+  background-repeat: repeat;
+  background-size: 100px;
+  background-position: center;
+  background-attachment: fixed;
+  background-blend-mode: overlay;
+  background-color: rgba($background-primary, 0.95);
+}
+
+.community-cards-container {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: $spacing-3;
+  padding: $spacing-2;
+  
+  @include respond-to(sm) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  @include respond-to(xl) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.community-card {
+  position: relative;
+  display: block;
+  padding: $spacing-3 $spacing-4;
+  border-radius: $border-radius-md;
+  background: linear-gradient(135deg, rgba($background-primary, 0.95) 0%, rgba($calabash-cream, 0.1) 100%);
+  box-shadow: $shadow-sm;
+  text-decoration: none;
+  transition: all $transition-normal;
+  border-left: 3px solid transparent;
+  z-index: 1;
+  
+  // Add subtle tribal pattern
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url('/assets/images/patterns/tribal-pattern-light.svg');
+    background-size: 200px;
+    background-position: center right;
+    background-repeat: no-repeat;
+    opacity: 0.02;
+    z-index: -1;
+    transition: opacity $transition-normal;
+  }
+  
+  &:hover {
+    transform: translateY(-2px) translateX(3px);
+    box-shadow: $shadow-md;
+    background: linear-gradient(135deg, rgba($background-primary, 0.95) 0%, rgba($calabash-cream, 0.2) 100%);
+    
+    &::before {
+      opacity: 0.04;
+    }
+  }
+  
+  &.admin-community {
+    border-left-color: $savanna-green;
+    
+    // Add subtle pattern for admin communities
+    &::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 30px;
+      height: 30px;
+      background-image: url('/assets/images/patterns/adinkra-symbol-leader.svg');
+      background-repeat: no-repeat;
+      background-size: contain;
+      opacity: 0.1;
+      pointer-events: none;
+    }
+    
+    // Add subtle background to highlight admin status
+    background: linear-gradient(135deg, rgba($background-primary, 0.95) 0%, rgba($savanna-green, 0.05) 100%);
+    
+    &:hover {
+      background: linear-gradient(135deg, rgba($background-primary, 0.95) 0%, rgba($savanna-green, 0.1) 100%);
+    }
+  }
+    .community-name {
+    @include heading-6;
+    color: $text-primary;
+    margin: 0 0 $spacing-1;
+    position: relative;
+    display: inline-block;
+    
+    // Add small accent line under community name
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: -3px;
+      left: 0;
+      width: 30px;
+      height: 2px;
+      background: linear-gradient(to right, $savanna-green, rgba($savanna-green, 0.2));
+      transition: width $transition-normal, background $transition-normal;
+      border-radius: $border-radius-full;
+    }
+    
+    // Add subtle text decoration on hover
+    &::before {
+      content: '';
+      position: absolute;
+      left: -$spacing-2;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 6px;
+      height: 6px;
+      background-color: rgba($savanna-green, 0);
+      border-radius: 50%;
+      transition: background-color $transition-normal, transform $transition-normal;
+    }
+  }
+  
+  &:hover .community-name::after {
+    width: 50px;
+    background: linear-gradient(to right, $savanna-green, $kente-gold);
+  }
+  
+  &:hover .community-name::before {
+    background-color: rgba($savanna-green, 0.5);
+    transform: translateY(-50%) scale(1.2);
+  }
+  
+  .community-description {
+    @include body-small;
+    color: $text-secondary;
+    @include line-clamp(2);
+    margin: $spacing-1 0 0;
+  }
+  
+  .admin-badge {
+    margin-top: $spacing-2;
+    background-color: rgba($savanna-green, 0.1);
+    border: 1px dashed rgba($savanna-green, 0.3);
+    
+    // Add subtle animation on hover
+    transition: all $transition-normal;
+    
+    &:hover {
+      background-color: rgba($savanna-green, 0.15);
+      transform: scale(1.05);
+    }
+  }
+}

@@ -1,0 +1,79 @@
+@import '../../../../styles/index.scss';
+
+// Loading, error, and empty states
+.loading-container, .error-container, .no-data-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: $spacing-12;
+  text-align: center;
+  animation: fadeIn 0.5s ease-in-out;
+  
+  fa-icon {
+    font-size: $font-size-5xl;
+    margin-bottom: $spacing-6;
+    opacity: 0.8;
+  }
+  
+  h3 {
+    font-weight: $font-weight-semibold;
+    font-size: $font-size-xl;
+    color: $text-primary;
+    margin-bottom: $spacing-4;
+  }
+  
+  p {
+    color: $text-secondary;
+    max-width: 500px;
+    margin-bottom: $spacing-6;
+    line-height: 1.6;
+  }
+  
+  .loading-animation {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: $spacing-6;
+    
+    mat-spinner {
+      margin-bottom: $spacing-4;
+    }
+  }
+  
+  .action-button {
+    @include button-primary;
+    padding: $spacing-3 $spacing-8;
+    font-weight: $font-weight-medium;
+    
+    fa-icon {
+      font-size: $font-size-base;
+      margin: 0 $spacing-2 0 0;
+      opacity: 1;
+    }
+  }
+}
+
+// Specific state styling
+.loading-container {
+  fa-icon {
+    color: $primary-color;
+  }
+}
+
+.error-container {
+  fa-icon {
+    color: $destructive-color;
+  }
+}
+
+.no-data-placeholder {
+  fa-icon {
+    color: $info-color;
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}

@@ -1,0 +1,34 @@
+/**
+ * KoloCollect Main Stylesheet
+ * African-inspired, classy design system
+ */
+
+// Abstract imports - variables, functions, mixins
+@import 'abstracts/variables';
+@import 'abstracts/functions';
+@import 'abstracts/mixins';
+@import 'abstracts/measurements';
+
+// Base styles
+@import 'base/reset';
+@import 'base/typography';
+@import 'base/utilities';
+@import 'base/animations';
+
+// Component styles
+@import 'components/buttons';
+@import 'components/cards';
+@import 'components/forms';
+@import 'components/tables';
+@import 'components/modals';
+@import 'components/navigation';
+
+// Layout styles
+@import 'layout/grid';
+@import 'layout/header';
+@import 'layout/footer';
+
+// Page-specific styles
+@import 'pages/home';
+@import 'pages/auth';
+@import 'pages/dashboard';

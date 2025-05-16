@@ -1,0 +1,163 @@
+@import '../base.styles';
+@import '../elements';
+
+// Recent contributions specific styles
+:host {
+  display: block;
+  height: 100%;
+}
+
+.contributions-list {
+  max-height: 300px;
+  overflow-y: auto;
+  padding: 0 $spacing-1;
+  margin: 0 (-$spacing-1);
+  
+  @include hide-scrollbar;
+}
+
+.contribution-item {
+  display: flex;
+  align-items: flex-start;
+  padding: $spacing-3;
+  border-bottom: 1px solid rgba($indigo-blue, 0.1);
+  transition: all $transition-quick;
+  
+  &:last-child {
+    border-bottom: none;
+  }
+    &:hover {
+    background-color: rgba($indigo-blue, 0.05);
+    transform: translateX(5px);
+    padding-left: $spacing-4;
+    box-shadow: inset 0 0 0 1px rgba($indigo-blue, 0.05);
+  }
+  
+  .contribution-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, rgba($indigo-blue, 0.1) 0%, rgba($indigo-blue, 0.2) 100%);
+    border-radius: $border-radius-full;
+    color: $indigo-blue;
+    margin-right: $spacing-3;
+    position: relative;
+    transition: all $transition-normal;
+    
+    // Add African-inspired decorative element
+    &::after {
+      content: '';
+      position: absolute;
+      top: -2px;
+      left: -2px;
+      right: -2px;
+      bottom: -2px;
+      border: 1px dashed rgba($indigo-blue, 0.3);
+      border-radius: $border-radius-full;
+      opacity: 0;
+      transition: opacity $transition-normal;
+    }
+    
+    // Add small decorative dots
+    &::before {
+      content: '';
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background-image: radial-gradient(rgba($indigo-blue, 0.5) 1px, transparent 1px);
+      background-size: 10px 10px;
+      opacity: 0;
+      transition: opacity $transition-normal;
+      z-index: -1;
+    }
+    
+    &:hover::after {
+      opacity: 1;
+      animation: spin 10s linear infinite;
+    }
+    
+    &:hover::before {
+      opacity: 0.1;
+    }
+  }
+  
+  &:hover .contribution-icon {
+    transform: scale(1.1);
+    background: linear-gradient(135deg, rgba($indigo-blue, 0.15) 0%, rgba($indigo-blue, 0.25) 100%);
+  }
+  
+  .contribution-details {
+    flex: 1;
+  }
+  
+  .contribution-community {
+    @include body-small;
+    font-weight: $font-weight-medium;
+    color: $text-primary;
+    margin: 0 0 $spacing-1;
+  }
+  
+  .contribution-info {
+    display: flex;
+    align-items: center;
+    gap: $spacing-2;
+    
+    .contribution-date, .contribution-cycle {
+      @include caption;
+      color: $text-tertiary;
+    }
+    
+    .dot-separator {
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background-color: $neutral-400;
+    }
+  }
+  
+  .contribution-amount {
+    @include body-normal;
+    font-weight: $font-weight-semibold;
+    color: $indigo-blue;
+    text-align: right;
+    white-space: nowrap;
+    position: relative;
+    
+    // Add decorative element to amount
+    &::after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      right: -$spacing-2;
+      transform: translateY(-50%);
+      width: 3px;
+      height: 0;
+      background-color: rgba($indigo-blue, 0.3);
+      transition: height $transition-quick;
+      border-radius: $border-radius-full;
+    }
+  }
+  
+  &:hover .contribution-amount::after {
+    height: 80%;
+  }
+}
+
+// Decorative element for the entire list
+.contributions-list::before {
+  content: '';
+  position: absolute;
+  top: 10%;
+  left: 5%;
+  width: 90%;
+  height: 80%;
+  background-image: url('/assets/images/patterns/triangles-pattern-light.svg');
+  background-repeat: no-repeat;
+  background-size: contain;
+  background-position: center;
+  opacity: 0.03;
+  pointer-events: none;
+  z-index: -1;
+}

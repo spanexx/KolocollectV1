@@ -1,0 +1,241 @@
+/* Typography styles for KoloCollect
+ * African-inspired, classy design system
+ */
+
+@import '../abstracts/variables';
+@import '../abstracts/mixins';
+
+// Import fonts (consider using Angular's way of importing fonts in styles.css or index.html)
+// @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&family=Ubuntu:wght@300;400;500;700&display=swap');
+
+// Headings
+.heading {
+  &-1 {
+    @include heading-1;
+  }
+  
+  &-2 {
+    @include heading-2;
+  }
+  
+  &-3 {
+    @include heading-3;
+  }
+  
+  &-4 {
+    @include heading-4;
+  }
+  
+  &-5 {
+    @include heading-5;
+  }
+  
+  &-6 {
+    @include heading-6;
+  }
+  
+  // Decorative heading with subtle African-inspired underline
+  &-decorated {
+    position: relative;
+    padding-bottom: $spacing-3;
+    
+    &::after {
+      content: '';
+      position: absolute;
+      left: 0;
+      bottom: 0;
+      height: 3px;
+      width: 60px;
+      background: linear-gradient(to right, $kente-gold, $terracotta);
+    }
+    
+    &-center {
+      text-align: center;
+      
+      &::after {
+        left: 50%;
+        transform: translateX(-50%);
+      }
+    }
+  }
+  
+  // Special heading with Kente-inspired pattern
+  &-kente {
+    position: relative;
+    display: inline-block;
+    
+    &::before {
+      content: '';
+      position: absolute;
+      left: -$spacing-2;
+      top: 0;
+      bottom: 0;
+      width: 4px;
+      background: repeating-linear-gradient(
+        to bottom,
+        $kente-gold 0,
+        $kente-gold 6px,
+        $terracotta 6px,
+        $terracotta 12px,
+        $indigo-blue 12px,
+        $indigo-blue 18px,
+        $savanna-green 18px,
+        $savanna-green 24px
+      );
+    }
+  }
+}
+
+// Body text variations
+.text {
+  &-base {
+    @include body-normal;
+  }
+  
+  &-lg {
+    @include body-large;
+  }
+  
+  &-sm {
+    @include body-small;
+  }
+  
+  &-xs {
+    @include caption;
+  }
+  
+  // Style modifiers
+  &-bold {
+    font-weight: $font-weight-bold;
+  }
+  
+  &-semibold {
+    font-weight: $font-weight-semibold;
+  }
+  
+  &-medium {
+    font-weight: $font-weight-medium;
+  }
+  
+  &-normal {
+    font-weight: $font-weight-normal;
+  }
+  
+  &-light {
+    font-weight: $font-weight-light;
+  }
+  
+  // Color modifiers
+  &-primary {
+    color: $text-primary;
+  }
+  
+  &-secondary {
+    color: $text-secondary;
+  }
+  
+  &-tertiary {
+    color: $text-tertiary;
+  }
+  
+  &-disabled {
+    color: $text-disabled;
+  }
+  
+  // Brand colors
+  &-kente {
+    color: $kente-gold;
+  }
+  
+  &-indigo {
+    color: $indigo-blue;
+  }
+  
+  &-terracotta {
+    color: $terracotta;
+  }
+  
+  &-savanna {
+    color: $savanna-green;
+  }
+}
+
+// Caption and label styles
+.caption {
+  @include caption;
+}
+
+.label {
+  @include label;
+}
+
+// Quote styles with African-inspired design
+.quote {
+  position: relative;
+  padding: $spacing-4 $spacing-5;
+  margin: $spacing-4 0;
+  font-family: $font-family-heading;
+  font-style: italic;
+  color: $text-primary;
+  
+  &::before {
+    content: '"';
+    position: absolute;
+    top: -$spacing-4;
+    left: 0;
+    font-size: 6rem;
+    line-height: 1;
+    color: rgba($kente-gold, 0.2);
+    font-family: $font-family-heading;
+  }
+  
+  cite {
+    display: block;
+    margin-top: $spacing-3;
+    font-style: normal;
+    font-weight: $font-weight-semibold;
+    font-size: $font-size-sm;
+    color: $text-secondary;
+    
+    &::before {
+      content: '— ';
+    }
+  }
+}
+
+// Utility text classes
+.text-truncate {
+  @include truncate;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.text-right {
+  text-align: right;
+}
+
+.text-left {
+  text-align: left;
+}
+
+.text-uppercase {
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.text-capitalize {
+  text-transform: capitalize;
+}
+
+.text-nowrap {
+  white-space: nowrap;
+}
+
+// Line clamp utilities
+@for $i from 1 through 5 {
+  .line-clamp-#{$i} {
+    @include line-clamp($i);
+  }
+}

@@ -1,0 +1,39 @@
+      <mat-card>
+        <mat-card-header>
+          <mat-card-title>Notifications</mat-card-title>
+          <div class="header-icon-badge">
+            <fa-icon [icon]="faBell" class="header-icon primary-color"></fa-icon>
+            <span class="badge accent-color" *ngIf="notifications.length > 0">{{notifications.length}}</span>
+          </div>
+        </mat-card-header>        <mat-card-content>
+          <div *ngIf="isLoading" class="loading-container">
+            <mat-spinner diameter="30"></mat-spinner>
+            <span>Loading notifications...</span>
+          </div>
+          
+          <div *ngIf="!isLoading" class="notifications-list">
+            <div *ngFor="let notification of notifications" class="notification-item" [ngClass]="getNotificationClass(notification.type)">
+              <fa-icon [icon]="getFaNotificationIcon(notification.type)" [ngClass]="'icon-' + notification.type"></fa-icon>
+              <div class="notification-content">
+                <div class="notification-message">{{notification.message}}</div>
+                <div class="notification-date">{{formatDate(notification.date)}}</div>
+              </div>
+            </div>
+            
+            <div *ngIf="!isLoading && notifications.length === 0" class="no-data">
+              <fa-icon [icon]="faBell" size="2x"></fa-icon>
+              <p>No new notifications</p>
+            </div>
+          </div>
+        </mat-card-content>
+        <mat-divider></mat-divider>
+        <mat-card-actions>
+          <a mat-button color="primary" routerLink="/notifications">
+            <fa-icon [icon]="faEye"></fa-icon>
+            View All
+          </a>          <button mat-button color="accent" (click)="markAllNotificationsAsRead()">
+            <fa-icon [icon]="faCheck"></fa-icon>
+            Mark All Read
+          </button>
+        </mat-card-actions>
+      </mat-card>

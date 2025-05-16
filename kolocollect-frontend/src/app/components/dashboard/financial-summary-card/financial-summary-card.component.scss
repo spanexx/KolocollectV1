@@ -1,0 +1,166 @@
+@import '../base.styles.scss';
+@import '../elements';
+
+// Financial summary specific styles
+:host {
+  display: block;
+  height: 100%;
+}
+
+.balance-overview {
+  background: linear-gradient(120deg, rgba($calabash-cream, 0.2) 0%, rgba($neutral-200, 0.1) 100%);
+  border-radius: $border-radius-md;
+  margin: 0 (-$spacing-3);
+  padding: $spacing-4 $spacing-3;
+  position: relative;
+  
+  // African-inspired decorative elements
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 60px;
+    height: 60px;
+    background-image: url('/assets/images/patterns/adinkra-symbol.svg');
+    background-repeat: no-repeat;
+    background-size: contain;
+    opacity: 0.05;
+    pointer-events: none;
+  }
+  
+  // Add subtle kente-inspired border pattern
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: $spacing-4;
+    right: $spacing-4;
+    height: 3px;
+    background-image: url('/assets/images/patterns/kente-border-horizontal.svg');
+    background-repeat: repeat-x;
+    background-size: 30px 3px;
+    opacity: 0.15;
+  }
+}
+
+.balance-item {
+  position: relative;
+  overflow: hidden;
+  transition: transform $transition-normal;
+  
+  // Add subtle circular pattern on hover
+  &:hover::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba($kente-gold, 0.1) 0%, transparent 70%);
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+    animation: pulse 2s infinite;
+  }
+  
+  // Add mud-cloth inspired texture on hover
+  &:hover::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: url('/assets/images/patterns/mud-cloth-light.svg');
+    background-size: 100px;
+    background-repeat: no-repeat;
+    background-position: center;
+    opacity: 0.03;
+    pointer-events: none;
+  }
+  
+  &:hover {
+    transform: translateY(-2px);
+  }
+}
+
+.balance-value {
+  &.total {
+    position: relative;
+    color: $kente-gold;
+    font-weight: $font-weight-bold;
+    text-shadow: 0 1px 1px rgba($neutral-900, 0.05);
+    
+    // Add decorative element behind total value to make it stand out
+    &::before {
+      content: '';
+      position: absolute;
+      top: -5px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 130%;
+      height: 120%;
+      background: linear-gradient(135deg, rgba($kente-gold, 0.03) 0%, rgba($kente-gold, 0.07) 100%);
+      border-radius: $border-radius-full;
+      z-index: -1;
+    }
+    
+    // Add small decorative element to total value
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: -4px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 40px;
+      height: 2px;
+      background: linear-gradient(to right, transparent, $kente-gold, transparent);
+    }
+    
+    // Add subtle animation on hover
+    transition: transform $transition-normal, color $transition-normal;
+    
+    &:hover {
+      transform: scale(1.05);
+      color: darken($kente-gold, 5%);
+    }
+  }
+}
+
+// Action buttons with African-inspired hover effects
+mat-card-actions {
+  a, button {
+    position: relative;
+    overflow: hidden;
+    
+    &::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba($kente-gold, 0.2), transparent);
+      transition: 0.5s;
+      pointer-events: none;
+    }
+    
+    &:hover::after {
+      left: 100%;
+    }
+  }
+}
+
+// Custom animation keyframes
+@keyframes pulse {
+  0% {
+    opacity: 0.1;
+  }
+  50% {
+    opacity: 0.2;
+  }
+  100% {
+    opacity: 0.1;
+  }
+}

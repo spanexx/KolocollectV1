@@ -1,0 +1,44 @@
+      <mat-card>
+        <mat-card-header>
+          <mat-card-title>Recent Contributions</mat-card-title>
+          <fa-icon [icon]="faReceipt" class="header-icon primary-color"></fa-icon>
+        </mat-card-header>        <mat-card-content>
+          <div *ngIf="isLoading" class="loading-container">
+            <mat-spinner diameter="30"></mat-spinner>
+            <span>Loading recent contributions...</span>
+          </div>
+          
+          <div *ngIf="!isLoading" class="contributions-list">
+            <div *ngFor="let contribution of recentContributions" class="contribution-item">
+              <div class="contribution-info">
+                <div class="contribution-community">{{contribution.communityName}}</div>
+                <div class="contribution-amount">${{contribution.amount.toFixed(2)}}</div>
+              </div>
+              <div class="contribution-details">
+                <div class="contribution-date">{{formatDate(contribution.date)}}</div>
+                <div class="contribution-status">
+                  <mat-chip [color]="contribution.status === 'completed' ? 'primary' : 'warn'" selected>
+                    {{contribution.status}}
+                  </mat-chip>
+                </div>
+              </div>
+            </div>
+            
+            <div *ngIf="!isLoading && recentContributions.length === 0" class="no-data">
+              <fa-icon [icon]="faReceipt" size="2x"></fa-icon>
+              <p>No recent contributions</p>
+            </div>
+          </div>
+        </mat-card-content>
+        <mat-divider></mat-divider>
+        <mat-card-actions>
+          <a mat-button color="primary" routerLink="/contributions">
+            <fa-icon [icon]="faEye"></fa-icon>
+            View All Contributions
+          </a>
+          <a mat-button color="accent" routerLink="/contributions/make">
+            <fa-icon [icon]="faPlus"></fa-icon>
+            Make Contribution
+          </a>
+        </mat-card-actions>
+      </mat-card>

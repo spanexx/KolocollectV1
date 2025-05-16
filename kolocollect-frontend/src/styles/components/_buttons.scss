@@ -1,0 +1,207 @@
+// Button component styles
+// African-inspired, classy design system
+
+@import '../abstracts/variables';
+@import '../abstracts/mixins';
+
+// Base button styles
+.btn {
+  @include button-base;
+  
+  // Button variants
+  &-primary {
+    @include button-primary;
+  }
+  
+  &-secondary {
+    @include button-secondary;
+  }
+  
+  &-outline {
+    @include button-outline;
+    
+    &-primary {
+      @include button-outline($kente-gold);
+    }
+    
+    &-secondary {
+      @include button-outline($indigo-blue);
+    }
+    
+    &-destructive {
+      @include button-outline($spice-red);
+    }
+  }
+  
+  &-text {
+    @include button-text-only;
+    
+    &-secondary {
+      @include button-text-only($indigo-blue);
+    }
+    
+    &-destructive {
+      @include button-text-only($spice-red);
+    }
+  }
+  
+  &-destructive {
+    @include button-destructive;
+  }
+  
+  // Terracotta accent button
+  &-accent {
+    background-color: $terracotta;
+    color: white;
+    
+    &:hover:not(:disabled) {
+      background-color: darken($terracotta, 7%);
+    }
+    
+    &:active:not(:disabled) {
+      background-color: darken($terracotta, 12%);
+    }
+  }
+  
+  // Button sizes
+  &-sm {
+    padding: $btn-padding-y-sm $btn-padding-x-sm;
+    font-size: $font-size-xs;
+    border-radius: $btn-border-radius-sm;
+  }
+  
+  &-lg {
+    padding: $btn-padding-y-lg $btn-padding-x-lg;
+    font-size: $font-size-base;
+    border-radius: $btn-border-radius-lg;
+  }
+  
+  // Button with icon
+  &-icon {
+    display: inline-flex;
+    align-items: center;
+    
+    svg, i, .icon {
+      width: 1rem;
+      height: 1rem;
+      margin-right: 0.5rem;
+    }
+    
+    &-right {
+      svg, i, .icon {
+        margin-right: 0;
+        margin-left: 0.5rem;
+      }
+    }
+    
+    &-only {
+      padding: $btn-padding-y;
+      width: 2.5rem;
+      height: 2.5rem;
+      border-radius: $border-radius-full;
+      
+      svg, i, .icon {
+        margin: 0;
+      }
+      
+      &.btn-sm {
+        padding: $btn-padding-y-sm;
+        width: 2rem;
+        height: 2rem;
+      }
+      
+      &.btn-lg {
+        padding: $btn-padding-y-lg;
+        width: 3rem;
+        height: 3rem;
+      }
+    }
+  }
+  
+  // Button group (horizontal)
+  &-group {
+    display: inline-flex;
+    
+    .btn {
+      border-radius: 0;
+      position: relative;
+      
+      &:first-child {
+        border-top-left-radius: $btn-border-radius;
+        border-bottom-left-radius: $btn-border-radius;
+      }
+      
+      &:last-child {
+        border-top-right-radius: $btn-border-radius;
+        border-bottom-right-radius: $btn-border-radius;
+      }
+      
+      &:not(:last-child) {
+        border-right: 1px solid rgba(0, 0, 0, 0.1);
+      }
+      
+      &.btn-outline:not(:last-child) {
+        border-right: none;
+        margin-right: -$btn-outline-border-width;
+      }
+    }
+  }
+  
+  // Loading state
+  &-loading {
+    position: relative;
+    color: transparent !important;
+    pointer-events: none;
+    
+    &::after {
+      content: '';
+      position: absolute;
+      width: 1rem;
+      height: 1rem;
+      border: 2px solid currentColor;
+      border-radius: 50%;
+      border-right-color: transparent;
+      animation: btn-spin 0.75s linear infinite;
+    }
+  }
+  
+  // Block button (full width)
+  &-block {
+    display: block;
+    width: 100%;
+  }
+  
+  // Gradient button (African sunrise gradient)
+  &-gradient {
+    background: linear-gradient(45deg, $kente-gold, $terracotta);
+    color: white;
+    border: none;
+    
+    &:hover {
+      background: linear-gradient(45deg, darken($kente-gold, 5%), darken($terracotta, 5%));
+    }
+  }
+  
+  // Special patterns button - African inspired
+  &-pattern {
+    position: relative;
+    overflow: hidden;
+    
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-image: url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0h20v20H0V0zm10 17L3 10 0 10V0h10l-7 7h7v10zm10 0h-7l7-7V0h10v10h-3l-7 7z' fill='%23FFFFFF' fill-opacity='0.15'/%3E%3C/svg%3E");
+      pointer-events: none;
+    }
+  }
+}
+
+// Animation for loading state
+@keyframes btn-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}

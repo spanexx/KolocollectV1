@@ -1,0 +1,349 @@
+// Common dashboard card elements
+@import '../../../styles/abstracts/variables';
+@import '../../../styles/abstracts/mixins';
+
+// Balance overview elements
+.balance-overview {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: $spacing-4;
+  padding: $spacing-4 0;
+  
+  @include respond-to(md) {
+    flex-wrap: nowrap;
+  }
+}
+
+.balance-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  min-width: 100px;
+  padding: $spacing-3;
+  position: relative;
+  
+  // Add African-inspired decorative background
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: url('/assets/images/patterns/dots-pattern-light.svg');
+    background-repeat: repeat;
+    opacity: 0.05;
+    border-radius: $border-radius-sm;
+    z-index: -1;
+    transition: opacity $transition-normal, transform $transition-normal;
+  }
+  
+  // Add subtle hover effect
+  &:hover::before {
+    opacity: 0.08;
+    transform: scale(0.98);
+  }
+  
+  // Add subtle border animation on hover
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border: 1px solid transparent;
+    border-image: linear-gradient(135deg, $kente-gold, $indigo-blue, $terracotta, $savanna-green) 1;
+    border-image-slice: 1;
+    opacity: 0;
+    transition: opacity $transition-normal;
+    border-radius: $border-radius-sm;
+    pointer-events: none;
+  }
+  
+  &:hover::after {
+    opacity: 0.2;
+  }
+}
+
+.balance-label {
+  @include label;
+  color: $text-secondary;
+  margin-bottom: $spacing-2;
+}
+
+.balance-value {
+  @include heading-4;
+  color: $indigo-blue;
+  
+  &.total {
+    color: $kente-gold;
+    font-weight: $font-weight-bold;
+  }
+}
+
+// List items for various cards
+.list-item {
+  display: flex;
+  padding: $spacing-3;
+  border-bottom: 1px dashed rgba($neutral-400, 0.4);
+  transition: background-color $transition-quick;
+  
+  &:last-child {
+    border-bottom: none;
+  }
+  
+  &:hover {
+    background-color: rgba($kente-gold, 0.05);
+  }
+}
+
+// Badge styles
+.badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 $spacing-2;
+  border-radius: $border-radius-full;
+  background: linear-gradient(135deg, $kente-gold, darken($kente-gold, 10%));
+  color: $ebony;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semibold;
+  position: absolute;
+  top: 0;
+  right: 0;
+  transform: translate(50%, -50%);
+  box-shadow: 0 2px 4px rgba($ebony, 0.15);
+  
+  // Add subtle tribal pattern
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: url('/assets/images/patterns/micro-tribal-pattern.svg');
+    background-size: cover;
+    opacity: 0.1;
+    border-radius: $border-radius-full;
+    pointer-events: none;
+  }
+}
+
+.admin-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: $spacing-1 $spacing-2;
+  background: linear-gradient(135deg, rgba($savanna-green, 0.1), rgba($savanna-green, 0.15));
+  color: $savanna-green;
+  border-radius: $border-radius-sm;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-medium;
+  margin-top: $spacing-2;
+  border-left: 2px solid $savanna-green;
+  
+  .detail-icon {
+    margin-right: $spacing-1;
+    font-size: 0.8rem;
+  }
+  
+  // Add subtle animation on hover
+  transition: all $transition-normal;
+  
+  &:hover {
+    transform: translateX(2px);
+    background: linear-gradient(135deg, rgba($savanna-green, 0.15), rgba($savanna-green, 0.2));
+  }
+}
+
+// Icons within list items
+.list-icon {
+  margin-right: $spacing-3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 40px;
+  height: 40px;
+  background: linear-gradient(120deg, rgba($kente-gold, 0.1) 0%, rgba($kente-gold, 0.2) 100%);
+  border-radius: $border-radius-full;
+  color: $kente-gold;
+  position: relative;
+  transition: all $transition-normal;
+  
+  // Add subtle pulse animation on hover
+  &:hover {
+    transform: scale(1.1);
+  }
+  
+  // Add decorative circle around icon
+  &::after {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    border-radius: $border-radius-full;
+    border: 1px dashed rgba($kente-gold, 0.3);
+    opacity: 0;
+    transition: opacity $transition-normal;
+  }
+  
+  &:hover::after {
+    opacity: 1;
+    animation: spin 10s linear infinite;
+  }
+  
+  &.primary {
+    background: linear-gradient(120deg, rgba($kente-gold, 0.1) 0%, rgba($kente-gold, 0.2) 100%);
+    color: $kente-gold;
+    
+    &::after {
+      border: 1px dashed rgba($kente-gold, 0.3);
+    }
+  }
+  
+  &.secondary {
+    background: linear-gradient(120deg, rgba($indigo-blue, 0.1) 0%, rgba($indigo-blue, 0.2) 100%);
+    color: $indigo-blue;
+    
+    &::after {
+      border: 1px dashed rgba($indigo-blue, 0.3);
+    }
+  }
+  
+  &.success {
+    background: linear-gradient(120deg, rgba($savanna-green, 0.1) 0%, rgba($savanna-green, 0.2) 100%);
+    color: $savanna-green;
+    
+    &::after {
+      border: 1px dashed rgba($savanna-green, 0.3);
+    }
+  }
+  
+  &.warning {
+    background: linear-gradient(120deg, rgba($warning-color, 0.1) 0%, rgba($warning-color, 0.2) 100%);
+    color: $warning-color;
+    
+    &::after {
+      border: 1px dashed rgba($warning-color, 0.3);
+    }
+  }
+  
+  &.error {
+    background: linear-gradient(120deg, rgba($destructive-color, 0.1) 0%, rgba($destructive-color, 0.2) 100%);
+    color: $destructive-color;
+    
+    &::after {
+      border: 1px dashed rgba($destructive-color, 0.3);
+    }
+  }
+}
+
+// Animation for spinning border
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+// Notification styles
+.notification-item {
+  display: flex;
+  padding: $spacing-3;
+  border-bottom: 1px solid rgba($neutral-300, 0.5);
+  align-items: flex-start;
+  
+  &:last-child {
+    border-bottom: none;
+  }
+  
+  &:hover {
+    background-color: rgba($indigo-blue, 0.03);
+  }
+  
+  .notification-content {
+    margin-left: $spacing-3;
+    flex: 1;
+  }
+  
+  .notification-message {
+    @include body-small;
+    color: $text-primary;
+    margin-bottom: $spacing-1;
+  }
+  
+  .notification-date {
+    @include caption;
+    color: $text-tertiary;
+  }
+  
+  fa-icon {
+    font-size: 1.25rem;
+    
+    &.icon-payment {
+      color: $kente-gold;
+    }
+    
+    &.icon-community {
+      color: $savanna-green;
+    }
+    
+    &.icon-system {
+      color: $indigo-blue;
+    }
+    
+    &.icon-warning {
+      color: $warning-color;
+    }
+  }
+}
+
+// Community card styles
+.community-cards-container {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: $spacing-3;
+  
+  @include respond-to(sm) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.community-card {
+  position: relative;
+  display: block;
+  padding: $spacing-4;
+  border-radius: $border-radius-md;
+  background-color: rgba($neutral-200, 0.5);
+  text-decoration: none;
+  transition: all $transition-normal;
+  border-left: 3px solid transparent;
+  
+  &:hover {
+    background-color: rgba($neutral-200, 0.8);
+    transform: translateY(-2px);
+  }
+  
+  &.admin-community {
+    border-left-color: $savanna-green;
+  }
+  
+  .community-name {
+    @include heading-6;
+    color: $text-primary;
+    margin: 0 0 $spacing-1;
+  }
+  
+  .community-description {
+    @include body-small;
+    color: $text-secondary;
+    @include line-clamp(2);
+    margin: 0;
+  }
+}

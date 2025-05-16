@@ -1,0 +1,134 @@
+// Common color variables for the entire application
+// Use these variables instead of hardcoded color values
+
+// Primary palette - Deep Purple
+$primary-color: #6D28D9;
+$primary-light: #8B5CF6;
+$primary-lighter: #A78BFA;
+$primary-dark: #5B21B6;
+$primary-darker: #4C1D95;
+
+// Secondary palette - Emerald Green
+$secondary-color: #10B981;
+$secondary-light: #34D399;
+$secondary-lighter: #6EE7B7;
+$secondary-dark: #059669;
+$secondary-darker: #047857;
+
+// Accent palette - Amber
+$accent-color: #F59E0B;
+$accent-light: #FBBF24;
+$accent-lighter: #FCD34D;
+$accent-dark: #D97706;
+$accent-darker: #B45309;
+
+// Neutrals
+$neutral-50: #F9FAFB;
+$neutral-100: #F3F4F6;
+$neutral-200: #E5E7EB;
+$neutral-300: #D1D5DB;
+$neutral-400: #9CA3AF;
+$neutral-500: #6B7280;
+$neutral-600: #4B5563;
+$neutral-700: #374151;
+$neutral-800: #1F2937;
+$neutral-900: #111827;
+$neutral-950: #030712;
+
+// Semantic colors
+$success-color: #10B981;  // Same as secondary
+$success-light: #34D399;
+$success-dark: #059669;
+
+$info-color: #3B82F6;
+$info-light: #60A5FA;
+$info-dark: #2563EB;
+
+$warning-color: #F59E0B;  // Same as accent
+$warning-light: #FBBF24;
+$warning-dark: #D97706;
+
+$destructive-color: #EF4444;
+$destructive-light: #F87171;
+$destructive-dark: #DC2626;
+
+// Typography and text colors
+$text-primary: $neutral-900;
+$text-secondary: $neutral-600;
+$text-tertiary: $neutral-500;
+$text-disabled: $neutral-400;
+$text-inverse: $neutral-50;
+
+// Background colors
+$background-primary: white;
+$background-secondary: $neutral-50;
+$background-tertiary: $neutral-100;
+$background-hover: $neutral-100;
+$background-selected: $primary-lighter;
+
+// Border colors
+$border-light: $neutral-200;
+$border-medium: $neutral-300;
+$border-dark: $neutral-400;
+
+// Shadow definitions
+$shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+$shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+$shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+$shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+
+// Font families
+$font-family-base: 'Roboto', 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+$font-family-heading: 'Poppins', 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+$font-family-mono: 'Roboto Mono', 'Courier New', monospace;
+
+// Font weights
+$font-weight-light: 300;
+$font-weight-normal: 400;
+$font-weight-medium: 500;
+$font-weight-semibold: 600;
+$font-weight-bold: 700;
+
+// Font sizes
+$font-size-xs: 0.75rem;   // 12px
+$font-size-sm: 0.875rem;  // 14px
+$font-size-base: 1rem;    // 16px
+$font-size-lg: 1.125rem;  // 18px
+$font-size-xl: 1.25rem;   // 20px
+$font-size-2xl: 1.5rem;   // 24px
+$font-size-3xl: 1.875rem; // 30px
+$font-size-4xl: 2.25rem;  // 36px
+$font-size-5xl: 3rem;     // 48px
+
+// Line heights
+$line-height-none: 1;
+$line-height-tight: 1.25;
+$line-height-normal: 1.5;
+$line-height-relaxed: 1.75;
+$line-height-loose: 2;
+$destructive-light: #FEE2E2;
+$destructive-dark: #B91C1C;
+
+// Background colors
+$background-primary: #FFFFFF;
+$background-secondary: $neutral-50;
+$background-tertiary: $neutral-100;
+
+// Text colors
+$text-primary: $neutral-900;
+$text-secondary: $neutral-700;
+$text-tertiary: $neutral-500;
+$text-disabled: $neutral-400;
+$text-inverse: #FFFFFF;
+
+// Border colors
+$border-light: $neutral-200;
+$border-medium: $neutral-300;
+$border-dark: $neutral-400;
+
+// Focus state
+$focus-ring-color: rgba($primary-color, 0.25);
+
+// Shadow colors
+$shadow-color: rgba($neutral-900, 0.1);
+$shadow-color-darker: rgba($neutral-900, 0.2);

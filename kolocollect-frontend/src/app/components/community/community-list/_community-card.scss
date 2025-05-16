@@ -1,0 +1,191 @@
+@import '../../../../styles/index.scss';
+
+// Community card component styling
+.community-card {
+  height: 100%;
+  border-radius: $border-radius-lg;
+  overflow: hidden;
+  transition: transform $transition-normal ease, box-shadow $transition-normal ease;
+  display: flex;
+  flex-direction: column;
+  background-color: white;
+  box-shadow: $shadow-sm;
+  position: relative;
+  
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: $shadow-md;
+    
+    .community-image img {
+      transform: scale(1.05);
+    }
+  }
+  
+  .favorite-button {
+    position: absolute;
+    top: $spacing-3;
+    right: $spacing-3;
+    z-index: 10;
+    background-color: rgba(255, 255, 255, 0.9);
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: $shadow-sm;
+    transition: all $transition-normal ease;
+    
+    &:hover {
+      transform: scale(1.1);
+    }
+    
+    .favorite-icon {
+      color: $text-tertiary;
+      
+      &.is-favorite {
+        color: $warning-color;
+      }
+    }
+  }
+  
+  .community-image {
+    height: 160px;
+    overflow: hidden;
+    
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform $transition-normal ease;
+    }
+  }
+  
+  .community-content {
+    padding: $spacing-4;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    
+    .community-name {
+      font-weight: $font-weight-bold;
+      font-size: $font-size-lg;
+      color: $text-primary;
+      margin-bottom: $spacing-2;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    
+    .community-description {
+      color: $text-secondary;
+      font-size: $font-size-sm;
+      margin-bottom: $spacing-3;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      flex-grow: 1;
+    }
+    
+    .community-stats {
+      display: flex;
+      align-items: center;
+      margin-top: $spacing-2;
+      color: $text-tertiary;
+      font-size: $font-size-xs;
+      
+      .stat-item {
+        display: flex;
+        align-items: center;
+        margin-right: $spacing-4;
+        
+        .stat-icon {
+          margin-right: $spacing-1;
+          font-size: $font-size-sm;
+        }
+      }
+    }
+  }
+  
+  .community-footer {
+    padding: $spacing-3 $spacing-4;
+    border-top: 1px solid $border-light;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    
+    .contributors {
+      display: flex;
+      align-items: center;
+      
+      .contributor-avatars {
+        display: flex;
+        margin-right: $spacing-2;
+        
+        .avatar {
+          width: 24px;
+          height: 24px;
+          border-radius: 50%;
+          border: 2px solid white;
+          overflow: hidden;
+          margin-left: -8px;
+          
+          &:first-child {
+            margin-left: 0;
+          }
+          
+          img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+          }
+        }
+        
+        .more-contributors {
+          width: 24px;
+          height: 24px;
+          border-radius: 50%;
+          border: 2px solid white;
+          background-color: $background-tertiary;
+          color: $text-secondary;
+          font-size: $font-size-xs;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          margin-left: -8px;
+        }
+      }
+      
+      .contributor-count {
+        font-size: $font-size-xs;
+        color: $text-tertiary;
+      }
+    }
+    
+    .view-button {
+      font-size: $font-size-xs;
+      font-weight: $font-weight-medium;
+      color: $primary-color;
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+      transition: color $transition-normal ease;
+      
+      &:hover {
+        color: darken($primary-color, 10%);
+        
+        .arrow-icon {
+          transform: translateX(3px);
+        }
+      }
+      
+      .arrow-icon {
+        margin-left: $spacing-1;
+        transition: transform $transition-normal ease;
+      }
+    }
+  }
+}

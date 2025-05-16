@@ -1,0 +1,48 @@
+      <mat-card>
+        <mat-card-header>
+          <mat-card-title>Upcoming Payouts</mat-card-title>
+          <fa-icon [icon]="faMoneyBillWave" class="header-icon primary-color"></fa-icon>
+        </mat-card-header>        <mat-card-content>
+          <div *ngIf="isLoading" class="loading-container">
+            <mat-spinner diameter="30"></mat-spinner>
+            <span>Loading upcoming payouts...</span>
+          </div>
+          
+          <div *ngIf="!isLoading" class="payouts-list">            <div *ngFor="let payout of upcomingPayouts" class="payout-item">
+              <div class="payout-info">
+                <div class="payout-community">
+                  <ng-container *ngIf="payout.communityName !== 'Loading...'">{{payout.communityName}}</ng-container>
+                  <span *ngIf="payout.communityName === 'Loading...'" class="loading-community">
+                    <fa-icon [icon]="faSpinner" [spin]="true" class="loading-icon"></fa-icon> Loading...
+                  </span>
+                </div>
+                <div class="payout-amount">${{payout.amount.toFixed(2)}}</div>
+                <div class="payout-position" *ngIf="payout.position && !payout.isNextInLine">
+                  <mat-chip color="primary" selected size="small">Position: {{payout.position}}</mat-chip>
+                </div>
+                <div class="payout-next" *ngIf="payout.isNextInLine">
+                  <mat-chip color="accent" selected size="small">Next in line!</mat-chip>
+                </div>
+              </div>
+              <div class="payout-date-info">
+                <div class="payout-date">{{formatDate(payout.date)}}</div>
+                <div class="days-remaining">
+                  <mat-chip color="accent" selected>{{getDaysRemaining(payout.date)}} days</mat-chip>
+                </div>
+              </div>
+            </div>
+            
+            <div *ngIf="!isLoading && upcomingPayouts.length === 0" class="no-data">
+              <fa-icon [icon]="faMoneyBillWave" size="2x"></fa-icon>
+              <p>No upcoming payouts</p>
+            </div>
+          </div>
+        </mat-card-content>
+        <mat-divider></mat-divider>
+        <mat-card-actions>
+          <a mat-button color="primary" routerLink="/payouts">
+            <fa-icon [icon]="faMoneyBillWave"></fa-icon>
+            View Payout History
+          </a>
+        </mat-card-actions>
+      </mat-card>

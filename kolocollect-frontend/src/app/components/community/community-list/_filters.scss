@@ -1,0 +1,49 @@
+@import '../../../../styles/index.scss';
+
+// Search and filters section
+.filters-section {
+  margin-bottom: $spacing-6;
+  
+  .search-container {
+    @include flex-between;
+    flex-wrap: wrap;
+    gap: $spacing-4;
+    
+    .search-field {
+      flex: 1;
+      min-width: 250px;
+      
+      .mat-mdc-form-field {
+        width: 100%;
+      }
+      
+      ::ng-deep .mat-mdc-form-field-subscript-wrapper {
+        display: none;
+      }
+    }
+    
+    .search-icon {
+      margin-right: $spacing-2;
+      color: $primary-color;
+    }
+    
+    .custom-button {
+      margin-left: $spacing-2;
+      min-width: 120px;
+      @include button-primary;
+      
+      fa-icon {
+        margin-right: $spacing-2;
+      }
+      
+      @media (max-width: $screen-xs) {
+        min-width: 100px;
+      }
+    }
+    
+    .custom-button.filter-button {
+      @include button-secondary;
+      min-width: 100px;
+    }
+  }
+}

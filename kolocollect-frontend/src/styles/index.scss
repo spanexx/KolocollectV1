@@ -1,0 +1,15 @@
+// Main shared styles entry point
+// This file imports all shared styles and can be imported into component scss files
+
+// Import variables first
+@import 'variables';
+@import 'measurements';
+
+// Then import mixins which depend on variables
+@import 'mixins';
+
+// Then import more specific styles
+@import 'typography';
+@import 'utilities';
+@import 'components';
+@import 'layouts';

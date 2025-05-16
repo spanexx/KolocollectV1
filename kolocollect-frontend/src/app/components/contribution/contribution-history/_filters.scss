@@ -1,0 +1,89 @@
+@import '../../../../styles/index.scss';
+
+// Filters section styling
+.filters-section {
+  margin-bottom: $spacing-6;
+  padding: $spacing-4;
+  background-color: $background-secondary;
+  border-radius: $border-radius-lg;
+  box-shadow: $shadow-sm;
+  
+  .filters-title {
+    font-size: $font-size-lg;
+    font-weight: $font-weight-semibold;
+    color: $text-primary;
+    margin-bottom: $spacing-4;
+    display: flex;
+    align-items: center;
+    
+    .filter-icon {
+      color: $primary-color;
+      margin-right: $spacing-2;
+    }
+  }
+  
+  .filters-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: $spacing-4;
+    
+    .filter-field {
+      width: 100%;
+      
+      mat-form-field {
+        width: 100%;
+      }
+      
+      ::ng-deep .mat-mdc-form-field-subscript-wrapper {
+        display: none;
+      }
+    }
+    
+    @media (max-width: $screen-md) {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    
+    @media (max-width: $screen-sm) {
+      grid-template-columns: 1fr;
+    }
+  }
+  
+  .filters-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: $spacing-4;
+    gap: $spacing-3;
+    
+    button {
+      padding: $spacing-2 $spacing-6;
+      border-radius: $border-radius-md;
+      font-weight: $font-weight-medium;
+      
+      .button-icon {
+        margin-right: $spacing-2;
+      }
+    }
+    
+    .reset-button {
+      color: $text-secondary;
+      background-color: transparent;
+      
+      &:hover {
+        background-color: $background-tertiary;
+      }
+    }
+    
+    .apply-button {
+      @include button-primary;
+    }
+    
+    @media (max-width: $screen-xs) {
+      flex-direction: column;
+      
+      button {
+        width: 100%;
+        justify-content: center;
+      }
+    }
+  }
+}

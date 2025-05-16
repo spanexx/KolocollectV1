@@ -1,0 +1,158 @@
+@import '../../../../styles/index.scss';
+
+// Base card styling
+mat-card {
+  border-radius: $border-radius-lg;
+  box-shadow: $shadow-md;
+  margin-bottom: $spacing-6;
+  border: 1px solid $border-light;
+  overflow: hidden;
+  background-color: white;
+  transition: all $transition-normal ease;
+  
+  &:hover {
+    box-shadow: $shadow-lg;
+  }
+  
+  mat-card-content {
+    padding: $spacing-4;
+  }
+}
+
+// Contribution cards/items styling
+.contribution-item {
+  display: flex;
+  flex-direction: column;
+  border-bottom: 1px solid $border-light;
+  padding: $spacing-4;
+  transition: background-color $transition-normal ease;
+  
+  &:last-child {
+    border-bottom: none;
+  }
+  
+  &:hover {
+    background-color: $background-hover;
+  }
+  
+  .item-header {
+    @include flex-between;
+    margin-bottom: $spacing-3;
+    flex-wrap: wrap;
+    gap: $spacing-2;
+    
+    .item-title {
+      font-size: $font-size-lg;
+      font-weight: $font-weight-semibold;
+      color: $text-primary;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      
+      .item-icon {
+        color: $primary-color;
+        margin-right: $spacing-2;
+      }
+    }
+    
+    .item-status {
+      display: flex;
+      align-items: center;
+      font-size: $font-size-sm;
+      font-weight: $font-weight-medium;
+      padding: $spacing-1 $spacing-3;
+      border-radius: $border-radius-md;
+      
+      &.status-completed {
+        background-color: rgba($success-color, 0.1);
+        color: $success-color;
+      }
+      
+      &.status-pending {
+        background-color: rgba($warning-color, 0.1);
+        color: $warning-color;
+      }
+      
+      &.status-failed {
+        background-color: rgba($destructive-color, 0.1);
+        color: $destructive-color;
+      }
+      
+      .status-icon {
+        margin-right: $spacing-1-5;
+      }
+    }
+  }
+  
+  .item-details {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: $spacing-4;
+    margin-bottom: $spacing-4;
+    
+    .detail-item {
+      display: flex;
+      flex-direction: column;
+      
+      .detail-label {
+        font-size: $font-size-xs;
+        color: $text-tertiary;
+        margin-bottom: $spacing-1;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+      
+      .detail-value {
+        font-size: $font-size-base;
+        color: $text-primary;
+        font-weight: $font-weight-medium;
+        
+        &.strong {
+          font-weight: $font-weight-bold;
+          color: $primary-color;
+        }
+        
+        &.positive {
+          color: $success-color;
+        }
+        
+        &.negative {
+          color: $destructive-color;
+        }
+      }
+    }
+    
+    @media (max-width: $screen-sm) {
+      grid-template-columns: 1fr 1fr;
+    }
+    
+    @media (max-width: $screen-xs) {
+      grid-template-columns: 1fr;
+    }
+  }
+  
+  .item-actions {
+    display: flex;
+    gap: $spacing-3;
+    justify-content: flex-end;
+    margin-top: $spacing-3;
+    
+    button {
+      @include button-secondary;
+      font-size: $font-size-sm;
+      padding: $spacing-1-5 $spacing-4;
+      
+      .button-icon {
+        margin-right: $spacing-1-5;
+      }
+    }
+    
+    @media (max-width: $screen-xs) {
+      flex-direction: column;
+      
+      button {
+        width: 100%;
+      }
+    }
+  }
+}

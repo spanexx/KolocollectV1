@@ -1,0 +1,289 @@
+@import '../../../../styles/index.scss';
+
+
+// Midcycle progress bar
+.midcycle-progress {
+  display: flex;
+  align-items: center;
+  
+  &.vertical-progress {
+    flex-direction: column;
+    align-items: center;
+    margin: 1rem 0;
+    
+    .progress-title {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      color: $neutral-800;
+    }
+    
+    .progress-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      
+      .progress-percentage {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: $primary-color;
+        margin-bottom: 0.5rem;
+      }
+      
+      .progress-bar-container {
+        width: 3rem;
+        height: 150px;
+        background-color: $neutral-200;
+        border-radius: 1rem;
+        margin: 0.5rem 0;
+        position: relative;
+        overflow: hidden;
+        
+        .progress-bar {
+          position: absolute;
+          bottom: 0;
+          width: 100%;
+          background-color: $primary-color;
+          transition: height 0.5s ease;
+        }
+      }
+      
+      .progress-text {
+        font-size: 0.875rem;
+        color: $neutral-600;
+        margin-top: 0.5rem;
+      }
+      
+      .progress-info-item {
+        display: flex;
+        align-items: center;
+        margin-top: 0.75rem;
+        
+        fa-icon {
+          margin-right: 0.5rem;
+          color: $neutral-600;
+        }
+        
+        &.status {
+          padding: 0.25rem 0.75rem;
+          border-radius: 1rem;
+          margin-top: 1rem;
+          
+          &.status-complete {
+            background-color: rgba($secondary-color, 0.1);
+            
+            fa-icon {
+              color: $secondary-color;
+            }
+            
+            span {
+              color: $secondary-dark;
+            }
+          }
+          
+          &.status-progress {
+            background-color: rgba($accent-color, 0.1);
+            
+            fa-icon {
+              color: $accent-color;
+            }
+            
+            span {
+              color: $accent-dark;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+// Midcycle summary grid
+.midcycle-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+  
+  @media (max-width: $breakpoint-md) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  @media (max-width: $breakpoint-sm) {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .midcycle-stat {
+    background-color: $neutral-100;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    
+    .stat-label {
+      font-size: 0.75rem;
+      color: $neutral-500;
+      margin-bottom: 0.25rem;
+    }
+    
+    .stat-value {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: $neutral-800;
+    }
+  }
+}
+
+// Next payout info
+.next-payout-info {
+  margin-top: 2rem;
+  
+  h4 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    color: $neutral-800;
+  }
+  
+  .payout-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    
+    @media (max-width: $breakpoint-md) {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    
+    @media (max-width: $breakpoint-sm) {
+      grid-template-columns: 1fr;
+    }
+    
+    .payout-item {
+      .payout-label {
+        font-size: 0.75rem;
+        color: $neutral-500;
+        margin-bottom: 0.25rem;
+      }
+      
+      .payout-value {
+        font-size: 0.95rem;
+        font-weight: 500;
+        color: $neutral-800;
+      }
+    }
+  }
+}
+
+// Admin actions
+.admin-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: rgba($primary-light, 0.3);
+  border-radius: 0.5rem;
+  padding: 1rem;
+  margin-top: 1.5rem;
+  
+  @media (max-width: $breakpoint-sm) {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  
+  .action-notice {
+    display: flex;
+    align-items: center;
+    
+    .info-icon {
+      color: $primary-dark;
+      margin-right: 0.5rem;
+    }
+    
+    span {
+      font-size: 0.875rem;
+      color: $neutral-700;
+    }
+  }
+}
+
+// Contributors list
+.contributors-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  
+  .contributor-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background-color: $neutral-100;
+    border-radius: 0.5rem;
+    
+    @media (max-width: $breakpoint-md) {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.5rem;
+    }
+    
+    .contributor-info {
+      display: flex;
+      flex-direction: column;
+      
+      .contributor-name {
+        font-weight: 500;
+        color: $neutral-800;
+      }
+      
+      .contributor-email {
+        font-size: 0.75rem;
+        color: $neutral-500;
+      }
+    }
+    
+    .contribution-amount {
+      .amount-label {
+        font-size: 0.75rem;
+        color: $neutral-500;
+        margin-right: 0.5rem;
+      }
+      
+      .amount-value {
+        font-weight: 600;
+        color: $neutral-800;
+      }
+    }
+    
+    .contribution-status {
+      display: flex;
+      align-items: center;
+      
+      .status-icon {
+        margin-right: 0.5rem;
+        
+        &.contributed {
+          color: $secondary-color;
+        }
+      }
+    }
+  }
+}
+
+// Empty state
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 3rem 1rem;
+  text-align: center;
+  
+  .empty-icon {
+    font-size: 3rem;
+    color: $neutral-400;
+    margin-bottom: 1rem;
+  }
+  
+  p {
+    color: $neutral-600;
+    font-size: 0.95rem;
+  }
+}

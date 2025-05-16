@@ -1,0 +1,416 @@
+// Mixins for KoloCollect
+// African-inspired, classy design system
+
+@import 'variables';
+@import 'measurements';
+
+//===============================
+// Typography mixins
+//===============================
+
+@mixin heading-1 {
+  font-family: $font-family-heading;
+  font-size: $font-size-5xl;
+  font-weight: $font-weight-bold;
+  line-height: $line-height-tight;
+  color: $text-primary;
+  letter-spacing: -0.02em;
+}
+
+@mixin heading-2 {
+  font-family: $font-family-heading;
+  font-size: $font-size-4xl;
+  font-weight: $font-weight-bold;
+  line-height: $line-height-tight;
+  color: $text-primary;
+  letter-spacing: -0.01em;
+}
+
+@mixin heading-3 {
+  font-family: $font-family-heading;
+  font-size: $font-size-3xl;
+  font-weight: $font-weight-semibold;
+  line-height: $line-height-tight;
+  color: $text-primary;
+}
+
+@mixin heading-4 {
+  font-family: $font-family-heading;
+  font-size: $font-size-2xl;
+  font-weight: $font-weight-semibold;
+  line-height: $line-height-normal;
+  color: $text-primary;
+}
+
+@mixin heading-5 {
+  font-family: $font-family-heading;
+  font-size: $font-size-xl;
+  font-weight: $font-weight-semibold;
+  line-height: $line-height-normal;
+  color: $text-primary;
+}
+
+@mixin heading-6 {
+  font-family: $font-family-heading;
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  line-height: $line-height-normal;
+  color: $text-primary;
+}
+
+@mixin body-large {
+  font-family: $font-family-base;
+  font-size: $font-size-lg;
+  font-weight: $font-weight-normal;
+  line-height: $line-height-relaxed;
+  color: $text-secondary;
+}
+
+@mixin body-normal {
+  font-family: $font-family-base;
+  font-size: $font-size-base;
+  font-weight: $font-weight-normal;
+  line-height: $line-height-normal;
+  color: $text-secondary;
+}
+
+@mixin body-small {
+  font-family: $font-family-base;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-normal;
+  line-height: $line-height-normal;
+  color: $text-secondary;
+}
+
+@mixin caption {
+  font-family: $font-family-base;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-normal;
+  line-height: $line-height-normal;
+  color: $text-tertiary;
+}
+
+@mixin label {
+  font-family: $font-family-base;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  line-height: $line-height-tight;
+  color: $text-secondary;
+}
+
+//===============================
+// Layout mixins
+//===============================
+
+@mixin container {
+  width: 100%;
+  margin-right: auto;
+  margin-left: auto;
+  padding-right: $spacing-4;
+  padding-left: $spacing-4;
+  
+  @media (min-width: $screen-sm) {
+    max-width: $container-max-width-sm;
+  }
+  
+  @media (min-width: $screen-md) {
+    max-width: $container-max-width-md;
+  }
+  
+  @media (min-width: $screen-lg) {
+    max-width: $container-max-width-lg;
+  }
+  
+  @media (min-width: $screen-xl) {
+    max-width: $container-max-width-xl;
+  }
+  
+  @media (min-width: $screen-2xl) {
+    max-width: $container-max-width-2xl;
+  }
+}
+
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@mixin flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+@mixin flex-column {
+  display: flex;
+  flex-direction: column;
+}
+
+@mixin flex-row {
+  display: flex;
+  flex-direction: row;
+}
+
+@mixin flex-wrap {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+@mixin grid-auto-fill($min-width) {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax($min-width, 1fr));
+  gap: $spacing-4;
+}
+
+//===============================
+// Button mixins
+//===============================
+
+@mixin button-base {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: $font-family-base;
+  font-weight: $font-weight-medium;
+  font-size: $font-size-sm;
+  text-align: center;
+  text-decoration: none;
+  vertical-align: middle;
+  cursor: pointer;
+  user-select: none;
+  padding: $btn-padding-y $btn-padding-x;
+  border-radius: $btn-border-radius;
+  border: none;
+  transition: all $transition-normal;
+  line-height: 1.5;
+  
+  &:focus {
+    outline: 0;
+    box-shadow: 0 0 0 3px rgba($kente-gold, 0.25);
+  }
+  
+  &:disabled {
+    opacity: $btn-disabled-opacity;
+    pointer-events: none;
+  }
+}
+
+@mixin button-primary {
+  background-color: $btn-primary-bg;
+  color: $btn-primary-text;
+  
+  &:hover {
+    background-color: $btn-primary-hover;
+  }
+  
+  &:active {
+    background-color: $btn-primary-active;
+  }
+}
+
+@mixin button-secondary {
+  background-color: $btn-secondary-bg;
+  color: $btn-secondary-text;
+  
+  &:hover {
+    background-color: $btn-secondary-hover;
+  }
+  
+  &:active {
+    background-color: $btn-secondary-active;
+  }
+}
+
+@mixin button-outline($color: $btn-secondary-bg) {
+  background-color: transparent;
+  color: $color;
+  border: $btn-outline-border-width solid $color;
+  
+  &:hover {
+    background-color: rgba($color, $btn-outline-hover-opacity);
+  }
+}
+
+@mixin button-text-only($color: $btn-primary-bg) {
+  background-color: transparent;
+  color: $color;
+  padding: $btn-padding-y ($btn-padding-x * 0.5);
+  
+  &:hover {
+    text-decoration: underline;
+    background-color: rgba($color, 0.05);
+  }
+}
+
+@mixin button-destructive {
+  background-color: $spice-red;
+  color: $neutral-100;
+  
+  &:hover {
+    background-color: darken($spice-red, 7%);
+  }
+  
+  &:active {
+    background-color: darken($spice-red, 12%);
+  }
+}
+
+//===============================
+// Card mixins
+//===============================
+
+@mixin card {
+  background-color: $background-primary;
+  border-radius: $card-border-radius;
+  box-shadow: $card-shadow;
+  margin-bottom: $card-margin-bottom;
+  overflow: hidden;
+}
+
+@mixin card-hover {
+  transition: box-shadow $transition-normal, transform $transition-normal;
+  cursor: pointer;
+  
+  &:hover {
+    box-shadow: $card-shadow-hover;
+    transform: translateY(-2px);
+  }
+}
+
+@mixin card-bordered {
+  box-shadow: none;
+  border: $card-border-width solid $card-border-color;
+}
+
+@mixin card-flat {
+  box-shadow: none;
+  background-color: $background-secondary;
+}
+
+@mixin card-accent($position: left, $color: $kente-gold) {
+  position: relative;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    
+    @if $position == left {
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: $card-accent-width;
+    } @else if $position == top {
+      left: 0;
+      right: 0;
+      top: 0;
+      height: $card-accent-width;
+    }
+    
+    background-color: $color;
+  }
+}
+
+//===============================
+// Form element mixins
+//===============================
+
+@mixin input-base {
+  display: block;
+  width: 100%;
+  padding: $spacing-2 $spacing-3;
+  font-size: $font-size-base;
+  font-family: $font-family-base;
+  line-height: $line-height-normal;
+  color: $text-primary;
+  background-color: $background-primary;
+  border: 1px solid $border-medium;
+  border-radius: $border-radius-md;
+  transition: border-color $transition-quick, box-shadow $transition-quick;
+  
+  &:focus {
+    border-color: $kente-gold;
+    outline: none;
+    box-shadow: 0 0 0 3px $focus-ring-color;
+  }
+  
+  &:disabled {
+    background-color: $background-tertiary;
+    cursor: not-allowed;
+  }
+  
+  &::placeholder {
+    color: $text-tertiary;
+  }
+  
+  &.is-invalid {
+    border-color: $destructive-color;
+    
+    &:focus {
+      box-shadow: 0 0 0 3px rgba($destructive-color, 0.25);
+    }
+  }
+}
+
+//===============================
+// Utility mixins
+//===============================
+
+@mixin hide-scrollbar {
+  scrollbar-width: none; /* For Firefox */
+  -ms-overflow-style: none; /* For IE and Edge */
+  
+  &::-webkit-scrollbar {
+    display: none; /* For Chrome, Safari, and Opera */
+  }
+}
+
+@mixin sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+@mixin truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@mixin line-clamp($lines) {
+  display: -webkit-box;
+  -webkit-line-clamp: $lines;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+//===============================
+// Responsive mixins
+//===============================
+
+@mixin respond-to($breakpoint) {
+  @if $breakpoint == xs {
+    @media (min-width: $screen-xs) { @content; }
+  }
+  @else if $breakpoint == sm {
+    @media (min-width: $screen-sm) { @content; }
+  }
+  @else if $breakpoint == md {
+    @media (min-width: $screen-md) { @content; }
+  }
+  @else if $breakpoint == lg {
+    @media (min-width: $screen-lg) { @content; }
+  }
+  @else if $breakpoint == xl {
+    @media (min-width: $screen-xl) { @content; }
+  }
+  @else if $breakpoint == 2xl {
+    @media (min-width: $screen-2xl) { @content; }
+  }
+}
