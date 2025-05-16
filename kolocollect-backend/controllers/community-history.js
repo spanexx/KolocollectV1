@@ -191,14 +191,12 @@ exports.getCommunityContributionHistory = async (req, res) => {
           
           // Try using userId directly if it exists and is populated
           if (!nextInLineDetails && midcycle.nextInLine.userId) {
-            console.log('Using userId data:', midcycle.nextInLine.userId);
             if (typeof midcycle.nextInLine.userId === 'object' && midcycle.nextInLine.userId !== null) {
               nextInLineDetails = {
                 userId: midcycle.nextInLine.userId._id,
                 name: midcycle.nextInLine.userId.name || 'Unknown',
                 email: midcycle.nextInLine.userId.email || ''
               };
-              console.log('Set nextInLineDetails from userId object:', nextInLineDetails);
             } 
             // Try to find in community members as a fallback
             else if (community.members && community.members.length > 0) {

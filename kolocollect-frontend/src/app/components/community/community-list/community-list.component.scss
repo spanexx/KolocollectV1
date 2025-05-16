@@ -69,21 +69,14 @@
     }
   }
   
-  .search-filter-section {
+  // Search box styling for filtering
+  .search-box {
     display: flex;
-    justify-content: space-between;
+    flex: 1;
+    margin-right: 1rem;
     align-items: center;
-    margin-bottom: 2rem;
-    background-color: #F9FAFB;
-    border-radius: 10px;
-    padding: 1rem;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);    .search-box {
-      display: flex;
-      flex: 1;
-      margin-right: 1rem;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 8px;
+    flex-wrap: wrap;
+    gap: 8px;
       
       mat-form-field {
         flex: 1;
@@ -170,37 +163,35 @@
         fa-icon {
           margin-right: 8px;
         }
-        
-        @media (max-width: 576px) {
+          @media (max-width: 576px) {
           min-width: 80px;
         }
       }
     }
+  }
+  
+  // Filter options moved outside the previous block
+  .filter-options {
+    display: flex;
+  }
+  
+  // Media queries moved and fixed
+  @media (max-width: 768px) {
+    .search-box {
+      width: 100%;
+      margin-right: 0;
+      margin-bottom: 1rem;
+    }
     
     .filter-options {
-      display: flex;
+      width: 100%;
+      justify-content: flex-end;
     }
-    
-    @media (max-width: 768px) {
-      flex-direction: column;
-      padding: 0.75rem;
-      
-      .search-box {
-        width: 100%;
-        margin-right: 0;
-        margin-bottom: 1rem;
-      }
-      
-      .filter-options {
-        width: 100%;
-        justify-content: flex-end;
-      }
-    }
-    
-    @media (max-width: 576px) {
-      mat-form-field {
-        font-size: 0.9rem;
-      }
+  }
+  
+  @media (max-width: 576px) {
+    mat-form-field {
+      font-size: 0.9rem;
     }
   }
   
@@ -702,79 +693,99 @@
       grid-template-columns: 1fr;
     }
   }
+
+
+// Removed sidebar filter styles - now handled directly in the community-frontend-filter component
+
+.filter-toggle-btn {
+  background-color: #6D28D9;
+  color: white;
+  border: none;
+  border-radius: 50px;
+  padding: 12px 16px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+  transition: all 0.3s ease;
+  
+  &:hover {
+    background-color: #5b21b6;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+  }
+  
+  &.active {
+    background-color: #4c1d95;
+  }
+  
+  fa-icon {
+    font-size: 1rem;
+  }
 }
 
-// Filter panel styles
-.search-filter-section {
-  margin-bottom: 16px;
-
-  .search-box {
+// Removed .filter-sidebar styling - now handled in the community-frontend-filter component
+  
+  .filter-sidebar-header {
     display: flex;
     align-items: center;
-    flex-wrap: wrap;
-    gap: 12px;
+    justify-content: space-between;
+    padding: 1.25rem;
+    border-bottom: 1px solid rgba(107, 114, 128, 0.1);
+    background-color: #f8f9fa;
     
-    mat-form-field {
-      flex: 1;
-      min-width: 200px;
+    h3 {
+      margin: 0;
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: #1F2937;
     }
     
-    .filter-button {
-      background-color: #6D28D9;
-      color: white;
+    .close-btn {
+      background: none;
+      border: none;
+      color: #4B5563;
+      cursor: pointer;
+      padding: 8px;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       
       &:hover {
-        background-color: darken(#6D28D9, 10%);
+        background-color: rgba(107, 114, 128, 0.1);
       }
     }
   }
-}
-
-// Animated filter panel
-.filter-panel {
-  max-height: 0;
-  overflow: hidden;
-  transition: all 0.3s ease-in-out;
-  margin-bottom: 0;
-  background-color: #f9fafb;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  opacity: 0;
-  transform: translateY(-10px);
   
-  &.expanded {
-    max-height: 800px; // Adjust based on your filter's height
-    margin-bottom: 24px;
-    opacity: 1;
-    transform: translateY(0);
-    border: 1px solid rgba(107, 114, 128, 0.1);
-  }
-  
-  // Custom styling for the filter panel contents
-  ::ng-deep {
-    .filter-container {
+  .filter-sidebar-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 0;
+    
+    // Remove border/box-shadow from the frontend-filter-container
+    ::ng-deep .frontend-filter-container {
       border-radius: 0;
       box-shadow: none;
+      background-color: transparent;
       margin-bottom: 0;
-      
-      .filter-header {
-        border-radius: 8px 8px 0 0;
-      }
-    }
+    }  }
+
+.filter-sidebar-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 997;
+  display: none;
+  
+  // Only show overlay on mobile
+  @media (max-width: 768px) {
+    display: block;
   }
-}
-
-// Remove old filter sidebar styles
-.main-content-area {
-  display: block;
-}
-
-.filter-sidebar {
-  display: none;
-}
-
-.filter-toggle-mobile {
-  display: none;
 }
 
 // Add more spacing to the community cards for better breathing room
@@ -967,6 +978,18 @@
     align-items: center;
     justify-content: center;
   }
+}
+
+// Mobile adjustments for sidebar
+@media (max-width: 768px) {
+  .filter-sidebar {
+    width: 85%;
+    max-width: 300px;
+  }
   
-  // ...existing code...
+  .filter-toggle-container {
+    right: 10px;
+    bottom: 20px;
+    top: auto;
+  }
 }

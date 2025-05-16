@@ -1,1 +1,81 @@
-<p>community-frontend-filter works!</p>
+<!-- Filter toggle button that sticks out from the right side -->
+<div class="filter-toggle-button" 
+     [class.open]="isFilterOpen" 
+     (click)="toggleFilterSidebar()"
+     matTooltip="{{isFilterOpen ? 'Close filters' : 'Open filters'}}">
+  <fa-icon [icon]="isFilterOpen ? faAngleRight : faAngleLeft"></fa-icon>
+</div>
+
+<!-- Sidebar container -->
+<div class="filter-sidebar" [class.open]="isFilterOpen">
+  <div class="sidebar-header">
+    <h2>
+      <fa-icon [icon]="faFilter"></fa-icon>
+      Filters
+    </h2>
+  </div>
+  
+  <div class="sidebar-content">
+    <!-- Search Box -->
+    <div class="search-box">
+      <mat-form-field appearance="outline">
+        <mat-label>
+          <fa-icon [icon]="faSearch" class="search-icon"></fa-icon>
+          Search Communities
+        </mat-label>
+        <input matInput [(ngModel)]="searchQuery" placeholder="Enter community name or description" 
+               (keyup.enter)="search()">
+      </mat-form-field>
+      <button class="custom-button primary-button" (click)="search()">
+        <fa-icon [icon]="faSearch"></fa-icon>
+        Search
+      </button>
+    </div>
+
+    <!-- Filter Form -->
+    <form [formGroup]="filterForm" class="filter-form">
+      <div class="filter-section">
+        <h3>
+          <fa-icon [icon]="faSort" class="section-icon"></fa-icon>
+          Sorting
+        </h3>
+
+        <!-- Sorting Options -->
+        <div class="filter-group">
+          <label>Sort By</label>
+          <div class="sort-container">
+            <mat-form-field appearance="outline">
+              <mat-select formControlName="sortBy" (selectionChange)="setSortField($event.value)">
+                <mat-option *ngFor="let option of sortOptions" [value]="option.value">
+                  {{option.label}}
+                </mat-option>
+              </mat-select>
+            </mat-form-field>
+            <div class="sort-button-group">
+              <button type="button" mat-stroked-button [class.active]="filterForm.get('order')?.value === 'asc'" 
+                      (click)="setSortOrder('asc')">
+                <fa-icon [icon]="faSortAlphaDown"></fa-icon>
+                Asc
+              </button>
+              <button type="button" mat-stroked-button [class.active]="filterForm.get('order')?.value === 'desc'" 
+                      (click)="setSortOrder('desc')">
+                <fa-icon [icon]="faSortAlphaUp"></fa-icon>
+                Desc
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button type="button" mat-raised-button color="primary" (click)="resetFilters()" class="reset-button">
+          <fa-icon [icon]="faArrowsRotate"></fa-icon>
+          Reset Sorting
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Optional overlay to close the sidebar when clicking outside -->
+<div class="sidebar-overlay" *ngIf="isFilterOpen" (click)="toggleFilterSidebar()"></div>

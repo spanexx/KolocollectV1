@@ -1,0 +1,243 @@
+// filepath: c:\Users\shuga\OneDrive\Desktop\PRO\Kolocollect\kolocollect-frontend\src\app\components\community\community-frontend-filter\community-frontend-filter.component.ts
+import { Component, OnInit, Output, Input, EventEmitter } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule, ReactiveFormsModule, FormGroup, FormBuilder } from '@angular/forms';
+import { MatCardModule } from '@angular/material/card';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
+import { MatButtonModule } from '@angular/material/button';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatSliderModule } from '@angular/material/slider';
+import { MatIconModule } from '@angular/material/icon';
+import { MatDividerModule } from '@angular/material/divider';
+import { MatButtonToggleGroup, MatButtonToggleModule } from '@angular/material/button-toggle';
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { 
+  faFilter, 
+  faSort, 
+  faSearch,  
+  faSliders,
+  faSortAlphaDown,
+  faSortAlphaUp,
+  faCoins,
+  faClock,
+  faUsers,
+  faBan,
+  faArrowsRotate,
+  faHandHoldingDollar,
+  faUserPlus
+} from '@fortawesome/free-solid-svg-icons';
+import { Community } from '../../../models/community.model';
+
+@Component({
+  selector: 'app-community-frontend-filter',
+  standalone: true,
+  imports: [
+    CommonModule, 
+    ReactiveFormsModule,
+    FormsModule,
+    MatCardModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSelectModule,
+    MatButtonModule,
+    MatCheckboxModule,
+    MatSliderModule,
+    MatIconModule,
+    MatDividerModule,
+    MatButtonToggleModule,
+    FontAwesomeModule
+  ],
+  templateUrl: './community-frontend-filter.component.html',
+  styleUrl: './community-frontend-filter.component.scss'
+})
+export class CommunityFrontendFilterComponent implements OnInit {
+  @Input() communities: Community[] = []; // All communities to filter
+  @Input() isLoading: boolean = false;
+  @Output() filteredCommunitiesChange = new EventEmitter<Community[]>();
+  @Output() totalCountChange = new EventEmitter<number>();
+  
+  searchQuery: string = '';
+  filterForm!: FormGroup;
+  
+  // FontAwesome icons
+  faFilter = faFilter;
+  faSort = faSort;
+  faSearch = faSearch;
+  faSliders = faSliders;
+  faSortAlphaDown = faSortAlphaDown;
+  faSortAlphaUp = faSortAlphaUp;
+  faCoins = faCoins;
+  faClock = faClock;
+  faUsers = faUsers;
+  faBan = faBan;
+  faArrowsRotate = faArrowsRotate;
+  faHandHoldingDollar = faHandHoldingDollar;
+  faUserPlus = faUserPlus;
+
+  // Filter options
+  contributionFrequencies = [
+    { value: 'daily', label: 'Daily' },
+    { value: 'weekly', label: 'Weekly' },
+    { value: 'biweekly', label: 'Bi-weekly' },
+    { value: 'monthly', label: 'Monthly' }
+  ];
+  
+  sortOptions = [
+    { value: 'memberCount', label: 'Member Count' },
+    { value: 'minContribution', label: 'Contribution Amount' },
+    { value: 'backupFund', label: 'Backup Fund' },
+    { value: 'createdAt', label: 'Creation Date' }
+  ];
+  
+  // Initial values for range sliders
+  maxBackupFund: number = 10000;
+  maxMinContribution: number = 5000;
+
+  constructor(private fb: FormBuilder) {}
+
+  ngOnInit(): void {
+    this.initializeForm();
+  }
+
+  initializeForm(): void {
+    this.filterForm = this.fb.group({
+      status: ['active'],
+      backupFundMin: [0],
+      backupFundMax: [this.maxBackupFund],
+      minContributionMin: [0],
+      minContributionMax: [this.maxMinContribution],
+      contributionFrequency: [''],
+      memberCountMin: [0],
+      memberCountMax: [100],
+      sortBy: ['createdAt'],
+      order: ['desc'],
+      onlyJoinable: [false]
+    });
+
+    // Apply filters when form changes
+    this.filterForm.valueChanges.subscribe(() => {
+      this.applyFilters();
+    });
+  }
+
+  applyFilters(): void {
+    if (!this.communities || this.communities.length === 0) {
+      this.filteredCommunitiesChange.emit([]);
+      this.totalCountChange.emit(0);
+      return;
+    }
+
+    let filteredCommunities = [...this.communities];
+    
+    // Apply search query if present
+    if (this.searchQuery && this.searchQuery.trim()) {
+      const query = this.searchQuery.trim().toLowerCase();
+      filteredCommunities = filteredCommunities.filter(community => {
+        return (
+          (community.name && community.name.toLowerCase().includes(query)) ||
+          (community.description && community.description.toLowerCase().includes(query))
+        );
+      });
+    }
+    
+    const filterValues = this.filterForm.value;
+    
+    // Filter by status - using type assertion since status might not be defined in the interface
+    if (filterValues.status) {
+      filteredCommunities = filteredCommunities.filter(community => 
+        (community as any).status === filterValues.status
+      );
+    }
+    
+    // Filter by backup fund range
+    filteredCommunities = filteredCommunities.filter(community => {
+      const backupFund = community.backupFund || 0;
+      return backupFund >= filterValues.backupFundMin && 
+             backupFund <= filterValues.backupFundMax;
+    });
+    
+    // Filter by contribution amount range
+    filteredCommunities = filteredCommunities.filter(community => {
+      const minContribution = community.settings?.minContribution || 0;
+      return minContribution >= filterValues.minContributionMin && 
+             minContribution <= filterValues.minContributionMax;
+    });
+    
+    // Filter by contribution frequency
+    if (filterValues.contributionFrequency) {
+      filteredCommunities = filteredCommunities.filter(community => 
+        community.settings?.contributionFrequency === filterValues.contributionFrequency
+      );
+    }
+    
+    // Filter by member count (needs to be implemented in the parent component where we have actual count)
+    // This is managed in the parent component since we need access to activeMemberCounts data
+    
+    // Sort communities
+    if (filterValues.sortBy) {
+      const sortField = filterValues.sortBy;
+      const sortOrder = filterValues.order === 'desc' ? -1 : 1;
+      
+      filteredCommunities.sort((a, b) => {
+        let valueA, valueB;
+        
+        switch (sortField) {
+          case 'memberCount':
+            // For memberCount sorting, we'll use a placeholder since this requires
+            // the activeMemberCounts data from the parent component
+            valueA = 0;
+            valueB = 0;
+            break;
+          case 'minContribution':
+            valueA = a.settings?.minContribution || 0;
+            valueB = b.settings?.minContribution || 0;
+            break;
+          case 'backupFund':
+            valueA = a.backupFund || 0;
+            valueB = b.backupFund || 0;
+            break;
+          case 'createdAt':
+            valueA = new Date(a.createdAt || 0).getTime();
+            valueB = new Date(b.createdAt || 0).getTime();
+            break;
+          default:
+            valueA = a[sortField as keyof Community] || 0;
+            valueB = b[sortField as keyof Community] || 0;
+        }
+        
+        if (valueA < valueB) return -1 * sortOrder;
+        if (valueA > valueB) return 1 * sortOrder;
+        return 0;
+      });
+    }
+
+    // Emit the filtered and sorted communities
+    this.filteredCommunitiesChange.emit(filteredCommunities);
+    this.totalCountChange.emit(filteredCommunities.length);
+  }
+
+  search(): void {
+    this.applyFilters();
+  }
+
+  resetFilters(): void {
+    this.searchQuery = '';
+    this.filterForm.reset({
+      status: 'active',
+      backupFundMin: 0,
+      backupFundMax: this.maxBackupFund,
+      minContributionMin: 0,
+      minContributionMax: this.maxMinContribution,
+      contributionFrequency: '',
+      memberCountMin: 0,
+      memberCountMax: 100,
+      sortBy: 'createdAt',
+      order: 'desc',
+      onlyJoinable: false
+    });
+    
+    this.applyFilters();
+  }
+}

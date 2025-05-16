@@ -1,13 +1,15 @@
 <div class="contribution-history-container">
   <div class="header-section">
     <div class="title-with-refresh">
-      <h1>      <button mat-icon-button class="refresh-button" (click)="loadContributionsHistory()" [disabled]="isLoading" 
+      <h1>
+        <button mat-icon-button class="refresh-button" (click)="loadContributionsHistory()" [disabled]="isLoading" 
               matTooltip="Refresh contributions history" aria-label="Refresh contributions list">
-        <fa-icon [icon]="faArrowsRotate" [spin]="isLoading"></fa-icon>
-        <span class="sr-only">Refresh</span>
-      </button>Contribution History
+          <fa-icon [icon]="faArrowsRotate" [spin]="isLoading"></fa-icon>
+          <span class="sr-only">Refresh</span>
+        </button>
+        <span class="title-text">Contribution History</span>
       </h1>
-
+      <div class="subtitle">Manage and track your community contributions</div>
     </div>
     <div class="header-actions">
       <button mat-stroked-button class="filter-button">
@@ -58,8 +60,8 @@
             <th mat-header-cell *matHeaderCellDef mat-sort-header>
               <fa-icon [icon]="faCalendarAlt" class="column-icon"></fa-icon>
               <span class="column-title">Date</span>
-            </th>
-            <td mat-cell *matCellDef="let contribution">
+            </th>            <td mat-cell *matCellDef="let contribution">
+              <!-- <span class="mobile-label"><fa-icon [icon]="faCalendarAlt"></fa-icon> Date</span> -->
               {{ formatDate(contribution.contributionDate || contribution.date) }}
             </td>
           </ng-container>
@@ -69,8 +71,8 @@
             <th mat-header-cell *matHeaderCellDef mat-sort-header>
               <fa-icon [icon]="faBuilding" class="column-icon"></fa-icon>
               <span class="column-title">Community</span>
-            </th>
-            <td mat-cell *matCellDef="let contribution">
+            </th>            <td mat-cell *matCellDef="let contribution">
+              <!-- <span class="mobile-label"><fa-icon [icon]="faBuilding"></fa-icon> Community</span> -->
               <span [title]="contribution.communityName">{{ contribution.communityName }}</span>
             </td>
           </ng-container>
@@ -80,8 +82,8 @@
             <th mat-header-cell *matHeaderCellDef mat-sort-header>
               <fa-icon [icon]="faReceipt" class="column-icon"></fa-icon>
               <span class="column-title">Cycle</span>
-            </th>
-            <td mat-cell *matCellDef="let contribution">
+            </th>            <td mat-cell *matCellDef="let contribution">
+              <!-- <span class="mobile-label"><fa-icon [icon]="faReceipt"></fa-icon> Cycle</span> -->
               Cycle {{ contribution.cycleNumber }}
             </td>
           </ng-container>
@@ -91,8 +93,8 @@
             <th mat-header-cell *matHeaderCellDef mat-sort-header>
               <fa-icon [icon]="faMoneyBillWave" class="column-icon"></fa-icon>
               <span class="column-title">Amount</span>
-            </th>
-            <td mat-cell *matCellDef="let contribution">
+            </th>            <td mat-cell *matCellDef="let contribution">
+              <!-- <span class="mobile-label"><fa-icon [icon]="faMoneyBillWave"></fa-icon> Amount</span> -->
               {{ formatAmount(contribution.amount) }}
             </td>
           </ng-container>
@@ -101,8 +103,8 @@
             <th mat-header-cell *matHeaderCellDef mat-sort-header>
               <fa-icon [icon]="faCheckCircle" class="column-icon"></fa-icon>
               <span class="column-title">Status</span>
-            </th>
-            <td mat-cell *matCellDef="let contribution">
+            </th>            <td mat-cell *matCellDef="let contribution">
+              <!-- <span class="mobile-label"><fa-icon [icon]="faCheckCircle"></fa-icon> Status</span> -->
               <span class="status-chip" [ngClass]="getStatusClass(contribution.status)">
                 <fa-icon [icon]="getStatusIcon(contribution.status)" class="status-icon"></fa-icon>
                 {{ contribution.status | titlecase }}
@@ -111,11 +113,10 @@
           </ng-container>
             <!-- Actions Column -->
           <ng-container matColumnDef="actions">
-            <th mat-header-cell *matHeaderCellDef>Actions</th>
-            <td mat-cell *matCellDef="let contribution">
-              <div class="action-buttons">
-                <button mat-icon-button [matMenuTriggerFor]="actionMenu" aria-label="Show contribution options">
-                  <mat-icon>more_vert</mat-icon>
+            <th mat-header-cell *matHeaderCellDef>Actions</th>            <td mat-cell *matCellDef="let contribution">
+              <!-- <span class="mobile-label"><fa-icon [icon]="faEllipsisV"></fa-icon> Actions</span> -->
+              <div class="action-buttons">              <button mat-icon-button [matMenuTriggerFor]="actionMenu" aria-label="Show contribution options">
+                  <fa-icon [icon]="faEllipsisV"></fa-icon>
                 </button>
                 <mat-menu #actionMenu="matMenu">
                   <button mat-menu-item (click)="viewContributionDetails(contribution)">

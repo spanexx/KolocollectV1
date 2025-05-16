@@ -29,15 +29,17 @@ import {
   faCheckCircle,
   faHourglassHalf,
   faTimesCircle,
-  faSpinner,  faFilter,
+  faSpinner,  
+  faFilter,
   faDownload,
   faPlus,
   faExclamationCircle,
   faArrowsRotate,
-  faShare, // Add share icon
-  faFilePdf, // Add file PDF icon
-  faLink, // Add link icon
-  faEnvelope // Add envelope icon
+  faShare,
+  faFilePdf,
+  faLink,
+  faEnvelope,
+  faEllipsisV
 } from '@fortawesome/free-solid-svg-icons';
 import { 
   faTwitter, 
@@ -85,6 +87,7 @@ export class ContributionHistoryComponent implements OnInit {
   faTwitter = faTwitter;
   faFacebook = faFacebook;
   faWhatsapp = faWhatsapp;
+  faEllipsisV = faEllipsisV;
   // Table related properties
   displayedColumns: string[] = ['date', 'community', 'cycle', 'amount', 'status', 'actions'];
   contributions: Contribution[] = [];

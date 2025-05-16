@@ -49,6 +49,7 @@ import { CommunityVotesComponent } from '../community-votes/community-votes.comp
 import { CommunityPayoutsComponent } from '../community-payouts/community-payouts.component';
 import { CommunityMembersComponent } from '../community-members/community-members.component';
 import { CommunityMidcycleComponent } from '../community-midcycle/community-midcycle.component';
+import { CommunityFrontendFilterComponent } from '../community-frontend-filter/community-frontend-filter.component';
 
 @Component({
   selector: 'app-community-detail',
@@ -65,10 +66,10 @@ import { CommunityMidcycleComponent } from '../community-midcycle/community-midc
     MatChipsModule,
     MatBadgeModule,
     MatDialogModule,
-    MatMenuModule,    FontAwesomeModule,    CustomButtonComponent,    ContributionHistoryHierarchicalComponent,    OwingMembersComponent,
-    CommunityVotesComponent, // Used in template
+    MatMenuModule,    FontAwesomeModule,    CustomButtonComponent,    ContributionHistoryHierarchicalComponent,    OwingMembersComponent,    CommunityVotesComponent, // Used in template
     CommunityPayoutsComponent, // Used in template
     CommunityMembersComponent, // Used in template
+    // Removed CommunityFrontendFilterComponent as it's not used in this template
     FormsModule,
     ReactiveFormsModule,
     MatFormFieldModule,
@@ -134,7 +135,11 @@ export class CommunityDetailComponent implements OnInit, OnDestroy {  // Font Aw
   socialLinks: { twitter: string; facebook: string; whatsapp: string; } | null = null;
   cycleSocialLinks: { twitter: string; facebook: string; whatsapp: string; } | null = null;
   midCycleSocialLinks: { twitter: string; facebook: string; whatsapp: string; } | null = null;
-
+  // Properties for member searching and filtering
+  allMembers: Member[] = [];
+  filteredMembers: Member[] = [];
+  memberSearchLoading: boolean = false;
+  
   // Predefined vote topics
   voteTopics = [
     { value: 'positioningMode', label: 'Positioning Mode', 

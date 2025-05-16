@@ -22,6 +22,7 @@ const MemberSchema = new mongoose.Schema({
     }],
     communityId: { type: mongoose.Schema.Types.ObjectId, ref: 'Community' },
     joinedAt: { type: Date, default: Date.now },
+    leaveDate: { type: Date },
     paymentPlan: {
         type: { type: String, enum: ['Full', 'Incremental', 'Shortfall'], default: 'Full' },
         totalPreviousContribution: { type: Number, default: 0 },

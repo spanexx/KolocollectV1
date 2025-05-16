@@ -10,35 +10,23 @@
         Create Community
       </a>
     </div>
-  </div>
-    <!-- Search and filter section -->
-  <div class="search-filter-section">
-    <div class="search-box">
-      <mat-form-field appearance="outline">
-        <mat-label>
-          <fa-icon [icon]="faSearch" class="search-icon"></fa-icon>
-          Search Communities
-        </mat-label>
-        <input matInput [(ngModel)]="searchQuery" placeholder="Enter community name" 
-               (keyup.enter)="searchCommunities()">
-      </mat-form-field>
-      <button class="custom-button primary-button" (click)="searchCommunities()">
-        <fa-icon [icon]="faSearch"></fa-icon>
-        Search
-      </button>      <button class="custom-button filter-button" [class.active]="isFilterPanelVisible" (click)="toggleFilterPanel()">
-        <fa-icon [icon]="faFilter"></fa-icon>
-        {{ isFilterPanelVisible ? 'Hide Filters' : 'Show Filters' }}
-      </button>
-    </div>
-  </div>
+  </div>  <!-- Frontend filter sidebar - no section container needed -->
+  <app-community-frontend-filter
+    [communities]="allCommunities"
+    [isLoading]="isLoading"
+    (filteredCommunitiesChange)="onFilteredCommunitiesChange($event)"
+    (totalCountChange)="onTotalCountChange($event)">
+  </app-community-frontend-filter>
   
-  <!-- Collapsible filter panel -->
+  <!-- Old filter panel - commented out -->
+  <!--
   <div class="filter-panel" [class.expanded]="isFilterPanelVisible">
     <app-community-filter
       [isLoading]="isLoading"
       (filterChange)="onFilterChange($event)">
     </app-community-filter>
   </div>
+  -->
     
     <!-- Community content -->
     <div class="community-content">

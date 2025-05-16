@@ -1884,41 +1884,44 @@ CommunitySchema.methods.isMemberOwing = async function(userId) {
 
 /**
  * Checks and calculates payment amounts for next-in-line members
+ * @param {ObjectId} contributorId - ID of contributing member
+ * @param {ObjectId} midCycleId - ID of current midCycle
+ * @param {number} contributionAmount - Amount of current contribution
+ * @returns {Promise<Object>} Result with amount to deduct and message
+ * 
+ * This method determines if the contributor previously received payment
+ * from the current nextInLine member, and calculates what is owed in reverse.
  */
 CommunitySchema.methods.payNextInLine = async function(contributorId, midCycleId, contributionAmount) {
     try {
-        // Find the active cycle
-        const activeCycle = await Cycle.findOne({ 
-            _id: { $in: this.cycles }, 
-            isComplete: false 
-        });
-        if (!activeCycle) {
-            throw new Error('No active cycle found.');
-        }
-
-        // Populate all necessary references
-        await this.populate([
-            { path: 'midCycle' },
-            { path: 'cycles' }
-        ]);
-
-        // Find the mid-cycle with the given midCycleId
-        const midCycle = await MidCycle.findOne({
-            _id: midCycleId,
-            _id: { $in: this.midCycle }
-        });
-
+        // Get the MidCycle model
+        const MidCycle = mongoose.model('MidCycle');
+        const Cycle = mongoose.model('Cycle');
+        
+        // Find the midCycle that corresponds to the provided midCycleId
+        const midCycle = await MidCycle.findById(midCycleId);
         if (!midCycle) {
-            throw new Error('MidCycle not found or does not belong to the active cycle.');
+            throw new Error('MidCycle not found.');
+        }
+        
+        // Find the cycle associated with this midCycle
+        const cycle = await Cycle.findOne({
+            midCycles: midCycleId,
+            isComplete: false
+        });
+        
+        if (!cycle) {
+            throw new Error('No active cycle found for this mid-cycle.');
         }
 
-        console.log('MidCycle:', midCycle._id, "MidCycle CycleNumber: ", midCycle.cycleNumber);
+        console.log('MidCycle:', midCycle._id, "MidCycle CycleNumber:", midCycle.cycleNumber);
 
         // Retrieve the user ID of the current next in line
         const nextInLineId = midCycle.nextInLine?.userId;
         console.log('NextInLine ID:', nextInLineId);
+        
         if (!nextInLineId) {
-            throw new Error('No next in line found.');
+            throw new Error('No next in line found in this mid-cycle.');
         }
 
         // Handle the case where the contributor is the nextInLine
@@ -1932,33 +1935,48 @@ CommunitySchema.methods.payNextInLine = async function(contributorId, midCycleId
         let totalAmountOwed = 0;
 
         // Check if the contributor was previously a nextInLine and received payment from the current nextInLine
-        if (this.cycles.some((cycle) => cycle.paidMembers.includes(contributorId))) {
-            // Find the mid-cycle where the contributor was the next in line
-            console.log('Checking previous mid-cycles for contributor payments...');
-            const previousMidCycle = await MidCycle.findOne({
-                _id: { $in: this.midCycle },
-                'nextInLine.userId': contributorId,
-                cycleNumber: activeCycle.cycleNumber
+        // First check if the contributor is in the paidMembers list of the current cycle
+        const isPreviouslyPaid = await Cycle.exists({
+            _id: cycle._id,
+            paidMembers: contributorId
+        });
+        
+        if (isPreviouslyPaid) {
+            // Find midCycles in the same cycle where the contributor was the next in line
+            const previousMidCycles = await MidCycle.find({
+                _id: { $in: cycle.midCycles },
+                'nextInLine.userId': contributorId
             });
             
-            console.log('Previous MidCycle:', previousMidCycle);
-
-            if (previousMidCycle) {
-                // Initialize contributionsToNextInLine if it doesn't exist
-                if (!previousMidCycle.contributionsToNextInLine) {
-                    previousMidCycle.contributionsToNextInLine = new Map();
-                }
-
-                // Fetch how much the current nextInLine paid the contributor
-                const nextInLineContribution = previousMidCycle.contributionsToNextInLine.get(nextInLineId.toString());
-                console.log('NextInLine Contribution:', nextInLineContribution);
-
-                if (nextInLineContribution) {
-                    totalAmountOwed = nextInLineContribution;
+            console.log(`Found ${previousMidCycles.length} previous mid-cycles where contributor was next in line`);
+            
+            // Check each previous midCycle to see if the current nextInLine contributed to the contributor
+            for (const previousMidCycle of previousMidCycles) {
+                console.log(`Checking previous mid-cycle: ${previousMidCycle._id}`);
+                
+                // Ensure contributionsToNextInLine is properly handled
+                let contributionsMap = previousMidCycle.contributionsToNextInLine;
+                
+                // Handle different storage formats (Map or plain object)
+                if (contributionsMap) {
+                    let nextInLineContribution = null;
+                    
+                    if (contributionsMap instanceof Map) {
+                        nextInLineContribution = contributionsMap.get(nextInLineId.toString());
+                    } else if (typeof contributionsMap === 'object') {
+                        // Handle case where it's stored as a plain object                        nextInLineContribution = contributionsMap[nextInLineId.toString()];
+                    }
+                    
+                    console.log(`NextInLine contribution in previous mid-cycle: ${nextInLineContribution}`);
+                    
+                    if (nextInLineContribution) {
+                        totalAmountOwed += parseFloat(nextInLineContribution);
+                    }
                 }
             }
         }
-
+          console.log(`Total amount owed by contributor to nextInLine: €${totalAmountOwed}`);
+        
         // Calculate the difference between the total owed and the contributor's current contribution amount
         const amountToDeduct = Math.max(0, totalAmountOwed - contributionAmount);
 
@@ -2551,8 +2569,8 @@ CommunitySchema.methods.backPaymentDistribute = async function (midCycleJoinersI
         if (joinerIndex >= 0) {
           midCycleToUpdate.midCycleJoiners[joinerIndex].isComplete = true;
           midCycleToUpdate.midCycleJoiners[joinerIndex].secondInstallmentPaid = true;
-          midCycleToUpdate.midCycleJoiners[joinerIndex].backPaymentDistributed = true;
-          midCycleToUpdate.midCycleJoiners[joinerIndex].distributionDate = new Date();
+          midCycleToUpdate.midCycleJoiners[joinerId].backPaymentDistributed = true;
+          midCycleToUpdate.midCycleJoiners[joinerId].distributionDate = new Date();
           await midCycleToUpdate.save();
           joinerMarkedComplete = true;
           console.log(`Successfully marked joiner at index ${joinerIndex} as complete`);
@@ -2622,6 +2640,69 @@ CommunitySchema.methods.backPaymentDistribute = async function (midCycleJoinersI
       details: err.message
     };
   }
+};
+
+/**
+ * Handles a member leaving the community
+ * @param {ObjectId} userId - ID of the member leaving
+ * @returns {Promise<Object>} Result of leaving the community
+ * 
+ * Manages the process of a member leaving:
+ * - Updates member status to 'inactive'
+ * - Handles any outstanding obligations
+ * - Updates community records
+ */
+CommunitySchema.methods.leaveCommunity = async function (userId) {
+    try {
+        const Member = mongoose.model('Member');
+        
+        // Find the member in this community
+        const member = await Member.findOne({
+            communityId: this._id,
+            userId: userId
+        });
+        
+        if (!member) {
+            throw new Error('Member not found in this community');
+        }
+        
+        // Check if the member is the admin
+        if (this.admin.equals(userId)) {
+            throw new Error('Community admin cannot leave the community. Transfer admin rights first.');
+        }
+        
+        // Check for active cycles where the member is next in line
+        const activeMidCycle = await MidCycle.findOne({
+            _id: { $in: this.midCycle },
+            'nextInLine.userId': userId,
+            isComplete: false
+        });
+        
+        if (activeMidCycle) {
+            throw new Error('Cannot leave community while you are the next in line to receive a payout.');
+        }
+        
+        // Check for outstanding obligations
+        if (member.penalty > 0) {
+            throw new Error('You have outstanding penalties to pay before leaving the community.');
+        }
+        
+        // Change member status to inactive
+        member.status = 'inactive';
+        member.leaveDate = new Date();
+        await member.save();
+        
+        await this.addActivityLog('member_left', userId);
+        
+        return {
+            success: true,
+            message: 'You have successfully left the community.',
+            memberId: member._id
+        };
+    } catch (err) {
+        console.error('Error in leaveCommunity method:', err);
+        throw err;
+    }
 };
 
 module.exports = mongoose.model('Community', CommunitySchema);

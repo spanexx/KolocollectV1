@@ -13,7 +13,8 @@ import { catchError, finalize, throwError, forkJoin, of } from 'rxjs';
 import { Community, CommunityListResponse, MidCycle } from '../../../models/community.model';
 import { JoinCommunityDialogComponent } from '../join-community-dialog/join-community-dialog.component';
 import { MidcycleService } from '../../../services/midcycle.service';
-import { CommunityFilterComponent } from '../community-filter/community-filter.component';
+// Removed unused import: CommunityFilterComponent
+import { CommunityFrontendFilterComponent } from '../community-frontend-filter/community-frontend-filter.component';
 
 // Angular Material imports
 import { MatCardModule } from '@angular/material/card';
@@ -44,15 +45,16 @@ import {
   faClock,
   faHandHoldingDollar,
   faChevronDown,
-  faChevronUp
+  faChevronUp,
+  faTimes
 } from '@fortawesome/free-solid-svg-icons';
 import { MemberService } from '../../../services/member.service';
+import { CommunityFilterComponent } from '../community-filter/community-filter.component';
 
 @Component({
   selector: 'app-community-list',
   templateUrl: './community-list.component.html',
-  styleUrls: ['./community-list.component.scss'],
-  standalone: true,  imports: [
+  styleUrls: ['./community-list.component.scss'],  standalone: true,  imports: [
     CommonModule,
     RouterModule,
     FormsModule,
@@ -62,16 +64,15 @@ import { MemberService } from '../../../services/member.service';
     MatInputModule,
     MatIconModule,
     MatMenuModule,
-    MatPaginatorModule,
-    MatProgressSpinnerModule,
+    MatPaginatorModule,    MatProgressSpinnerModule,
     FontAwesomeModule,
     MatDialogModule,
     MatDividerModule,
-    CommunityFilterComponent
+    // Removed unused CommunityFilterComponent
+    CommunityFrontendFilterComponent
   ]
 })
-export class CommunityListComponent implements OnInit {
-  // Font Awesome icons
+export class CommunityListComponent implements OnInit {  // Font Awesome icons
   faUsers = faUsers;
   faPlus = faPlus;
   faSearch = faSearch;
@@ -82,12 +83,15 @@ export class CommunityListComponent implements OnInit {
   faShieldAlt = faShieldAlt;
   faEye = faEye;
   faUserPlus = faUserPlus;
+  faTimes = faTimes;
   faSpinner = faSpinner;
   faClock = faClock;  faHandHoldingDollar = faHandHoldingDollar; // New icon for contribute button
   faChevronDown = faChevronDown;
   faChevronUp = faChevronUp;
   
   communities: Community[] = [];
+  allCommunities: Community[] = []; // All communities fetched from API for frontend filtering
+  filteredCommunities: Community[] = []; // Communities after frontend filtering
   totalCount: number = 0;
   pageSize: number = 10;
   pageIndex: number = 0;
@@ -97,6 +101,9 @@ export class CommunityListComponent implements OnInit {
   error: string | null = null;
   userCommunities: string[] = []; // IDs of communities the user is a member of
   expandedCommunities: {[communityId: string]: boolean} = {}; // Track which communities are expanded
+  
+  // Frontend filter flag
+  useFrontendFilter: boolean = true; // Set to true to enable frontend filtering
     constructor(
     private communityService: CommunityService,
     private userService: UserService,
@@ -108,12 +115,12 @@ export class CommunityListComponent implements OnInit {
     private dialog: MatDialog,
     private midcycleService: MidcycleService
   ) {}
-
   ngOnInit(): void {
+    // Set frontend filter flag to true to use the new frontend filtering
+    this.useFrontendFilter = true;
     this.loadCommunities();
     this.loadUserCommunities();
-  }
-  loadCommunities(): void {
+  }loadCommunities(): void {
     this.isLoading = true;
     this.error = null;
     this.loadingService.start('load-communities');
@@ -121,12 +128,26 @@ export class CommunityListComponent implements OnInit {
     // Reset active member counts cache when loading new communities
     this.activeMemberCounts = {};
 
-    // Build filter parameters
+    // For frontend filtering, we need to load all communities at once
+    // Comment out the original server-side pagination approach
+    /*
     const params = {
-      page: this.pageIndex + 1,  // API uses 1-based pagination
+      page: this.pageIndex + 1,
       limit: this.pageSize,
       ...this.filterOptions
-    };    this.communityService.filterCommunities(params).pipe(
+    };
+    */
+    
+    // For frontend filtering, we load all communities without pagination
+    const params = this.useFrontendFilter ? 
+      { limit: 1000 } : // Load a large number of communities for frontend filtering
+      {
+        page: this.pageIndex + 1,
+        limit: this.pageSize,
+        ...this.filterOptions
+      };
+      
+    this.communityService.filterCommunities(params).pipe(
       catchError(error => {
         this.error = error.message || 'Failed to load communities';
         this.toastService.error('Error loading communities');
@@ -137,22 +158,34 @@ export class CommunityListComponent implements OnInit {
         this.loadingService.stop('load-communities');
       })
     ).subscribe((response: any) => {
-      this.communities = response.data || [];
-      console.log('Communities:', this.communities);
-      this.totalCount = response.pagination?.totalItems || 0;
-      
-      if (this.communities.length === 0 && this.totalCount > 0) {
-        // If we have no communities but total count is greater than 0,
-        // we might be on a page with no data, so go back to first page
-        this.pageIndex = 0;
-        this.loadCommunities();
-        return;
+      if (this.useFrontendFilter) {
+        // Store all communities for frontend filtering
+        this.allCommunities = response.data || [];
+        this.filteredCommunities = [...this.allCommunities]; // Initially show all
+        this.communities = this.filteredCommunities.slice(this.pageIndex * this.pageSize, (this.pageIndex + 1) * this.pageSize);
+        this.totalCount = this.filteredCommunities.length;
+        
+        console.log('All Communities loaded for frontend filtering:', this.allCommunities.length);
+      } else {
+        // Original backend filtering logic
+        this.communities = response.data || [];
+        this.totalCount = response.pagination?.totalItems || 0;
+        
+        if (this.communities.length === 0 && this.totalCount > 0) {
+          // If we have no communities but total count is greater than 0,
+          // we might be on a page with no data, so go back to first page
+          this.pageIndex = 0;
+          this.loadCommunities();
+          return;
+        }
       }
-        // Pre-fetch data for all loaded communities at once
-      this.prefetchActiveMemberCounts(this.communities);
+        
+      // Pre-fetch data for all loaded communities at once
+      const communitiesToPrefetch = this.useFrontendFilter ? this.allCommunities : this.communities;
+      this.prefetchActiveMemberCounts(communitiesToPrefetch);
       
       // Check midcycle readiness status for all communities
-      this.communities.forEach(community => {
+      communitiesToPrefetch.forEach(community => {
         this.checkMidcycleReadiness(community);
       });
     });
@@ -242,8 +275,12 @@ export class CommunityListComponent implements OnInit {
   navigateToContributions(): void {
     this.router.navigate(['/contributions']);
   }
-
+  // Frontend search (commented out backend search)
   searchCommunities(): void {
+    // This method is now handled by the frontend filter component
+    // Client-side filtering is applied through the onFilteredCommunitiesChange method
+    
+    /*
     if (this.searchQuery.trim()) {
       this.isLoading = true;
       this.error = null;
@@ -274,6 +311,7 @@ export class CommunityListComponent implements OnInit {
     } else {
       this.loadCommunities();
     }
+    */
   }
 
   applyFilters(filters: any): void {
@@ -339,12 +377,37 @@ export class CommunityListComponent implements OnInit {
     
     return descriptions.length > 0 ? descriptions.join(', ') : 'with no filters';
   }
-
   onPageChange(event: PageEvent): void {
     this.pageIndex = event.pageIndex;
     this.pageSize = event.pageSize;
-    this.loadCommunities();
-  }  /**
+    
+    if (this.useFrontendFilter) {
+      // For frontend filtering, we just update the visible slice of data
+      this.communities = this.filteredCommunities.slice(
+        this.pageIndex * this.pageSize, 
+        (this.pageIndex + 1) * this.pageSize
+      );
+    } else {
+      // For backend filtering, we need to load the new page from the server
+      this.loadCommunities();
+    }
+  }
+  
+  /**
+   * Handle filtered communities from the frontend filter component
+   */
+  onFilteredCommunitiesChange(filteredCommunities: Community[]): void {
+    this.filteredCommunities = filteredCommunities;
+    this.pageIndex = 0; // Reset to first page when filter changes
+    this.communities = this.filteredCommunities.slice(0, this.pageSize);
+  }
+  
+  /**
+   * Handle total count updates from the frontend filter component
+   */
+  onTotalCountChange(count: number): void {
+    this.totalCount = count;
+  }/**
    * Cache for active member counts to avoid repeated API calls
    */
   private activeMemberCounts: { [communityId: string]: number } = {};  /**
@@ -647,13 +710,5 @@ export class CommunityListComponent implements OnInit {
     this.filterOptions = filters;
     this.pageIndex = 0; // Reset to first page when filters change
     this.loadCommunities();
-  }
-    /**
-   * Toggle filter panel visibility
-   */
-  isFilterPanelVisible: boolean = false;
-  
-  toggleFilterPanel(): void {
-    this.isFilterPanelVisible = !this.isFilterPanelVisible;
-  }
+  }  // No need for filter panel toggle with the new sidebar implementation
 }
