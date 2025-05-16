@@ -53,8 +53,7 @@
             </mat-error>
           </mat-form-field>
           
-          <!-- Community Details -->
-          <div class="community-details" *ngIf="selectedCommunity">
+          <!-- Community Details -->          <div class="community-details" *ngIf="selectedCommunity">
             <div class="community-info-row">
               <div class="info-item">
                 <span class="info-label">Min. Contribution:</span>
@@ -73,23 +72,65 @@
           
           <mat-divider class="section-divider"></mat-divider>
           
-          <!-- Contribution Amount -->
-          <h2 class="form-section-title">
+          <!-- Contribution Amount -->          <h2 class="form-section-title">
             <fa-icon [icon]="faMoneyBillWave" class="section-icon"></fa-icon>
             Contribution Details
-          </h2>
-          <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Amount</mat-label>
-            <input matInput formControlName="amount" type="number" [min]="minContributionAmount" 
-              [placeholder]="'Min: $' + minContributionAmount">
+          </h2>          <mat-form-field appearance="outline" class="full-width" [ngClass]="{'locked-amount-field': amountInputDisabled}">
+            <mat-label>Amount</mat-label>            <input matInput formControlName="amount" type="number" [min]="getMinimumRequiredContribution()" 
+              [placeholder]="'Min: $' + getMinimumRequiredContribution()"
+              [matTooltip]="amountInputDisabled ? 'This field is locked because you owe money to the next-in-line member.' : ''">
             <span matPrefix>$&nbsp;</span>
+            <fa-icon *ngIf="amountInputDisabled" [icon]="faLock" class="lock-icon" 
+              [matTooltip]="'This amount is required and cannot be changed because you owe money to the next-in-line member.'"></fa-icon>
+            <span matSuffix *ngIf="amountInputDisabled" class="disabled-field-message">(Field is locked)</span>
             <mat-error *ngIf="isFormControlInvalid(contributionForm, 'amount')">
               {{ getErrorMessage(contributionForm, 'amount') }}
             </mat-error>
             <mat-hint *ngIf="selectedCommunity">
-              Minimum contribution: ${{ selectedCommunity.settings?.minContribution || 0 }}
+              <span *ngIf="!hasNextInLineDue">Minimum contribution: ${{ selectedCommunity.settings?.minContribution || 0 }}</span>
+              <span *ngIf="hasNextInLineDue">Required contribution: ${{ getMinimumRequiredContribution() }} <span class="hint-detail">(Minimum: ${{ minContributionAmount }} + Owed: ${{ nextInLineInfo?.amountToDeduct }})</span></span>
             </mat-hint>
           </mat-form-field>
+          
+          <!-- Next-in-line Payment Information -->
+          <div class="next-in-line-info" *ngIf="nextInLineLoading || hasNextInLineDue">
+            <mat-spinner diameter="20" *ngIf="nextInLineLoading" class="spinner-inline"></mat-spinner>
+            
+            <div class="next-in-line-details" *ngIf="hasNextInLineDue && nextInLineInfo">              <div class="info-alert payment-alert">
+                <fa-icon [icon]="faInfoCircle" class="info-icon"></fa-icon>
+                <div class="alert-content">
+                  <h4>
+                    <fa-icon [icon]="faLock" class="lock-icon-small"></fa-icon>
+                    Important: Required Payment Notice
+                  </h4>
+                  <p>{{ nextInLineInfo.message }}</p>
+                  <p class="locked-message">
+                    <strong>Your contribution amount has been locked</strong> to ensure the required payment is made.
+                  </p>
+                  
+                  <div class="payment-breakdown">
+                    <div class="breakdown-row">
+                      <span>Your contribution:</span>
+                      <span>${{ contributionForm.get('amount')?.value || 0 }}</span>
+                    </div>
+                    <div class="breakdown-row deduction">
+                      <span>Amount to deduct:</span>
+                      <span>-${{ nextInLineInfo.amountToDeduct }}</span>
+                    </div>
+                    <div class="breakdown-row total">
+                      <span>Effective contribution:</span>
+                      <span>${{ getEffectiveContributionAmount() }}</span>
+                    </div>
+                  </div>
+                  
+                  <p class="explanation">
+                    This deduction represents a reciprocal payment to the next member in line,
+                    who previously contributed to you when you were the recipient.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
           
           <div class="installment-toggle-container">
             <div class="toggle-label">
@@ -182,6 +223,7 @@
             <span>Your wallet balance is insufficient for this contribution.</span>
             <a mat-button color="accent" routerLink="/wallet/add-funds">Add Funds</a>
           </div>
+          
         </form>
       </mat-card-content>
     </mat-card>

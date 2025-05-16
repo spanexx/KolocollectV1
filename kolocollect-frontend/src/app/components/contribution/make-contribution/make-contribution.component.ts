@@ -24,7 +24,8 @@ import {
   faUsers, 
   faInfoCircle,
   faCheck,
-  faTimes
+  faTimes,
+  faLock
 } from '@fortawesome/free-solid-svg-icons';
 
 import { ContributionService } from '../../../services/contribution.service';
@@ -61,8 +62,7 @@ import { UserService } from '../../../services/user.service'; // Import UserServ
   templateUrl: './make-contribution.component.html',
   styleUrls: ['./make-contribution.component.scss']
 })
-export class MakeContributionComponent implements OnInit {
-  // FontAwesome icons
+export class MakeContributionComponent implements OnInit {  // FontAwesome icons
   faMoneyBillWave = faMoneyBillWave;
   faHandHoldingDollar = faHandHoldingDollar;
   faPiggyBank = faPiggyBank;
@@ -71,11 +71,11 @@ export class MakeContributionComponent implements OnInit {
   faInfoCircle = faInfoCircle;
   faCheck = faCheck;
   faTimes = faTimes;
+  faLock = faLock;
 
   // Form groups
   contributionForm: FormGroup;
   installmentForm: FormGroup;
-
   // Component state
   isLoading = false;
   error = '';
@@ -85,6 +85,12 @@ export class MakeContributionComponent implements OnInit {
   activeMidCycle: any = null;
   minContributionAmount = 0;
   installmentsAllowed = false; // Add this property to track if installments are allowed
+  
+  // Next in line payment information
+  nextInLineInfo: any = null;
+  nextInLineLoading = false;
+  hasNextInLineDue = false;
+  amountInputDisabled = false; // New property to control disabling the amount input
 
   // Route params
   communityId: string | null = null;
@@ -96,7 +102,6 @@ export class MakeContributionComponent implements OnInit {
 
   // Is installment mode
   isInstallment = false;
-
   constructor(
     private fb: FormBuilder,
     private route: ActivatedRoute,
@@ -108,19 +113,21 @@ export class MakeContributionComponent implements OnInit {
     private loadingService: LoadingService,
     private userService: UserService // Inject UserService
   ) {
+    // Create the form with options to preserve disabled state
+    const formOptions = { updateOn: 'blur' }; // Only update on blur to avoid potential race conditions
+    
     this.contributionForm = this.fb.group({
       communityId: ['', Validators.required],
       amount: ['', [Validators.required, Validators.min(0)]],
       paymentMethod: [{value: 'wallet', disabled: true}, Validators.required]
-    });
+    }, formOptions);
 
     this.installmentForm = this.fb.group({
       initialAmount: ['', [Validators.required, Validators.min(0)]],
       remainingAmount: ['', [Validators.required, Validators.min(0)]],
       completionDate: ['', Validators.required]
-    });
+    }, formOptions);
   }
-
   ngOnInit(): void {
     this.loadWalletBalance();
     this.loadUserCommunities();
@@ -136,6 +143,19 @@ export class MakeContributionComponent implements OnInit {
         // This ensures the communities are loaded first
         this.loadCommunityDetails(this.communityId);
       }
+    });    // Setup listener for amount changes to check next-in-line payment info
+    // Only react to value changes if the field is not disabled
+    this.contributionForm.get('amount')?.valueChanges.subscribe(amount => {
+      // Skip next-in-line check if the amount was changed programmatically while disabled
+      if (!this.amountInputDisabled) {
+        this.checkNextInLinePayment();
+      }
+    });
+    
+    // Also monitor the disabled state of the control
+    this.contributionForm.statusChanges.subscribe(status => {
+      console.log('Form status changed:', status);
+      console.log('Amount control disabled:', this.contributionForm.get('amount')?.disabled);
     });
   }
 
@@ -262,8 +282,7 @@ export class MakeContributionComponent implements OnInit {
           } else {
             console.warn('Could not find matching community in userCommunities array to update');
           }
-          
-          this.minContributionAmount = this.selectedCommunity.settings?.minContribution || 0;
+            this.minContributionAmount = this.selectedCommunity.settings?.minContribution || 0;
           
           // Check if community allows installments
           this.installmentsAllowed = this.selectedCommunity.settings?.allowsInstallments || false;
@@ -278,7 +297,15 @@ export class MakeContributionComponent implements OnInit {
             Validators.required,
             Validators.min(this.minContributionAmount)
           ]);
-          this.contributionForm.get('amount')?.updateValueAndValidity();            // Find the active mid-cycle
+          this.contributionForm.get('amount')?.updateValueAndValidity();
+          
+          // Set initial contribution amount if empty or less than minimum
+          const currentAmount = this.contributionForm.get('amount')?.value;
+          if (!currentAmount || currentAmount < this.minContributionAmount) {
+            this.contributionForm.patchValue({ 
+              amount: this.minContributionAmount 
+            });
+          }// Find the active mid-cycle
           if (this.selectedCommunity.midCycle) {
             const midcycles = Array.isArray(this.selectedCommunity.midCycle) ? 
               this.selectedCommunity.midCycle : 
@@ -329,10 +356,12 @@ export class MakeContributionComponent implements OnInit {
             }
           } else {
             console.error('No midcycles found in community:', this.selectedCommunity);
-            this.toastService.warning('No contribution cycles found for this community');
-          }
+            this.toastService.warning('No contribution cycles found for this community');          }
           
           this.loadingService.stop('community-details');
+          
+          // Check for next-in-line payment info after loading community details
+          this.checkNextInLinePayment();
         }
       },
       error: (error) => {
@@ -367,6 +396,8 @@ export class MakeContributionComponent implements OnInit {
             (this.selectedCommunity._id === selectedCommunity._id || 
              this.selectedCommunity._id === selectedCommunity.originalId)) {
           console.log('Reusing existing community details');
+          // Even if reusing details, still check for next-in-line payment info
+          this.checkNextInLinePayment();
           return; // We already have this community selected, no need to reload
         }
         
@@ -390,6 +421,8 @@ export class MakeContributionComponent implements OnInit {
       this.selectedCommunity = null;
       this.minContributionAmount = 0;
       this.activeMidCycle = null;
+      this.nextInLineInfo = null;
+      this.hasNextInLineDue = false;
     }
   }
 
@@ -414,14 +447,16 @@ export class MakeContributionComponent implements OnInit {
       });
     }
   }
-
   /**
    * Check if the user has sufficient funds for the contribution
    */
   hasSufficientFunds(): boolean {
+    // Get value even if the control is disabled
     const amount = this.isInstallment ? 
       this.installmentForm.get('initialAmount')?.value : 
-      this.contributionForm.get('amount')?.value;
+      (this.contributionForm.get('amount')?.disabled ? 
+        this.contributionForm.getRawValue().amount : 
+        this.contributionForm.get('amount')?.value);
       
     return this.walletBalance >= amount;
   }
@@ -435,8 +470,10 @@ export class MakeContributionComponent implements OnInit {
       this.installmentForm.markAllAsTouched();
       return;
     }
-    
-    if (!this.contributionForm.valid) {
+      // Check validity but skip disabled controls which shouldn't be validated
+    // They're intentionally disabled with preset values
+    const amountControlDisabled = this.contributionForm.get('amount')?.disabled;
+    if (!amountControlDisabled && !this.contributionForm.valid) {
       this.toastService.error('Please complete all required fields.');
       this.contributionForm.markAllAsTouched();
       return;
@@ -462,7 +499,7 @@ export class MakeContributionComponent implements OnInit {
       // If not, try to fetch the community details again to get an active midCycle
       this.toastService.info('Finding active cycle...');
       
-      const communityId = this.contributionForm.value.communityId;
+      const communityId = this.contributionForm.getRawValue().communityId;
       this.communityService.getCommunityById(communityId).subscribe({
         next: (response) => {
           if (response && response.community && response.community.midCycle) {
@@ -510,15 +547,24 @@ export class MakeContributionComponent implements OnInit {
       this.isLoading = false;
       this.loadingService.stop('submit-contribution');
       return;
-    }
-
-    // Prepare the request data
+    }    // Prepare the request data
+    // Use getRawValue() which retrieves values from both enabled and disabled controls
+    const formValues = this.contributionForm.getRawValue();
+    
     const contributionData: any = {
       userId,
-      communityId: this.contributionForm.value.communityId,
-      amount: this.contributionForm.value.amount,
+      communityId: formValues.communityId,
+      amount: formValues.amount,
       midCycleId: this.activeMidCycle._id  // Use without optional chaining to ensure it's not undefined
     };
+    
+    // Include next-in-line payment information if applicable
+    if (this.hasNextInLineDue && this.nextInLineInfo) {
+      contributionData.nextInLinePayment = {
+        amountToDeduct: this.nextInLineInfo.amountToDeduct,
+        effectiveContribution: this.getEffectiveContributionAmount()
+      };
+    }
     
     // Log the contribution data for debugging
     console.log('Preparing contribution data:', {
@@ -527,7 +573,8 @@ export class MakeContributionComponent implements OnInit {
         _id: this.activeMidCycle._id,
         isComplete: this.activeMidCycle.isComplete,
         cycleNumber: this.activeMidCycle.cycleNumber
-      } : null
+      } : null,
+      nextInLineInfo: this.nextInLineInfo
     });
     
     // Add installment data if applicable
@@ -577,6 +624,189 @@ export class MakeContributionComponent implements OnInit {
   }
 
   /**
+   * Check if the user owes payment to the next in line member
+   * This validates if a user previously received a payout from the current next-in-line member
+   * and provides information about any amount that may be deducted from their contribution
+   */  checkNextInLinePayment(): void {
+    // Get current contribution amount (may be 0 if not yet set by user)
+    const currentAmount = this.contributionForm.get('amount')?.value || 0;
+    const communityId = this.contributionForm.get('communityId')?.value;
+    const userId = this.authService.currentUserValue?.id;
+    
+    if (!communityId || !this.activeMidCycle || !userId) {
+      this.nextInLineInfo = null;
+      this.hasNextInLineDue = false;
+      return;
+    }
+    
+    // Ensure we have a valid midCycleId
+    const midCycleId = this.activeMidCycle._id;
+    if (!midCycleId) {
+      console.error('Invalid midCycleId:', this.activeMidCycle);
+      this.nextInLineInfo = null;
+      this.hasNextInLineDue = false;
+      return;
+    }
+    
+    this.nextInLineLoading = true;
+    
+    // Use a minimum amount for the API call if the user hasn't entered one yet
+    const amountForCheck = Math.max(currentAmount, this.minContributionAmount);
+    
+    console.log('Checking next-in-line payment with params:', {
+      communityId,
+      contributorId: userId,
+      midCycleId,
+      contributionAmount: amountForCheck
+    });
+    
+    // Call the payNextInLine method to check if the user owes payment
+    this.communityService.payNextInLine(
+      communityId,
+      userId,
+      midCycleId,
+      amountForCheck
+    ).subscribe({
+      next: (response) => {
+        console.log('Next-in-line payment response:', response);
+        this.nextInLineLoading = false;
+        
+        // If there's an amount to deduct, show the info
+        if (response && response.amountToDeduct && response.amountToDeduct > 0) {          this.nextInLineInfo = {
+            message: response.message,
+            amountToDeduct: response.amountToDeduct,
+            effectiveContribution: Math.max(0, amountForCheck - response.amountToDeduct)
+          };
+          this.hasNextInLineDue = true;
+            // Set the flag to disable the amount input when the user owes money
+          this.amountInputDisabled = true;          // Disable the amount form control - this is the proper way to disable reactive form controls
+          const amountControl = this.contributionForm.get('amount');
+          if (amountControl) {
+            amountControl.disable({emitEvent: false});
+            console.log('Form control disabled:', amountControl.disabled);
+            console.log('Amount control status:', {
+              disabled: amountControl.disabled,
+              value: amountControl.value,
+              rawValue: this.contributionForm.getRawValue().amount,
+              valid: amountControl.valid,
+              errors: amountControl.errors
+            });
+            
+            // Using setTimeout to check if the disabled state persists
+            setTimeout(() => {
+              console.log('After timeout - Amount control disabled:', amountControl.disabled);
+            }, 100);
+          }
+          
+          // Show a toast notification to alert the user
+          this.toastService.info(`Note: ${response.amountToDeduct} will be deducted from your contribution based on previous cycle payments.`);
+          
+          // Calculate required contribution to meet both minimum and owed amount
+          const requiredAmount = Math.max(
+            this.minContributionAmount + response.amountToDeduct,
+            currentAmount
+          );
+          
+          // Update the contribution amount if the user hasn't manually set it yet
+          // or if their amount is less than what's required
+          if (currentAmount < requiredAmount) {
+            console.log(`Setting contribution amount to ${requiredAmount} to cover minimum (${this.minContributionAmount}) plus owed amount (${response.amountToDeduct})`);
+            
+            // Use setTimeout to avoid ExpressionChangedAfterItHasBeenCheckedError
+            setTimeout(() => {
+              this.contributionForm.patchValue({ amount: requiredAmount });
+            });
+          }        } else {
+          this.nextInLineInfo = null;
+          this.hasNextInLineDue = false;
+          this.amountInputDisabled = false; // Enable the amount input when there's no owed amount
+          
+          // Enable the amount form control
+          this.contributionForm.get('amount')?.enable();
+          
+          // If there's no amount owed, just ensure minimum contribution
+          if (currentAmount < this.minContributionAmount) {
+            setTimeout(() => {
+              this.contributionForm.patchValue({ amount: this.minContributionAmount });
+            });
+          }
+        }
+      },      error: (error) => {        console.error('Error checking next-in-line payment:', error);
+        this.nextInLineLoading = false;
+        this.nextInLineInfo = null;
+        this.hasNextInLineDue = false;
+        this.amountInputDisabled = false; // Ensure input is enabled on error
+        
+        // Make sure to re-enable the amount form control on error
+        this.contributionForm.get('amount')?.enable();
+        
+        // Check if the server is running (this often results in a different error type)
+        if (!error.status || error.status === 0) {
+          console.error('Server connection issue - backend may not be running');
+        }
+        // Log more detailed error information for debugging
+        else if (error.status === 404) {
+          console.error('API endpoint not found. Check the route configuration in the backend.');
+          console.error(`URL attempted: /communities/${communityId}/pay-next-in-line`);
+          
+          // Instead of stopping with an error, just continue without the next-in-line data
+          // This allows users to make contributions even if this validation feature is broken
+        } else {
+          console.error('Error details:', {
+            status: error.status,
+            message: error.message,
+            url: `/communities/${communityId}/pay-next-in-line`
+          });
+        }
+        
+        // Even if the API fails, ensure minimum contribution amount is set
+        const currentAmount = this.contributionForm.get('amount')?.value || 0;
+        if (currentAmount < this.minContributionAmount) {
+          setTimeout(() => {
+            this.contributionForm.patchValue({ amount: this.minContributionAmount });
+            console.log(`API call failed but setting minimum contribution amount: ${this.minContributionAmount}`);
+          });
+        }
+      }
+    });
+  }
+  /**
+   * Helper method to get the effective contribution amount after any deductions
+   */
+  getEffectiveContributionAmount(): number {
+    // Get value even from disabled controls
+    const contributionAmount = this.isInstallment ? 
+      this.installmentForm.get('initialAmount')?.value : 
+      (this.contributionForm.get('amount')?.disabled ? 
+        this.contributionForm.getRawValue().amount : 
+        this.contributionForm.get('amount')?.value);
+      
+    if (this.hasNextInLineDue && this.nextInLineInfo?.amountToDeduct) {
+      return Math.max(0, contributionAmount - this.nextInLineInfo.amountToDeduct);
+    }
+    
+    return contributionAmount;
+  }
+
+  /**
+   * Calculates the minimum required contribution amount based on:
+   * 1. The community's minimum contribution setting
+   * 2. Any amount owed to the next-in-line member
+   * @returns The minimum required contribution amount
+   */
+  getMinimumRequiredContribution(): number {
+    let minimumRequired = this.minContributionAmount;
+    
+    // Add any amount owed to the next-in-line
+    if (this.hasNextInLineDue && this.nextInLineInfo?.amountToDeduct) {
+      // The user needs to contribute at least the minimum plus whatever they owe
+      minimumRequired += this.nextInLineInfo.amountToDeduct;
+    }
+    
+    return minimumRequired;
+  }
+
+  /**
    * Helper for dynamic form field validation
    */
   isFormControlInvalid(form: FormGroup, controlName: string): boolean {
@@ -603,5 +833,19 @@ export class MakeContributionComponent implements OnInit {
     }
     
     return 'Invalid input';
+  }
+  
+  /**
+   * Debug method to output form state to console
+   * This helps troubleshoot issues with disabled state
+   */
+  logFormState(): void {
+    const amountControl = this.contributionForm.get('amount');
+    console.log('Form State Debug:');
+    console.log('- Amount control disabled:', amountControl?.disabled);
+    console.log('- amountInputDisabled flag:', this.amountInputDisabled);
+    console.log('- Amount value:', amountControl?.value);
+    console.log('- Raw amount value:', this.contributionForm.getRawValue().amount);
+    console.log('- Form valid:', this.contributionForm.valid);
   }
 }

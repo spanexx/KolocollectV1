@@ -233,8 +233,28 @@ export class CommunityService {
 
   /**
    * Get communities a user is a member of
-   */
-  getUserCommunities(userId: string): Observable<any> {
+   */  getUserCommunities(userId: string): Observable<any> {
     return this.api.get<any>(`/users/${userId}/communities`);
+  }
+
+  /**
+   * Calculate payment for next in line
+   * @param communityId The ID of the community
+   * @param contributorId The ID of the contributor making the payment
+   * @param midCycleId The ID of the mid-cycle
+   * @param contributionAmount The contribution amount
+   * @returns Observable with payment calculation result
+   */  payNextInLine(communityId: string, contributorId: string, midCycleId: string, contributionAmount: number): Observable<any> {
+    console.log('Calling payNextInLine API with:', {
+      url: `/communities/${communityId}/pay-next-in-line`,
+      body: { contributorId, midCycleId, contributionAmount }
+    });
+    
+    // Ensure we're using the correct API endpoint structure
+    return this.api.post<any>(`/communities/${communityId}/pay-next-in-line`, {
+      contributorId,
+      midCycleId,
+      contributionAmount
+    });
   }
 }

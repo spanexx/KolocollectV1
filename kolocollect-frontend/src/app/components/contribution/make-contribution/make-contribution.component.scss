@@ -7,6 +7,41 @@ $warning-color: #F59E0B; // Warning amber
 $text-primary: #1F2937;
 $text-secondary: #6B7280;
 
+// Styles for locked/disabled amount input field when user owes money
+.locked-amount-field {
+  background-color: rgba($warning-color, 0.05);
+  border-radius: 4px;
+  position: relative;
+  
+  .lock-icon {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: $warning-color;
+    font-size: 1.2rem;
+  }
+  
+  .disabled-field-message {
+    font-size: 0.8rem;
+    color: $warning-color;
+    font-style: italic;
+    margin-left: 8px;
+  }
+  
+  ::ng-deep .mat-form-field-wrapper {
+    padding-right: 30px;
+  }
+  
+  ::ng-deep input.mat-input-element:disabled {
+    color: $text-primary !important; // Keep text visible even when disabled
+    -webkit-text-fill-color: $text-primary !important; // For WebKit browsers
+    opacity: 0.8;
+    background-color: rgba($warning-color, 0.05);
+    border-radius: 4px;
+  }
+}
+
 // Add styling for the mat-select dropdown to ensure text visibility
 ::ng-deep .mat-select-panel {
   .mat-option {
@@ -308,7 +343,139 @@ $text-secondary: #6B7280;
       margin-left: auto;
     }
   }
-}
+  
+  // Next-in-line payment information styles  .next-in-line-info {
+    margin: 1rem 0;
+    
+    .spinner-inline {
+      margin: 1rem auto;
+      display: block;
+    }
+    
+    .next-in-line-details {
+      .info-alert {
+        background-color: rgba($warning-color, 0.1);
+        border-left: 4px solid $warning-color;
+        border-radius: 4px;
+        padding: 1rem;
+        display: flex;
+        align-items: flex-start;
+        
+        .info-icon {
+          color: $warning-color;
+          font-size: 1.25rem;
+          margin-right: 0.75rem;
+          margin-top: 0.25rem;
+        }
+        
+        .alert-content {
+          flex: 1;
+          
+          h4 {
+            margin-top: 0;
+            margin-bottom: 0.5rem;
+            color: darken($warning-color, 15%);
+            font-weight: 600;
+          }
+          
+          p {
+            margin-top: 0;
+            color: $text-primary;
+          }
+          
+          .payment-breakdown {
+            background-color: white;
+            border-radius: 4px;
+            padding: 0.75rem;
+            margin: 0.75rem 0;
+            border: 1px solid rgba($warning-color, 0.3);
+            
+            .breakdown-row {
+              display: flex;
+              justify-content: space-between;
+              margin-bottom: 0.5rem;
+              padding-bottom: 0.5rem;
+              border-bottom: 1px dashed rgba($text-secondary, 0.3);
+              
+              &:last-child {
+                border-bottom: none;
+                margin-bottom: 0;
+                padding-bottom: 0;
+              }
+              
+              &.deduction {
+                color: $error-color;
+              }
+              
+              &.total {
+                font-weight: 600;
+                color: $primary-color;
+                font-size: 1.05rem;
+              }
+            }
+          }
+          
+          .explanation {
+            font-size: 0.9rem;
+            color: $text-secondary;
+            margin-bottom: 0;
+          }
+        }
+      }
+    }
+    
+    .info-alert.payment-alert {
+      background-color: rgba($warning-color, 0.08);
+      border-left: 4px solid $warning-color;
+      
+      .lock-icon-small {
+        color: $warning-color;
+        margin-right: 0.5rem;
+        font-size: 0.9rem;
+      }
+      
+      h4 {
+        color: darken($warning-color, 10%);
+        display: flex;
+        align-items: center;
+      }
+      
+      .locked-message {
+        font-weight: 500;
+        color: darken($warning-color, 15%);
+        margin: 0.75rem 0;
+        padding: 0.5rem;
+        background-color: rgba($warning-color, 0.1);
+        border-radius: 4px;
+        
+        strong {
+          color: darken($warning-color, 20%);
+        }
+      }
+      
+      .payment-breakdown {
+        background-color: white;
+        border-radius: 4px;
+        padding: 0.75rem;
+        margin: 0.75rem 0;
+        border: 1px solid rgba($warning-color, 0.3);
+        
+        .breakdown-row {
+          display: flex;
+          justify-content: space-between;
+          margin-bottom: 0.5rem;
+          padding-bottom: 0.5rem;
+          border-bottom: 1px dashed rgba($text-secondary, 0.3);
+          
+          &:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+          }
+        }
+      }
+    }
+  }
 
 // Responsive adjustments
 @media (max-width: 768px) {

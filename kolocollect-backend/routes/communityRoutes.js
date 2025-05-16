@@ -79,6 +79,9 @@ router.get('/:communityId/midcycle_joiners', communityController.getAllMidCycleJ
 // Route to handle wallet operations for defaulters
 router.post('/:communityId/defaulters/:userId/wallet', communityController.handleWalletForDefaulters);
 
+// Route to calculate payment for next in line
+router.post('/:communityId/pay-next-in-line', communityController.payNextInLine);
+
 // Leave a community
 router.delete('/:communityId/leave/:userId', communityController.leaveCommunity);
 

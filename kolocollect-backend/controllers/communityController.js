@@ -1794,3 +1794,58 @@ exports.getOwingMembers = async (req, res) => {
 
 // Helper utility functions
 // processContributionsMap function moved to utils/mapUtils.js
+
+// Pay next in line
+exports.payNextInLine = async (req, res) => {
+  try {
+    const { communityId } = req.params;
+    const { contributorId, midCycleId, contributionAmount } = req.body;
+
+    // Validate required parameters are provided
+    if (!contributorId) {
+      return createErrorResponse(res, 400, 'MISSING_CONTRIBUTOR_ID', 'Contributor ID is required');
+    }
+
+    if (!midCycleId) {
+      return createErrorResponse(res, 400, 'MISSING_MIDCYCLE_ID', 'MidCycle ID is required');
+    }
+
+    if (!contributionAmount || isNaN(parseFloat(contributionAmount))) {
+      return createErrorResponse(res, 400, 'INVALID_CONTRIBUTION_AMOUNT', 'Contribution amount is required and must be a number');
+    }
+
+    // Find and validate community
+    const community = await Community.findById(communityId);
+    if (!community) {
+      return createErrorResponse(res, 404, 'COMMUNITY_NOT_FOUND', 'Community not found');
+    }
+    
+    // Find and validate contributor is a member of the community
+    const isMember = await Member.exists({
+      _id: { $in: community.members },
+      userId: contributorId
+    });
+    
+    if (!isMember) {
+      return createErrorResponse(res, 404, 'MEMBER_NOT_FOUND', 'Contributor is not a member of this community');
+    }
+    
+    // Find and validate mid-cycle
+    const midCycle = await MidCycle.findOne({
+      _id: midCycleId,
+      _id: { $in: community.midCycle }
+    });
+    
+    if (!midCycle) {
+      return createErrorResponse(res, 404, 'MIDCYCLE_NOT_FOUND', 'Mid-cycle not found in community');
+    }
+
+    // Call the payNextInLine method
+    const result = await community.payNextInLine(contributorId, midCycleId, parseFloat(contributionAmount));
+
+    res.status(200).json(result);
+  } catch (err) {
+    console.error('Error in payNextInLine:', err);
+    return createErrorResponse(res, 500, 'PAY_NEXT_IN_LINE_ERROR', 'Error calculating payment for next in line: ' + err.message);
+  }
+};
