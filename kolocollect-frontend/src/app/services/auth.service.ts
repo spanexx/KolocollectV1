@@ -123,6 +123,13 @@ export class AuthService {
   getToken(): string | null {
     return localStorage.getItem('token');
   }
+  /**
+   * Get the current user ID
+   */
+  getUserId(): string | null {
+    const user = this.getUserFromLocalStorage();
+    return user ? user.id : null;
+  }
 
   /**
    * Set user session data

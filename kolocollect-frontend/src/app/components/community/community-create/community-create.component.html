@@ -5,108 +5,237 @@
   
   <mat-card class="form-card">
     <mat-card-content>
-      <mat-stepper linear>
+      <mat-stepper linear #stepper>
+        <!-- Custom templates for step icons -->
+        <ng-template matStepperIcon="edit" let-index="index">
+          @switch (index) {
+            @case (0) {
+              <fa-icon [icon]="faInfoCircle" class="step-icon"></fa-icon>
+            }
+            @case (1) {
+              <fa-icon [icon]="faDollarSign" class="step-icon"></fa-icon>
+            }
+            @case (2) {
+              <fa-icon [icon]="faCog" class="step-icon"></fa-icon>
+            }
+            @case (3) {
+              <fa-icon [icon]="faCheck" class="step-icon"></fa-icon>
+            }
+            @default {
+              <fa-icon [icon]="faInfoCircle" class="step-icon"></fa-icon>
+            }
+          }
+        </ng-template>
+        <ng-template matStepperIcon="done">
+          <fa-icon [icon]="faCheck" class="step-icon"></fa-icon>
+        </ng-template>
+        
         <!-- Basic Information Step -->
-        <mat-step label="Basic Information">
-          <div class="step-content">
-            <h2>Basic Information</h2>
-            <p>Provide information about your new community</p>
-            
-            <div class="form-fields">
-              <mat-form-field appearance="outline" class="full-width">
-                <mat-label>Community Name</mat-label>
-                <input matInput placeholder="Enter community name">
-              </mat-form-field>
-              
-              <mat-form-field appearance="outline" class="full-width">
-                <mat-label>Description</mat-label>
-                <textarea matInput rows="4" placeholder="Describe your community"></textarea>
-              </mat-form-field>
+        <mat-step [stepControl]="basicInfoForm">
+          <ng-template matStepLabel>
+            <div class="step-label">
+              <span>Basic Information</span>
             </div>
-            
-            <div class="step-actions">
-              <button mat-button matStepperNext color="primary">Next</button>
-            </div>
-          </div>
-        </mat-step>
-        
-        <!-- Contribution Settings Step -->
-        <mat-step label="Contribution Settings">
-          <div class="step-content">
-            <h2>Contribution Settings</h2>
-            <p>Configure how contributions work in your community</p>
-            
-            <div class="form-fields">
-              <mat-form-field appearance="outline">
-                <mat-label>Contribution Frequency</mat-label>
-                <mat-select>
-                  <mat-option value="weekly">Weekly</mat-option>
-                  <mat-option value="biweekly">Bi-weekly</mat-option>
-                  <mat-option value="monthly">Monthly</mat-option>
-                </mat-select>
-              </mat-form-field>
+          </ng-template>
+          <form [formGroup]="basicInfoForm">
+            <div class="step-content">
+              <h2><fa-icon [icon]="faInfoCircle" class="section-icon"></fa-icon> Basic Information</h2>
+              <p>Provide information about your new community</p>
               
-              <mat-form-field appearance="outline">
-                <mat-label>Minimum Contribution</mat-label>
-                <input matInput type="number" placeholder="Enter amount">
-                <span matTextPrefix>$&nbsp;</span>
-              </mat-form-field>
-              
-              <mat-form-field appearance="outline">
-                <mat-label>Maximum Members</mat-label>
-                <input matInput type="number" placeholder="Enter number">
-              </mat-form-field>
-            </div>
-            
-            <div class="step-actions">
-              <button mat-button matStepperPrevious>Back</button>
-              <button mat-button matStepperNext color="primary">Next</button>
-            </div>
-          </div>
-        </mat-step>
-        
-        <!-- Advanced Settings Step -->
-        <mat-step label="Advanced Settings">
-          <div class="step-content">
-            <h2>Advanced Settings</h2>
-            <p>Configure advanced options for your community</p>
-            
-            <div class="form-fields">
-              <mat-form-field appearance="outline">
-                <mat-label>Backup Fund Percentage</mat-label>
-                <input matInput type="number" placeholder="Enter percentage">
-                <span matSuffix>%</span>
-              </mat-form-field>
-              
-              <div class="toggle-field">
-                <mat-slide-toggle>Allow Mid-Cycle Joining</mat-slide-toggle>
+              <div class="form-fields">
+                <mat-form-field appearance="outline" class="full-width">
+                  <mat-label>Community Name</mat-label>
+                  <input matInput formControlName="name" placeholder="Enter community name" required>
+                  <mat-error *ngIf="basicInfo['name'].hasError('required')">
+                    Name is required
+                  </mat-error>
+                  <mat-error *ngIf="basicInfo['name'].hasError('minlength')">
+                    Name must be at least 3 characters
+                  </mat-error>
+                </mat-form-field>
+                
+                <mat-form-field appearance="outline" class="full-width">
+                  <mat-label>Description</mat-label>
+                  <textarea matInput formControlName="description" rows="4" placeholder="Describe your community" required></textarea>
+                  <mat-error *ngIf="basicInfo['description'].hasError('required')">
+                    Description is required
+                  </mat-error>
+                </mat-form-field>
               </div>
-              
-              <div class="toggle-field">
-                <mat-slide-toggle>Allow Installment Payments</mat-slide-toggle>
+                <div class="step-actions">
+                <button mat-button matStepperNext color="primary" [disabled]="basicInfoForm.invalid">
+                  Next <fa-icon [icon]="faArrowRight"></fa-icon>
+                </button>
               </div>
             </div>
-            
-            <div class="step-actions">
-              <button mat-button matStepperPrevious>Back</button>
-              <button mat-button matStepperNext color="primary">Next</button>
-            </div>
-          </div>
+          </form>
         </mat-step>
-        
-        <!-- Review & Create Step -->
-        <mat-step label="Review & Create">
-          <div class="step-content">
-            <h2>Review Community</h2>
+          <!-- Contribution Settings Step -->
+        <mat-step [stepControl]="contributionSettingsForm">
+          <ng-template matStepLabel>
+            <div class="step-label">
+              <span>Contribution Settings</span>
+            </div>
+          </ng-template>
+          <form [formGroup]="contributionSettingsForm">
+            <div class="step-content">
+              <h2><fa-icon [icon]="faDollarSign" class="section-icon"></fa-icon> Contribution Settings</h2>
+              <p>Configure how contributions work in your community</p>
+              
+              <div class="form-fields">
+                <mat-form-field appearance="outline">
+                  <mat-label>Contribution Frequency</mat-label>
+                  <mat-select formControlName="contributionFrequency" required>
+                    <mat-option *ngFor="let option of frequencyOptions" [value]="option.value">
+                      {{ option.label }}
+                    </mat-option>
+                  </mat-select>
+                  <mat-error *ngIf="contributionSettings['contributionFrequency'].hasError('required')">
+                    Contribution frequency is required
+                  </mat-error>
+                </mat-form-field>
+                
+                <mat-form-field appearance="outline">
+                  <mat-label>Minimum Contribution</mat-label>
+                  <input matInput type="number" formControlName="minContribution" placeholder="Enter amount" required>
+                  <span matTextPrefix>$&nbsp;</span>
+                  <mat-error *ngIf="contributionSettings['minContribution'].hasError('required')">
+                    Minimum contribution is required
+                  </mat-error>
+                  <mat-error *ngIf="contributionSettings['minContribution'].hasError('min')">
+                    Minimum contribution must be greater than 0
+                  </mat-error>
+                </mat-form-field>
+                
+                <mat-form-field appearance="outline">
+                  <mat-label>Maximum Members</mat-label>
+                  <input matInput type="number" formControlName="maxMembers" placeholder="Enter number" required>
+                  <mat-error *ngIf="contributionSettings['maxMembers'].hasError('required')">
+                    Maximum members is required
+                  </mat-error>
+                  <mat-error *ngIf="contributionSettings['maxMembers'].hasError('min')">
+                    Maximum members must be at least 5
+                  </mat-error>
+                  <mat-error *ngIf="contributionSettings['maxMembers'].hasError('max')">
+                    Maximum members cannot exceed 100
+                  </mat-error>
+                </mat-form-field>
+              </div>
+                <div class="step-actions">
+                <button mat-button matStepperPrevious>
+                  <fa-icon [icon]="faArrowLeft"></fa-icon> Back
+                </button>
+                <button mat-button matStepperNext color="primary" [disabled]="contributionSettingsForm.invalid">
+                  Next <fa-icon [icon]="faArrowRight"></fa-icon>
+                </button>
+              </div>
+            </div>
+          </form>
+        </mat-step>
+          <!-- Advanced Settings Step -->
+        <mat-step [stepControl]="advancedSettingsForm">
+          <ng-template matStepLabel>
+            <div class="step-label">
+              <span>Advanced Settings</span>
+            </div>
+          </ng-template>
+          <form [formGroup]="advancedSettingsForm">
+            <div class="step-content">
+              <h2><fa-icon [icon]="faCog" class="section-icon"></fa-icon> Advanced Settings</h2>
+              <p>Configure advanced options for your community</p>
+              
+              <div class="form-fields">
+                <mat-form-field appearance="outline">
+                  <mat-label>Backup Fund Percentage</mat-label>
+                  <input matInput type="number" formControlName="backupFundPercentage" placeholder="Enter percentage" required>
+                  <span matSuffix>%</span>
+                  <mat-error *ngIf="advancedSettings['backupFundPercentage'].hasError('required')">
+                    Backup fund percentage is required
+                  </mat-error>
+                  <mat-error *ngIf="advancedSettings['backupFundPercentage'].hasError('min')">
+                    Backup fund percentage must be at least 5%
+                  </mat-error>
+                  <mat-error *ngIf="advancedSettings['backupFundPercentage'].hasError('max')">
+                    Backup fund percentage cannot exceed 20%
+                  </mat-error>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                  <mat-label>First Cycle Minimum Members</mat-label>
+                  <input matInput type="number" formControlName="firstCycleMin" placeholder="Enter minimum" required>
+                  <mat-error *ngIf="advancedSettings['firstCycleMin'].hasError('required')">
+                    Minimum members to start first cycle is required
+                  </mat-error>
+                  <mat-error *ngIf="advancedSettings['firstCycleMin'].hasError('min')">
+                    First cycle minimum must be at least 5
+                  </mat-error>
+                </mat-form-field>
+
+                <mat-form-field appearance="outline">
+                  <mat-label>Penalty Amount</mat-label>
+                  <input matInput type="number" formControlName="penalty" placeholder="Enter penalty amount" required>
+                  <span matTextPrefix>$&nbsp;</span>
+                  <mat-error *ngIf="advancedSettings['penalty'].hasError('required')">
+                    Penalty amount is required
+                  </mat-error>
+                  <mat-error *ngIf="advancedSettings['penalty'].hasError('min')">
+                    Penalty amount cannot be negative
+                  </mat-error>
+                </mat-form-field>
+                
+                <div class="toggle-field">
+                  <mat-slide-toggle formControlName="allowMidCycleJoining">Allow Mid-Cycle Joining</mat-slide-toggle>
+                </div>
+              </div>
+                <div class="step-actions">
+                <button mat-button matStepperPrevious>
+                  <fa-icon [icon]="faArrowLeft"></fa-icon> Back
+                </button>
+                <button mat-button matStepperNext color="primary" [disabled]="advancedSettingsForm.invalid">
+                  Next <fa-icon [icon]="faArrowRight"></fa-icon>
+                </button>
+              </div>
+            </div>
+          </form>
+        </mat-step>
+          <!-- Review & Create Step -->
+        <mat-step>
+          <ng-template matStepLabel>
+            <div class="step-label">
+              <span>Review & Create</span>
+            </div>
+          </ng-template><div class="step-content">
+            <h2><fa-icon [icon]="faCheck" class="review-icon"></fa-icon> Review Community</h2>
             <p>Review your community settings before creating</p>
             
-            <div class="community-review">
-              <!-- Community review details will go here -->
+            <div class="community-review" *ngIf="basicInfoForm.valid && contributionSettingsForm.valid && advancedSettingsForm.valid">
+              <h3><fa-icon [icon]="faUsers" class="section-icon"></fa-icon> Basic Information</h3>
+              <p><strong>Name:</strong> {{ basicInfoForm.value.name }}</p>
+              <p><strong>Description:</strong> {{ basicInfoForm.value.description }}</p>
+              
+              <h3><fa-icon [icon]="faDollarSign" class="section-icon"></fa-icon> Contribution Settings</h3>
+              <p><strong>Frequency:</strong> {{ contributionSettingsForm.value.contributionFrequency }}</p>
+              <p><strong>Minimum Contribution:</strong> ${{ contributionSettingsForm.value.minContribution }}</p>
+              <p><strong>Maximum Members:</strong> {{ contributionSettingsForm.value.maxMembers }}</p>
+              
+              <h3><fa-icon [icon]="faCog" class="section-icon"></fa-icon> Advanced Settings</h3>
+              <p><strong>Backup Fund Percentage:</strong> {{ advancedSettingsForm.value.backupFundPercentage }}%</p>
+              <p><strong>First Cycle Minimum:</strong> {{ advancedSettingsForm.value.firstCycleMin }} members</p>
+              <p><strong>Penalty Amount:</strong> ${{ advancedSettingsForm.value.penalty }}</p>
+              <p><strong>Allow Mid-Cycle Joining:</strong> {{ advancedSettingsForm.value.allowMidCycleJoining ? 'Yes' : 'No' }}</p>
             </div>
-            
-            <div class="step-actions">
-              <button mat-button matStepperPrevious>Back</button>
-              <button mat-raised-button color="primary">Create Community</button>
+              <div class="step-actions">
+              <button mat-button matStepperPrevious>
+                <fa-icon [icon]="faArrowLeft"></fa-icon> Back
+              </button>
+              <button mat-raised-button color="primary" (click)="onSubmit()" [disabled]="isLoading">
+                <span *ngIf="!isLoading">
+                  <fa-icon [icon]="faUsers"></fa-icon> Create Community
+                </span>
+                <span *ngIf="isLoading">
+                  <fa-icon [icon]="faSpinner" [spin]="true"></fa-icon> Creating...
+                </span>
+              </button>
             </div>
           </div>
         </mat-step>
