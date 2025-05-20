@@ -163,6 +163,8 @@ exports.createCommunity = async (req, res) => {
       return createErrorResponse(res, 400, 'MISSING_FIELDS', 'Missing required fields');
     }
 
+    console.log("Admin ID:", adminId);
+
     // Fetch admin user details
     const adminUser = await User.findById(adminId);
     if (!adminUser) {
