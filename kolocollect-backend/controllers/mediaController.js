@@ -121,7 +121,8 @@ exports.uploadFile = async (req, res) => {
       
       if (type === 'profile' || type === 'profilePicture') {
         // Update user's profile picture
-        try {          console.log(`Looking up user with ID: ${userId} to update profile picture`);
+        try {
+          console.log(`Looking up user with ID: ${userId} to update profile picture`);
           // First try to find by authId
           let user = await User.findOne({ authId: userId });
           
@@ -133,7 +134,9 @@ exports.uploadFile = async (req, res) => {
           if (!user) {
             console.error(`User not found with ID: ${userId}`);
             return createErrorResponse(res, 404, 'USER_NOT_FOUND', 'User not found.');
-          }// For local storage, create a URL that can be used to access the file
+          }
+          
+          // For local storage, create a URL that can be used to access the file
           const fileUrl = `/api/media/files/${req.file.filename}`;
           const fileId = req.file.filename;
           
@@ -146,15 +149,18 @@ exports.uploadFile = async (req, res) => {
             fileId,
             url: fileUrl,
             lastUpdated: new Date()
-          };          await user.save();
+          };
+          
+          await user.save();
           console.log(`Profile picture updated successfully for user ${userId}`);
         } catch (error) {
           console.error(`Error updating profile picture for user ${userId}:`, error);
           return createErrorResponse(res, 500, 'USER_UPDATE_ERROR', 'Error updating user with profile picture.');
-        }      } else if ((type === 'document' || type === 'verificationDocument') && documentType) {
+        }
+      } else if ((type === 'document' || type === 'verificationDocument') && documentType) {
         // For verification documents, we'll only return the file info and let the frontend handle adding it to the user
-        // This prevents duplicate entries when the frontend calls addVerificationDocument        try {
-          console.log(`Verification document uploaded for user ${userId} of type: ${documentType}`);
+        // This prevents duplicate entries when the frontend calls addVerificationDocument
+        try {          console.log(`Verification document uploaded for user ${userId} of type: ${documentType}`);
           // First try to find by authId
           let user = await User.findOne({ authId: userId });
           
@@ -174,7 +180,9 @@ exports.uploadFile = async (req, res) => {
           console.error(`Error processing verification document for user ${userId}:`, error);
           return createErrorResponse(res, 500, 'DOCUMENT_PROCESSING_ERROR', 'Error processing verification document.');
         }
-      }      // Send back a detailed response with all necessary information
+      }
+      
+      // Send back a detailed response with all necessary information
       const fileUrl = `/api/media/files/${req.file.filename}`;
       const response = {
         fileId: req.file.filename,
