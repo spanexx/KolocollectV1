@@ -161,14 +161,16 @@ exports.createCommunity = async (req, res) => {
 
     if (!name || !maxMembers || !contributionFrequency || !adminId) {
       return createErrorResponse(res, 400, 'MISSING_FIELDS', 'Missing required fields');
-    }
+    }    console.log("Admin ID:", adminId);
 
-    console.log("Admin ID:", adminId);
-
-    // Fetch admin user details
-    const adminUser = await User.findById(adminId);
+    // Fetch admin user details - try by _id and authId
+    let adminUser = await User.findById(adminId);
     if (!adminUser) {
-      return createErrorResponse(res, 404, 'ADMIN_NOT_FOUND', 'Admin user not found');
+      // If not found by _id, try by authId
+      adminUser = await User.findOne({ authId: adminId });
+      if (!adminUser) {
+        return createErrorResponse(res, 404, 'ADMIN_NOT_FOUND', 'Admin user not found');
+      }
     }
 
     // Create the community first so we have the community ID
@@ -301,11 +303,15 @@ exports.joinCommunity = async (req, res) => {
     } else {
       // Ensure the communityId is set when adding new member during mid-cycle
       await community.addNewMemberMidCycle(userId, name, email, contributionAmount, communityId);
+    }    await community.save();
+
+    // Find user by _id or authId
+    let user = await User.findById(userId);
+    if (!user) {
+      // If not found by _id, try by authId
+      user = await User.findOne({ authId: userId });
     }
-
-    await community.save();
-
-    const user = await User.findById(userId);
+    
     if (user) {
       const message = currentCycleNumber === 1
         ? `You have joined the community "${community.name}".`
@@ -459,11 +465,19 @@ exports.skipPayoutForDefaulters = async (req, res) => {
     // Mark defaulters for penalty
     for (const defaulter of defaulters) {
       defaulter.penalty += community.settings.penalty;
-      await defaulter.save();
-
-      // Create notification for defaulter
+      await defaulter.save();      // Create notification for defaulter
       const user = await User.findById(defaulter.userId);
-      if (user) {
+      if (!user) {
+        // If not found by _id, try by authId
+        const userByAuth = await User.findOne({ authId: defaulter.userId });
+        if (userByAuth) {
+          await userByAuth.addNotification(
+            'penalty',
+            `You have been penalized €${community.settings.penalty} for missing a contribution in community "${community.name}".`,
+            community._id
+          );
+        }
+      } else {
         await user.addNotification(
           'penalty',
           `You have been penalized €${community.settings.penalty} for missing a contribution in community "${community.name}".`,
@@ -508,12 +522,15 @@ exports.reactivateMember = async (req, res) => {
     const { contributionAmount } = req.body;
 
     const community = await Community.findById(communityId);
-    if (!community) return createErrorResponse(res, 404, 'COMMUNITY_NOT_FOUND', 'Community not found');
-
-    const result = await community.reactivateMember(userId, contributionAmount);
+    if (!community) return createErrorResponse(res, 404, 'COMMUNITY_NOT_FOUND', 'Community not found');    const result = await community.reactivateMember(userId, contributionAmount);
 
     // Notify the reactivated member
-    const user = await User.findById(userId);
+    let user = await User.findById(userId);
+    if (!user) {
+      // If not found by _id, try by authId
+      user = await User.findOne({ authId: userId });
+    }
+    
     if (user) {
       await user.addNotification('info', `Your membership has been reactivated in the community "${community.name}".`);
     }
@@ -699,11 +716,14 @@ exports.deleteCommunity = async (req, res) => {
     const { userId } = req.body; // Assuming userId is sent in the request body
     if (!community.admin.equals(userId)) {
       return createErrorResponse(res, 403, 'UNAUTHORIZED', 'You are not authorized to delete this community.');
-    }
-
-    // Remove the community reference from all member profiles
+    }    // Remove the community reference from all member profiles
     for (const member of community.members) {
-      const user = await User.findById(member.userId);
+      let user = await User.findById(member.userId);
+      if (!user) {
+        // If not found by _id, try by authId
+        user = await User.findOne({ authId: member.userId });
+      }
+      
       if (user) {
         user.communities = user.communities.filter((id) => !id.equals(communityId));
         await user.save();
