@@ -31,12 +31,12 @@ exports.getContributionById = async (req, res) => {
   try {
     const contribution = await Contribution.findById(req.params.id);
     if (!contribution) {
-      return createErrorResponse(res, 404, 'Contribution not found.');
+      return createErrorResponse(res, 404, 'CONTRIBUTION_NOT_FOUND', 'Contribution not found.');
     }
     res.status(200).json(contribution);
   } catch (err) {
     console.error('Error fetching contribution by ID:', err);
-    createErrorResponse(res, 500, 'Server error while fetching contribution.');
+    createErrorResponse(res, 500, 'INTERNAL_SERVER_ERROR', 'Server error while fetching contribution.');
   }
 };
 
@@ -54,8 +54,18 @@ exports.createContribution = async (req, res) => {
       return res.status(400).json({ message: 'Missing required fields.' });
     }
 
-    // Convert userId to ObjectId if it's a string
-    const userIdObject = mongoose.Types.ObjectId.isValid(userId) ? new mongoose.Types.ObjectId(userId) : userId;
+    // Find the user first to get both _id and authId
+    let user = await User.findOne({ authId: userId });
+    if (!user) {
+      user = await User.findById(userId);
+    }
+
+    if (!user) {
+      return createErrorResponse(res, 404, 'USER_NOT_FOUND', 'User not found.');
+    }
+
+    // Use the correct user ID for creation
+    const userIdObject = user._id;
 
     // Call the static method to handle the contribution logic
     const savedContribution = await Contribution.createContributionWithInstallment(userIdObject, communityId, amount, midCycleId);
@@ -80,15 +90,20 @@ exports.updateContribution = async (req, res) => {
 
     const contribution = await Contribution.findById(id);
     if (!contribution) {
-      return createErrorResponse(res, 404, 'Contribution not found.');
+      return createErrorResponse(res, 404, 'CONTRIBUTION_NOT_FOUND', 'Contribution not found.');
     }
 
     const oldAmount = contribution.amount;
 
     if (newAmount !== oldAmount) {
-      const wallet = await Wallet.findOne({ userId: contribution.userId });
+      // Try to find wallet by both userId and authId
+      let wallet = await Wallet.findOne({ userId: contribution.userId });
+      if (!wallet && contribution.authId) {
+        wallet = await Wallet.findOne({ authId: contribution.authId });
+      }
+      
       if (!wallet) {
-        return createErrorResponse(res, 404, 'Wallet not found.');
+        return createErrorResponse(res, 404, 'WALLET_NOT_FOUND', 'Wallet not found.');
       }
 
       wallet.availableBalance += oldAmount;
@@ -113,10 +128,15 @@ exports.deleteContribution = async (req, res) => {
 
     const contribution = await Contribution.findByIdAndDelete(id);
     if (!contribution) {
-      return createErrorResponse(res, 404, 'Contribution not found.');
+      return createErrorResponse(res, 404, 'CONTRIBUTION_NOT_FOUND', 'Contribution not found.');
     }
 
-    const wallet = await Wallet.findOne({ userId: contribution.userId });
+    // Try to find wallet by both userId and authId
+    let wallet = await Wallet.findOne({ userId: contribution.userId });
+    if (!wallet && contribution.authId) {
+      wallet = await Wallet.findOne({ authId: contribution.authId });
+    }
+    
     if (wallet) {
       wallet.availableBalance += contribution.amount;
       await wallet.save();
@@ -136,13 +156,13 @@ exports.getContributionsByCommunity = async (req, res) => {
     const contributions = await Contribution.find({ communityId });
 
     if (!contributions.length) {
-      return createErrorResponse(res, 404, 'No contributions found for this community.');
+      return createErrorResponse(res, 404, 'CONTRIBUTIONS_NOT_FOUND', 'No contributions found for this community.');
     }
 
     res.status(200).json(contributions);
   } catch (err) {
     console.error('Error fetching community contributions:', err);
-    createErrorResponse(res, 500, 'Server error while fetching community contributions.');
+    createErrorResponse(res, 500, 'INTERNAL_SERVER_ERROR', 'Server error while fetching community contributions.');
   }
 };
 
@@ -151,7 +171,6 @@ exports.getContributionsByUser = async (req, res) => {
   try {
     console.log('Fetching contributions for user ID:', req.params.userId);
     const { userId } = req.params;
-    const User = require('../models/User');
     
     // First try to find the user by authId
     let userDoc = await User.findOne({ authId: userId });
@@ -172,7 +191,13 @@ exports.getContributionsByUser = async (req, res) => {
       });
     }
     
-    const contributions = await Contribution.find({ userId: userDoc._id });
+    // Find contributions either by userId or authId
+    const contributions = await Contribution.find({
+      $or: [
+        { userId: userDoc._id },
+        { authId: userDoc.authId }
+      ]
+    });
 
     // Return empty array instead of 404 when no contributions are found
     if (!contributions.length) {

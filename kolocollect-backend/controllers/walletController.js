@@ -7,7 +7,7 @@ const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
 
 exports.createWallet = async (req, res) => {
   try {
-    const { userId, availableBalance, fixedBalance, totalBalance } = req.body;
+    const { userId, authId, availableBalance, fixedBalance, totalBalance } = req.body;
 
     const existingWallet = await Wallet.findOne({ userId });
     if (existingWallet) {
@@ -16,6 +16,7 @@ exports.createWallet = async (req, res) => {
 
     const newWallet = new Wallet({
       userId,
+      authId, // Add authId field
       availableBalance: availableBalance || 0,
       fixedBalance: fixedBalance || 0,
       totalBalance: totalBalance || 0,
@@ -730,10 +731,13 @@ exports.getWalletBalance = async (req, res) => {
           documentation: "https://api.kolocollect.com/docs/errors/USER_NOT_FOUND"
         }
       });
+    }    // Use the _id from the user document to find the wallet
+    let wallet = await Wallet.findOne({ userId: userDoc._id });
+    
+    // If not found by userId, try by authId if user has an authId
+    if (!wallet && userDoc.authId) {
+      wallet = await Wallet.findOne({ authId: userDoc.authId });
     }
-
-    // Use the _id from the user document to find the wallet
-    const wallet = await Wallet.findOne({ userId: userDoc._id });
     
     if (!wallet) {
       return res.status(404).json({
@@ -785,9 +789,7 @@ exports.getWallet = async (req, res) => {
     } else {
       // Non-ObjectId format, must be an authId
       userDoc = await User.findOne({ authId: userId });
-    }
-
-    if (!userDoc) {
+    }    if (!userDoc) {
       return res.status(404).json({
         error: {
           code: 'USER_NOT_FOUND',
@@ -798,7 +800,13 @@ exports.getWallet = async (req, res) => {
       });
     }
 
-    const wallet = await Wallet.findOne({ userId: userDoc._id }).populate('transactions.recipient', 'name email');
+    // First try to find by userId
+    let wallet = await Wallet.findOne({ userId: userDoc._id }).populate('transactions.recipient', 'name email');
+    
+    // If not found, try finding by authId
+    if (!wallet && userDoc.authId) {
+      wallet = await Wallet.findOne({ authId: userDoc.authId }).populate('transactions.recipient', 'name email');
+    }
     if (!wallet) {
       return res.status(404).json({
         error: {

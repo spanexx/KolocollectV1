@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule, formatDate } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -72,7 +72,7 @@ import { CommunityFilterComponent } from '../community-filter/community-filter.c
     CommunityFrontendFilterComponent
   ]
 })
-export class CommunityListComponent implements OnInit {  // Font Awesome icons
+export class CommunityListComponent implements OnInit, OnDestroy {  // Font Awesome icons
   faUsers = faUsers;
   faPlus = faPlus;
   faSearch = faSearch;
@@ -114,10 +114,27 @@ export class CommunityListComponent implements OnInit {  // Font Awesome icons
     private authService: AuthService,
     private dialog: MatDialog,
     private midcycleService: MidcycleService
-  ) {}
-  ngOnInit(): void {
+  ) {}  ngOnInit(): void {
     // Set frontend filter flag to true to use the new frontend filtering
     this.useFrontendFilter = true;
+    this.loadCommunities();
+    this.loadUserCommunities();
+    
+    // Add event listener for community join event
+    window.addEventListener('kolocollect-community-joined', this.handleCommunityJoined.bind(this));
+  }
+  
+  ngOnDestroy(): void {
+    // Remove event listener when component is destroyed
+    window.removeEventListener('kolocollect-community-joined', this.handleCommunityJoined.bind(this));
+  }
+  
+  /**
+   * Handle community join event from JoinCommunityDialogComponent
+   */
+  handleCommunityJoined(event: Event): void {
+    console.log('Community joined event received');
+    // Refresh communities list and user's communities
     this.loadCommunities();
     this.loadUserCommunities();
   }loadCommunities(): void {

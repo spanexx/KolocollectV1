@@ -76,8 +76,8 @@
             <fa-icon [icon]="faMoneyBillWave" class="section-icon"></fa-icon>
             Contribution Details
           </h2>          <mat-form-field appearance="outline" class="full-width" [ngClass]="{'locked-amount-field': amountInputDisabled}">
-            <mat-label>Amount</mat-label>            <input matInput formControlName="amount" type="number" [min]="getMinimumRequiredContribution()" 
-              [placeholder]="'Min: $' + getMinimumRequiredContribution()"
+            <mat-label>Amount</mat-label>            <input matInput formControlName="amount" type="number" [min]="minimumRequiredContribution" 
+              [placeholder]="'Min: $' + minimumRequiredContribution"
               [matTooltip]="amountInputDisabled ? 'This field is locked because you owe money to the next-in-line member.' : ''">
             <span matPrefix>$&nbsp;</span>
             <fa-icon *ngIf="amountInputDisabled" [icon]="faLock" class="lock-icon" 
@@ -88,7 +88,7 @@
             </mat-error>
             <mat-hint *ngIf="selectedCommunity">
               <span *ngIf="!hasNextInLineDue">Minimum contribution: ${{ selectedCommunity.settings?.minContribution || 0 }}</span>
-              <span *ngIf="hasNextInLineDue">Required contribution: ${{ getMinimumRequiredContribution() }} <span class="hint-detail">(Minimum: ${{ minContributionAmount }} + Owed: ${{ nextInLineInfo?.amountToDeduct }})</span></span>
+              <span *ngIf="hasNextInLineDue">Required contribution: ${{ minimumRequiredContribution }} <span class="hint-detail">(Minimum: ${{ minContributionAmount }} + Owed: ${{ nextInLineInfo?.amountToDeduct }})</span></span>
             </mat-hint>
           </mat-form-field>
           
@@ -107,8 +107,7 @@
                   <p class="locked-message">
                     <strong>Your contribution amount has been locked</strong> to ensure the required payment is made.
                   </p>
-                  
-                  <div class="payment-breakdown">
+                    <div class="payment-breakdown">
                     <div class="breakdown-row">
                       <span>Your contribution:</span>
                       <span>${{ contributionForm.get('amount')?.value || 0 }}</span>
@@ -119,7 +118,7 @@
                     </div>
                     <div class="breakdown-row total">
                       <span>Effective contribution:</span>
-                      <span>${{ getEffectiveContributionAmount() }}</span>
+                      <span>${{ effectiveContributionAmount }}</span>
                     </div>
                   </div>
                   

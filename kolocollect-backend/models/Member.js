@@ -4,6 +4,7 @@ const MemberSchema = new mongoose.Schema({
     name: { type: String, required: true },
     email: { type: String, required: true },
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    authId: { type: String, index: true }, // Add authId for direct mapping to User's authId
     position: { type: Number },
     contributionPaid: [{
         amount: { type: Number, default: 0 },

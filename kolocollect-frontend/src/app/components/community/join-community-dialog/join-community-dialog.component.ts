@@ -52,20 +52,34 @@ export class JoinCommunityDialogComponent implements OnInit {
       email: ['', [Validators.required, Validators.email]],
       contributionAmount: [''] // Remove validators initially
     });
-  }
-  ngOnInit(): void {
+  }  ngOnInit(): void {
     this.currentUser = this.authService.currentUserValue;
     
     // Set minimum contribution and check if it's first cycle
     if (this.data.community) {
+      console.log('Community data:', this.data.community);
       this.minContribution = this.data.community.settings?.minContribution || 0;
       this.communityName = this.data.community.name || '';
       
-      // Check if this is the first cycle from community data
-      this.isFirstCycle = !this.data.community.cycles || this.data.community.cycles.length <= 1;
-      
-      // Fetch the required contribution amount from the API
-      this.fetchRequiredContribution();
+      // Check if cycles array exists and has length <= 0
+      if (!this.data.community.cycles || this.data.community.cycles.length <= 0) {
+        console.log('Community has no cycles, disabling contribution amount');
+        // Disable contribution field and set to 0
+        const contributionControl = this.joinForm.get('contributionAmount');
+        if (contributionControl) {
+          contributionControl.setValue(0);
+          contributionControl.disable();
+        }
+        
+        // Set isFirstCycle to false to avoid showing it as first cycle in UI
+        this.isFirstCycle = false;
+      } else {
+        // Check if this is the first cycle from community data
+        this.isFirstCycle = this.data.community.cycles.length <= 1;
+        
+        // Fetch the required contribution amount from the API
+        this.fetchRequiredContribution();
+      }
     }
       // Pre-fill form with user data if available
     if (this.currentUser) {
@@ -127,29 +141,43 @@ export class JoinCommunityDialogComponent implements OnInit {
           this.loadingContribution = false;
         }
       });
-  }
-
-  onSubmit(): void {
+  }  onSubmit(): void {
     if (this.joinForm.invalid || !this.currentUser) {
       return;
     }
     
     this.loading = true;
     
-    // Create the join data, with conditional contribution amount for first cycle
+    // Check if contribution control is disabled (happens when cycles <= 0)
+    const contributionControl = this.joinForm.get('contributionAmount');
+    const isContributionDisabled = contributionControl?.disabled;
+    
     const joinData = {
       userId: this.currentUser.id,
       name: this.joinForm.value.name,
       email: this.joinForm.value.email,
-      contributionAmount: this.isFirstCycle && !this.joinForm.value.contributionAmount 
-        ? null 
-        : this.joinForm.value.contributionAmount
+      contributionAmount: isContributionDisabled 
+        ? 0
+        : (this.isFirstCycle && !this.joinForm.getRawValue().contributionAmount 
+            ? null 
+            : this.joinForm.getRawValue().contributionAmount)
     };
     
     this.communityService.joinCommunity(this.data.communityId, joinData)
       .subscribe({
         next: (response) => {
           this.toastService.success('Successfully joined the community');
+          
+          // Create a custom success event and dispatch it, so other components can listen for it
+          const refreshEvent = new CustomEvent('kolocollect-community-joined', {
+            bubbles: true, 
+            detail: { 
+              communityId: this.data.communityId 
+            }
+          });
+          window.dispatchEvent(refreshEvent);
+          
+          // Close the dialog with successful result
           this.dialogRef.close(true);
         },
         error: (error) => {

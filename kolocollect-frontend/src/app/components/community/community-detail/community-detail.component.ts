@@ -682,7 +682,8 @@ export class CommunityDetailComponent implements OnInit, OnDestroy {  // Font Aw
     if (!this.communityId) return;
     
     this.loadingMidCycleDetails = true;
-    this.communityService.getCurrentMidCycleDetails(this.communityId)
+    // MidcycleService.getCurrentMidCycleDetails
+    this.midcycleService.getCurrentMidCycleDetails(this.communityId)
       .pipe(
         takeUntil(this.destroy$),
         catchError(error => {

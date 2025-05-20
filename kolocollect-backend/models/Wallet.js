@@ -37,6 +37,7 @@ const fixedFundsSchema = new Schema(
 // Wallet Schema to store balance, transactions, and fixed funds for each user
 const walletSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  authId: { type: String, index: true }, // Add authId for direct mapping to User's authId
   availableBalance: { type: Number, default: 0 },
   fixedBalance: { type: Number, default: 0 },
   totalBalance: { type: Number, default: 0 },

@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const User = require('./User');
+// const User = require('./User');
 // Avoid direct import to prevent circular dependency
 // const Community = require('./Community');
 const MidCycle = require('./Midcycle');
@@ -18,6 +18,11 @@ const ContributionSchema = new mongoose.Schema({
     ref: 'User', 
     required: true, 
     index: true 
+  },
+  authId: {
+    type: String,
+    sparse: true, // Allows null values and ensures uniqueness for non-null values
+    index: true,  // Index for faster queries
   },
   cycleNumber: { type: Number, required: true },
   midCycleId: { 
@@ -65,16 +70,25 @@ const ContributionSchema = new mongoose.Schema({
 ContributionSchema.index({ communityId: 1, cycleNumber: 1, status: 1 });
 ContributionSchema.index({ userId: 1, communityId: 1, date: -1 });
 ContributionSchema.index({ midCycleId: 1, status: 1 });
+ContributionSchema.index({ authId: 1 });
 
 // Static methods
 ContributionSchema.statics.getUserContributions = async function(userId, communityId, cycleNumber) {
-  return this.find({ userId, communityId, cycleNumber })
-    .sort({ date: -1 });
+  return this.find({ 
+    $or: [
+      { userId, communityId, cycleNumber },
+      { authId: userId, communityId, cycleNumber }
+    ]
+  }).sort({ date: -1 });
 };
 
 ContributionSchema.statics.getMissedContributions = async function(userId, communityId) {
-  return this.find({ userId, communityId, status: 'missed' })
-    .sort({ date: -1 });
+  return this.find({ 
+    $or: [
+      { userId, communityId, status: 'missed' },
+      { authId: userId, communityId, status: 'missed' }
+    ]
+  }).sort({ date: -1 });
 };
 
 ContributionSchema.statics.getCycleTotal = async function(communityId, cycleNumber) {
@@ -118,12 +132,15 @@ ContributionSchema.statics.createContribution = async function(userId, community
     }).session(session);
     
     if (!activeMidCycle) throw new Error('MidCycle not found or already complete.');
-    
-    // Validate member status
+      // Validate member status
     const Member = mongoose.model('Member');
-    const member = await Member.findOne({
-      userId,
-      communityId: communityId
+    
+    // Try to find member by userId, checking both authId and MongoDB _id
+    let member = await Member.findOne({
+      $or: [
+        { userId: userId, communityId: communityId },
+        { authId: userId, communityId: communityId }
+      ]
     }).session(session);
     
     console.log('Member lookup result:', member ? `Found ${member.name} with status ${member.status}` : 'Not found');
@@ -137,16 +154,30 @@ ContributionSchema.statics.createContribution = async function(userId, community
     if (amount < community.settings.minContribution) {
       throw new Error(`Contribution amount must be at least €${community.settings.minContribution.toFixed(2)}.`);
     }
-
+    
     // Check wallet balance
-    const wallet = await mongoose.model('Wallet').findOne({ userId }).session(session);
+    // Try to find the wallet by both authId and userId
+    let wallet = await mongoose.model('Wallet').findOne({ authId: userId }).session(session);
+    if (!wallet) {
+      wallet = await mongoose.model('Wallet').findOne({ userId }).session(session);
+    }
+    
     if (!wallet || wallet.availableBalance < amount) {
       throw new Error('Insufficient wallet balance.');
     }
+    
+    // Find user to get authId if needed
+    let user = await mongoose.model('User').findOne({ authId: userId }).session(session);
+    if (!user) {
+      user = await mongoose.model('User').findById(userId).session(session);
+    }
+    
+    if (!user) throw new Error('User not found.');
 
     // Create and save contribution
     const newContribution = new this({
-      userId,
+      userId: user._id,
+      authId: user.authId,
       communityId,
       amount,
       midCycleId,
@@ -163,18 +194,14 @@ ContributionSchema.statics.createContribution = async function(userId, community
       null,
       communityId,
       { session }
-    );
-
-    // Record in community
+    );    // Record in community
     await community.record({
       contributorId: userId,
       recipientId: activeMidCycle.nextInLine.userId,
       amount,
       contributionId: savedContribution._id
     }, { session });    
-    
-    // Add to user's profile
-    const user = await mongoose.model('User').findById(userId).session(session);
+      // Add to user's profile - we already have the user object from earlier
     if (user) {
       await user.addContribution(savedContribution._id, amount, { session });
     }    
@@ -201,18 +228,46 @@ ContributionSchema.statics.createContributionWithInstallment = async function (u
   const Community = mongoose.model('Community');
   const community = await Community.findById(communityId);
   if (!community) throw new Error('Community not found');
-
+  
   // Get mid-cycle with populated data
   const MidCycle = mongoose.model('MidCycle');
   // Use getMidcycle static method if it exists, otherwise use findById
-  const midCycle = MidCycle.getMidcycle ? 
-    await MidCycle.getMidcycle(midCycleId) : 
-    await MidCycle.findById(midCycleId);
-  if (!midCycle) throw new Error('Mid-cycle not found');
+  let midCycle;
+  try {
+    midCycle = MidCycle.getMidcycle ? 
+      await MidCycle.getMidcycle(midCycleId) : 
+      await MidCycle.findById(midCycleId).populate('nextInLine');
+      
+    if (!midCycle) throw new Error('Mid-cycle not found');
+    
+    // Log midCycle data to debug
+    console.log('MidCycle data:', {
+      id: midCycle._id,
+      cycleNumber: midCycle.cycleNumber,
+      hasNextInLine: !!midCycle.nextInLine,
+      nextInLineData: midCycle.nextInLine ? {
+        id: midCycle.nextInLine._id,
+        userId: midCycle.nextInLine.userId
+      } : null
+    });
+  } catch (error) {
+    console.error('Error fetching mid-cycle:', error);
+    throw new Error(`Mid-cycle lookup failed: ${error.message}`);
+  }
+  
+  // Find user to get authId if needed
+  const User = mongoose.model('User');
+  let user = await User.findOne({ authId: userId });
+  if (!user) {
+    user = await User.findById(userId);
+  }
+  
+  if (!user) throw new Error('User not found.');
 
   const contribution = new this({
     communityId,
-    userId,
+    userId: user._id,
+    authId: user.authId,
     amount,
     midCycleId,
     cycleNumber: midCycle.cycleNumber,
@@ -231,22 +286,29 @@ ContributionSchema.statics.createContributionWithInstallment = async function (u
     timestamp: new Date()
   });
   await activityLog.save();
-  
-  // Add activity log to community
+    // Add activity log to community
   community.activityLog.push(activityLog._id);
   await community.save();
-
+  
   // Check wallet balance
-  const wallet = await mongoose.model('Wallet').findOne({ userId });
-  if (!wallet || wallet.availableBalance < amount) {
-    throw new Error('Insufficient wallet balance.');
+  // Try to find the wallet by both authId and userId
+  let wallet = await mongoose.model('Wallet').findOne({ authId: userId });
+  if (!wallet) {
+    wallet = await mongoose.model('Wallet').findOne({ userId });
   }
-
-  // Update user's contribution records
-  const user = await User.findById(userId);
-  if (user) {
-    await user.addContribution(contribution._id, amount);
+  
+  console.log(`User Wallet for ${userId}: `, wallet ? 
+    `Found (availableBalance: ${wallet.availableBalance})` : 
+    'Not found');
+  
+  if (!wallet) {
+    throw new Error(`Wallet not found for user ${userId}`);  }
+  
+  if (wallet.availableBalance < amount) {
+    throw new Error(`Insufficient wallet balance. Required: ${amount}, Available: ${wallet.availableBalance}`);
   }
+  // Add the contribution to the user's records (we already have the user object)
+  await user.addContribution(contribution._id, amount);
 
   // Update wallet
   await wallet.addTransaction(
@@ -257,13 +319,46 @@ ContributionSchema.statics.createContributionWithInstallment = async function (u
     communityId
   );
 
-  // Record the contribution in community
-  await community.record({
-    contributorId: userId,
-    recipientId: midCycle.nextInLine.userId,
-    amount,
-    contributionId: contribution._id
-  });
+  // Ensure midCycle has the nextInLine property populated
+  if (!midCycle.nextInLine || !midCycle.nextInLine.userId) {
+    console.log('MidCycle data:', {
+      id: midCycle._id,
+      cycleNumber: midCycle.cycleNumber,
+      nextInLine: midCycle.nextInLine
+    });
+    
+    // Try to get a fully populated midCycle
+    const populatedMidCycle = await MidCycle.findById(midCycleId).populate('nextInLine');
+    
+    if (!populatedMidCycle || !populatedMidCycle.nextInLine || !populatedMidCycle.nextInLine.userId) {
+      throw new Error('Cannot determine next-in-line recipient for contribution');
+    }
+    
+    // Use the populated midCycle
+    console.log('Using populated midCycle with nextInLine:', populatedMidCycle.nextInLine);
+    
+    // Record the contribution in community with populated data
+    const recordData = {
+      contributorId: userId,
+      recipientId: populatedMidCycle.nextInLine.userId,
+      amount,
+      contributionId: contribution._id
+    };
+    
+    console.log('Recording contribution with data:', recordData);
+    await community.record(recordData);
+  } else {
+    // Record the contribution in community with existing data
+    const recordData = {
+      contributorId: userId,
+      recipientId: midCycle.nextInLine.userId,
+      amount,
+      contributionId: contribution._id
+    };
+    
+    console.log('Recording contribution with data:', recordData);
+    await community.record(recordData);
+  }
 
   return contribution;
 };

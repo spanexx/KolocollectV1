@@ -1314,78 +1314,15 @@ exports.handleWalletForDefaulters = async (req, res) => {
 exports.startNewCycle = async (req, res) => {
   try {
     const { communityId } = req.params;
+    console.log(`Starting new cycle for community ID: ${communityId}`);
 
     const community = await Community.findById(communityId);
     if (!community) return createErrorResponse(res, 404, 'COMMUNITY_NOT_FOUND', 'Community not found');
 
-    // Ensure the current cycle is complete
-    const activeCycle = await Cycle.findOne({ 
-      _id: { $in: community.cycles }, 
-      isComplete: false 
-    });
-    if (activeCycle) {
-      throw new Error('Cannot start a new cycle until the current cycle is complete.');
-    }
+    // Use the community schema method to start a new cycle
+    const result = await community.startNewCycle();
 
-    // Determine the new cycle number
-    const newCycleNumber = (community.cycles.length > 0) ? 
-      (await Cycle.findById(community.cycles[community.cycles.length - 1])).cycleNumber + 1 : 1;
-
-    // Resolve all unresolved votes
-    const unresolvedVotes = await CommunityVote.find({
-      _id: { $in: community.votes },
-      resolved: false
-    });
-
-    // Handle unresolved votes
-    for (const vote of unresolvedVotes) {
-      await community.resolveVote(vote._id);
-    }
-
-    // Apply resolved votes
-    await community.applyResolvedVotes();
-
-    // Create a new cycle
-    const newCycle = new Cycle({
-      cycleNumber: newCycleNumber,
-      midCycles: [],
-      isComplete: false,
-      startDate: new Date(),
-      paidMembers: []
-    });
-    await newCycle.save();
-
-    // Add the cycle to the community
-    community.cycles.push(newCycle._id);
-
-    // Clear activity log for new cycle
-    community.activityLog = [];
-
-    // Update member positions based on positioning mode
-    const members = await Member.find({ _id: { $in: community.members } });
-    if (community.positioningMode === 'Random') {
-      const positions = Array.from({ length: members.length }, (_, i) => i + 1);
-      members.forEach(member => {
-        const randomIndex = Math.floor(Math.random() * positions.length);
-        member.position = positions.splice(randomIndex, 1)[0];
-      });
-    } else {
-      members.sort((a, b) => a.userId.toString().localeCompare(b.userId.toString()));
-      members.forEach((member, index) => {
-        member.position = index + 1;
-      });
-    }
-
-    // Save updated members
-    await Promise.all(members.map(member => member.save()));
-
-    // Start the first mid-cycle
-    await community.startMidCycle();
-    
-    // Update payout info
-    await community.updatePayoutInfo();
-
-    // Create activity log
+    // Create activity log for the new cycle
     const activityLog = new CommunityActivityLog({
       communityId: community._id,
       activityType: 'start_new_cycle',
@@ -1394,8 +1331,6 @@ exports.startNewCycle = async (req, res) => {
     });
     await activityLog.save();
     community.activityLog.push(activityLog._id);
-
-    // Save all changes
     await community.save();
 
     // Return populated result
@@ -1407,7 +1342,7 @@ exports.startNewCycle = async (req, res) => {
       .populate('activityLog');
 
     res.status(200).json({
-      message: 'New cycle started successfully',
+      message: result.message || 'New cycle started successfully',
       community: populatedCommunity
     });
   } catch (err) {

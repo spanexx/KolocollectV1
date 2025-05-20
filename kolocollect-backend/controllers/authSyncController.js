@@ -28,12 +28,11 @@ const syncUserFromAuth = async (req, res) => {
       firstName,
       lastName,
       registeredAt: createdAt || new Date(),
-    });
-
-    const savedUser = await newUser.save();
+    });    const savedUser = await newUser.save();
 
         const wallet = new Wallet({
           userId: savedUser._id,
+          authId: savedUser.authId, // Add the authId field to match with User model
           availableBalance: 0,
           fixedBalance: 0,
           totalBalance: 0,
