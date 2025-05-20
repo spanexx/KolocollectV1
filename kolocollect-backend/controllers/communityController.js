@@ -193,7 +193,7 @@ exports.createCommunity = async (req, res) => {
     // Create initial member (admin) with communityId
     const adminMember = new Member({
       userId: adminId,
-      name: adminUser.name,
+      name: adminUser.username,
       email: adminUser.email,
       position: 1,
       status: 'active',
