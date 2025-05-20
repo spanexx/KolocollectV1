@@ -130,10 +130,11 @@ export class ProfileComponent implements OnInit {
     this.loadUserProfile();
     this.loadUserNotifications();
     this.loadUserActivityLog();
-  }
-  createForms(): void {
+  }  createForms(): void {
     this.profileForm = this.formBuilder.group({
-      name: ['', Validators.required],
+      firstName: ['', Validators.required],
+      lastName: ['', Validators.required],
+      username: ['', Validators.required],
       email: ['', [Validators.required, Validators.email]],
       phone: ['', Validators.pattern(/^\+?[0-9\s\-\(\)]+$/)],
       address: [''],
@@ -192,10 +193,11 @@ export class ProfileComponent implements OnInit {
       })    ).subscribe(response => {
       // Extract user data, handling both {user: {...}} and direct user object formats
       this.user = response.user || response;
-      
-      // Populate form with user data
+        // Populate form with user data
       this.profileForm.patchValue({
-        name: this.user.name || '',
+        firstName: this.user.firstName || '',
+        lastName: this.user.lastName || '',
+        username: this.user.username || '',
         email: this.user.email || '',
         phone: this.user.phone || '',
         address: this.user.address || '',

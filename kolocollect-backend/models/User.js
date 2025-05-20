@@ -2,10 +2,23 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
 const userSchema = new mongoose.Schema({
-  name: { type: String, required: true, trim: true },
+  authId: {
+    type: String,
+    unique: true,
+    sparse: true, // Allows null values and ensures uniqueness for non-null values
+    index: true,  // Index for faster queries
+  },
+  username: { 
+    type: String, 
+    required: true, 
+    trim: true 
+  },
+  firstName: { type: String, trim: true },
+  lastName: { type: String, trim: true },
   email: { type: String, required: true, unique: true, trim: true, lowercase: true, index: true },
-  password: { type: String, required: true },
+  password: { type: String }, // No longer required
   role: { type: String, enum: ['user', 'admin'], default: 'user' },
+  registeredAt: { type: Date, default: Date.now },
   dateJoined: { type: Date, default: Date.now },
   phone: { type: String, trim: true },
   address: { type: String, trim: true },
@@ -116,7 +129,8 @@ userSchema.virtual('nextInLineDetails').get(async function () {
 
 // Password hashing before saving
 userSchema.pre('save', async function (next) {
-  if (!this.isModified('password')) return next();
+  // Skip if password isn't modified or if there's no password (auth service flow)
+  if (!this.isModified('password') || !this.password) return next();
   try {
     const salt = await bcrypt.genSalt(10);
     this.password = await bcrypt.hash(this.password, salt);
@@ -128,6 +142,8 @@ userSchema.pre('save', async function (next) {
 
 // Match user password
 userSchema.methods.matchPassword = async function (enteredPassword) {
+  // If user was created via auth service and has no password
+  if (!this.password) return false;
   return await bcrypt.compare(enteredPassword, this.password);
 };
 

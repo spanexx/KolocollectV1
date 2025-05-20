@@ -69,7 +69,7 @@
   <div class="sidebar-footer" *ngIf="currentUser$ | async as currentUser">
     <mat-divider></mat-divider>
     <div class="user-info" *ngIf="!isCollapsed && !isSmallScreen">
-      <div class="user-name">{{ currentUser.name }}</div>
+      <div class="user-name">{{ currentUser.username }}</div>
       <div class="user-role">{{ currentUser.role }}</div>
     </div>
   </div>

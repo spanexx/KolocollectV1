@@ -151,7 +151,28 @@ exports.getContributionsByUser = async (req, res) => {
   try {
     console.log('Fetching contributions for user ID:', req.params.userId);
     const { userId } = req.params;
-    const contributions = await Contribution.find({ userId });
+    const User = require('../models/User');
+    
+    // First try to find the user by authId
+    let userDoc = await User.findOne({ authId: userId });
+    
+    // If not found by authId, try finding by _id
+    if (!userDoc) {
+      userDoc = await User.findById(userId);
+    }
+    
+    if (!userDoc) {
+      return res.status(404).json({
+        error: {
+          code: 'USER_NOT_FOUND',
+          message: 'User not found.',
+          timestamp: new Date().toISOString(),
+          documentation: "https://api.kolocollect.com/docs/errors/USER_NOT_FOUND"
+        }
+      });
+    }
+    
+    const contributions = await Contribution.find({ userId: userDoc._id });
 
     // Return empty array instead of 404 when no contributions are found
     if (!contributions.length) {
@@ -161,6 +182,13 @@ exports.getContributionsByUser = async (req, res) => {
     res.status(200).json(contributions);
   } catch (err) {
     console.error('Error fetching user contributions:', err);
-    createErrorResponse(res, 500, 'Server error while fetching user contributions.');
+    res.status(500).json({
+      error: {
+        code: 'CONTRIBUTION_ERROR',
+        message: 'Server error while fetching user contributions.',
+        timestamp: new Date().toISOString(),
+        documentation: "https://api.kolocollect.com/docs/errors/CONTRIBUTION_ERROR"
+      }
+    });
   }
 };

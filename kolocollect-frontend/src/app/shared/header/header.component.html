@@ -57,10 +57,10 @@
         </mat-menu>        <!-- User menu -->
         <button mat-button [matMenuTriggerFor]="userMenu" class="user-menu-btn">
           <div class="user-avatar">
-            <img *ngIf="userProfilePicture" [src]="userProfilePicture" alt="{{ user.name }}" class="profile-image"
+            <img *ngIf="userProfilePicture" [src]="userProfilePicture" alt="{{ user.username }}" class="profile-image"
               (error)="handleProfileImageError($event)">
             <div *ngIf="!userProfilePicture" class="avatar-placeholder">
-              {{ getUserInitials(user.name) }}
+              {{ getUserInitials(user.username) }}
             </div>
           </div>
           <!-- <fa-icon [icon]="faChevronDown"></fa-icon> -->

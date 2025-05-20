@@ -178,12 +178,46 @@ exports.getTransactionHistory = async (req, res) => {
       order = 'desc'
     } = req.query;
 
-    if (!isValidObjectId(userId)) {
-      return createErrorResponse(res, 400, 'Invalid user ID.');
+    // Find user by authId or _id
+    const User = require('../models/User');
+    
+    // Try to find user by authId or _id depending on what we got
+    let userDoc = null;
+    if (isValidObjectId(userId)) {
+      // Try finding by _id first
+      userDoc = await User.findById(userId);
+      
+      // If not found, try by authId
+      if (!userDoc) {
+        userDoc = await User.findOne({ authId: userId });
+      }
+    } else {
+      // Non-ObjectId format, must be an authId
+      userDoc = await User.findOne({ authId: userId });
     }
 
-    const wallet = await Wallet.findOne({ userId });
-    if (!wallet) return createErrorResponse(res, 404, 'Wallet not found.');
+    if (!userDoc) {
+      return res.status(404).json({
+        error: {
+          code: 'USER_NOT_FOUND',
+          message: 'User not found.',
+          timestamp: new Date().toISOString(),
+          documentation: "https://api.kolocollect.com/docs/errors/USER_NOT_FOUND"
+        }
+      });
+    }
+
+    const wallet = await Wallet.findOne({ userId: userDoc._id });
+    if (!wallet) {
+      return res.status(404).json({
+        error: {
+          code: 'WALLET_NOT_FOUND',
+          message: 'Wallet not found.',
+          timestamp: new Date().toISOString(),
+          documentation: "https://api.kolocollect.com/docs/errors/WALLET_NOT_FOUND"
+        }
+      });
+    }
     
     // Start with all transactions
     let filteredTransactions = [...wallet.transactions];
@@ -606,12 +640,46 @@ exports.getFixedFunds = async (req, res) => {
   try {
     const { userId } = req.params;
 
-    if (!isValidObjectId(userId)) {
-      return createErrorResponse(res, 400, 'Invalid user ID.');
+    // Find user by authId or _id
+    const User = require('../models/User');
+    
+    // Try to find user by authId or _id depending on what we got
+    let userDoc = null;
+    if (isValidObjectId(userId)) {
+      // Try finding by _id first
+      userDoc = await User.findById(userId);
+      
+      // If not found, try by authId
+      if (!userDoc) {
+        userDoc = await User.findOne({ authId: userId });
+      }
+    } else {
+      // Non-ObjectId format, must be an authId
+      userDoc = await User.findOne({ authId: userId });
     }
 
-    const wallet = await Wallet.findOne({ userId }).select('fixedBalance fixedFunds');
-    if (!wallet) return createErrorResponse(res, 404, 'Wallet not found.');
+    if (!userDoc) {
+      return res.status(404).json({
+        error: {
+          code: 'USER_NOT_FOUND',
+          message: 'User not found.',
+          timestamp: new Date().toISOString(),
+          documentation: "https://api.kolocollect.com/docs/errors/USER_NOT_FOUND"
+        }
+      });
+    }
+
+    const wallet = await Wallet.findOne({ userId: userDoc._id }).select('fixedBalance fixedFunds');
+    if (!wallet) {
+      return res.status(404).json({
+        error: {
+          code: 'WALLET_NOT_FOUND',
+          message: 'Wallet not found.',
+          timestamp: new Date().toISOString(),
+          documentation: "https://api.kolocollect.com/docs/errors/WALLET_NOT_FOUND"
+        }
+      });
+    }
 
     // Initialize fixedFunds if it doesn't exist
     if (!wallet.fixedFunds) {
@@ -633,13 +701,50 @@ exports.getFixedFunds = async (req, res) => {
 exports.getWalletBalance = async (req, res) => {
   try {
     const { userId } = req.params;
+    const User = require('../models/User');
 
-    if (!isValidObjectId(userId)) {
-      return createErrorResponse(res, 400, 'Invalid user ID.');
+    // First check if this is a valid Object ID
+    const isValidObjectId = (id) => /^[0-9a-fA-F]{24}$/.test(id);
+
+    // Try to find user by authId or _id depending on what we got
+    let userDoc = null;
+    if (isValidObjectId(userId)) {
+      // Try finding by _id first
+      userDoc = await User.findById(userId);
+      
+      // If not found, try by authId
+      if (!userDoc) {
+        userDoc = await User.findOne({ authId: userId });
+      }
+    } else {
+      // Non-ObjectId format, must be an authId
+      userDoc = await User.findOne({ authId: userId });
     }
 
-    const wallet = await Wallet.findOne({ userId });
-    if (!wallet) return createErrorResponse(res, 404, 'Wallet not found.');
+    if (!userDoc) {
+      return res.status(404).json({
+        error: {
+          code: 'USER_NOT_FOUND',
+          message: 'User not found.',
+          timestamp: new Date().toISOString(),
+          documentation: "https://api.kolocollect.com/docs/errors/USER_NOT_FOUND"
+        }
+      });
+    }
+
+    // Use the _id from the user document to find the wallet
+    const wallet = await Wallet.findOne({ userId: userDoc._id });
+    
+    if (!wallet) {
+      return res.status(404).json({
+        error: {
+          code: 'WALLET_NOT_FOUND',
+          message: 'Wallet not found.',
+          timestamp: new Date().toISOString(),
+          documentation: "https://api.kolocollect.com/docs/errors/WALLET_NOT_FOUND"
+        }
+      });
+    }
 
     res.status(200).json({
       availableBalance: wallet.availableBalance,
@@ -647,7 +752,15 @@ exports.getWalletBalance = async (req, res) => {
       totalBalance: wallet.totalBalance,
     });
   } catch (err) {
-    createErrorResponse(res, 500, 'Failed to fetch wallet balance.');
+    console.error('Error fetching wallet balance:', err);
+    res.status(500).json({
+      error: {
+        code: 'WALLET_ERROR',
+        message: 'Failed to fetch wallet balance.',
+        timestamp: new Date().toISOString(),
+        documentation: "https://api.kolocollect.com/docs/errors/WALLET_ERROR"
+      }
+    });
   }
 };
 
@@ -656,12 +769,46 @@ exports.getWallet = async (req, res) => {
   try {
     const { userId } = req.params;
 
-    if (!isValidObjectId(userId)) {
-      return createErrorResponse(res, 400, 'Invalid user ID.');
+    // Find user by authId or _id
+    const User = require('../models/User');
+    
+    // Try to find user by authId or _id depending on what we got
+    let userDoc = null;
+    if (isValidObjectId(userId)) {
+      // Try finding by _id first
+      userDoc = await User.findById(userId);
+      
+      // If not found, try by authId
+      if (!userDoc) {
+        userDoc = await User.findOne({ authId: userId });
+      }
+    } else {
+      // Non-ObjectId format, must be an authId
+      userDoc = await User.findOne({ authId: userId });
     }
 
-    const wallet = await Wallet.findOne({ userId }).populate('transactions.recipient', 'name email');
-    if (!wallet) return createErrorResponse(res, 404, 'Wallet not found.');
+    if (!userDoc) {
+      return res.status(404).json({
+        error: {
+          code: 'USER_NOT_FOUND',
+          message: 'User not found.',
+          timestamp: new Date().toISOString(),
+          documentation: "https://api.kolocollect.com/docs/errors/USER_NOT_FOUND"
+        }
+      });
+    }
+
+    const wallet = await Wallet.findOne({ userId: userDoc._id }).populate('transactions.recipient', 'name email');
+    if (!wallet) {
+      return res.status(404).json({
+        error: {
+          code: 'WALLET_NOT_FOUND',
+          message: 'Wallet not found.',
+          timestamp: new Date().toISOString(),
+          documentation: "https://api.kolocollect.com/docs/errors/WALLET_NOT_FOUND"
+        }
+      });
+    }
 
     res.status(200).json(wallet);
   } catch (err) {

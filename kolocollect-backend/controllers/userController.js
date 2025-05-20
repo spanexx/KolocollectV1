@@ -7,12 +7,11 @@ const crypto = require('crypto');
 
 // Update User Profile
 exports.updateUserProfile = async (req, res) => {
-  try {
-    const { userId } = req.params;
-    const { name, email, phone, address, bio } = req.body;
+  try {    const { userId } = req.params;
+    const { firstName, lastName, username, email, phone, address, bio } = req.body;
     console.log('Updating user profile:', req.body);
 
-    if (!name && !email && !phone && !address && !bio) {
+    if (!firstName && !lastName && !username && !email && !phone && !address && !bio) {
       return res.status(400).json({
         error: {
           code: 'UPDATE_PROFILE_ERROR',
@@ -23,7 +22,13 @@ exports.updateUserProfile = async (req, res) => {
       });
     }
 
-    const user = await User.findById(userId);
+    // First try to find by authId
+    let user = await User.findOne({ authId: userId });
+    
+    // If not found by authId, try finding by _id
+    if (!user) {
+      user = await User.findById(userId);
+    }
     if (!user) {
       return res.status(404).json({
         error: {
@@ -33,10 +38,10 @@ exports.updateUserProfile = async (req, res) => {
           documentation: "https://api.kolocollect.com/docs/errors/USER_NOT_FOUND"
         }
       });
-    }
-
-    // Update only provided fields
-    if (name) user.name = name;
+    }    // Update only provided fields
+    if (firstName) user.firstName = firstName;
+    if (lastName) user.lastName = lastName;
+    if (username) user.username = username;
     if (email) user.email = email;
     if (phone !== undefined) user.phone = phone;
     if (address !== undefined) user.address = address;
@@ -49,13 +54,13 @@ exports.updateUserProfile = async (req, res) => {
       date: new Date()
     });
 
-    await user.save();
-
-    res.status(200).json({
+    await user.save();    res.status(200).json({
       message: 'Profile updated successfully.',
       user: {
         id: user._id,
-        name: user.name,
+        username: user.username,
+        firstName: user.firstName,
+        lastName: user.lastName,
         email: user.email,
         phone: user.phone,
         address: user.address,
@@ -158,8 +163,10 @@ exports.loginUser = async (req, res) => {
 // Fetch User Profile
 exports.getUserProfile = async (req, res) => {
   const userId = req.params.userId; // Get user ID from request parameters
+  console.log('Fetching user profile for ID:', userId);
   try {
-    const user = await User.findById(userId)
+    // First try to find by authId
+    let user = await User.findOne({ authId: userId })
       .select('-password')
       .populate({
         path: 'communities.id',
@@ -170,16 +177,42 @@ exports.getUserProfile = async (req, res) => {
         select: 'name',
       });
 
-    if (!user) return createErrorResponse(res, 404, 'USER_NOT_FOUND', 'User not found.');
+      console.log('User found:', user);
+    
+    // If not found by authId, try finding by _id
+    if (!user) {
+      user = await User.findById(userId)
+        .select('-password')
+        .populate({
+          path: 'communities.id',
+          select: 'name description',
+        })
+        .populate({
+          path: 'contributionsPaid.contributionId',
+          select: 'name',
+        });
+    }
+
+    if (!user) {
+      return res.status(404).json({
+        error: {
+          code: 'USER_NOT_FOUND',
+          message: 'User not found.',
+          timestamp: new Date().toISOString(),
+          documentation: "https://api.kolocollect.com/docs/errors/USER_NOT_FOUND"
+        }
+      });
+    }
 
     const wallet = await Wallet.findOne({ userId: user._id });
 
-    const nextInLineDetails = await user.nextInLineDetails;
-
-    res.status(200).json({
+    const nextInLineDetails = await user.nextInLineDetails;    res.status(200).json({
       user: {
         id: user._id,
-        name: user.name,
+        authId: user.authId,
+        username: user.username,
+        firstName: user.firstName,
+        lastName: user.lastName,
         email: user.email,
         phone: user.phone,
         address: user.address,
@@ -190,6 +223,8 @@ exports.getUserProfile = async (req, res) => {
         activityLog: user.activityLog,
         notifications: user.notifications,
         communities: user.communities,
+        contributions: user.contributions,
+        contributionsPaid: user.contributionsPaid,
         role: user.role,
         status: user.status,
         createdAt: user.createdAt
@@ -219,9 +254,24 @@ exports.getUpcomingPayouts = async (req, res) => {
     const mongoose = require('mongoose');
     const { userId } = req.params;
 
-    // Find user and populate their communities
-    const user = await User.findById(userId).populate('communities.id', 'name');
-    if (!user) return res.status(404).json({ message: 'User not found.' });
+    // First try to find by authId
+    let user = await User.findOne({ authId: userId }).populate('communities.id', 'name');
+    
+    // If not found by authId, try finding by _id
+    if (!user) {
+      user = await User.findById(userId).populate('communities.id', 'name');
+    }
+    
+    if (!user) {
+      return res.status(404).json({
+        error: {
+          code: 'USER_NOT_FOUND',
+          message: 'User not found.',
+          timestamp: new Date().toISOString(),
+          documentation: "https://api.kolocollect.com/docs/errors/USER_NOT_FOUND"
+        }
+      });
+    }
 
     // Get upcoming payouts from virtual
     const virtualUpcomingPayouts = await user.upcomingPayouts || [];
@@ -363,13 +413,18 @@ exports.getUpcomingPayouts = async (req, res) => {
 
 // Clean up logs for a user
 exports.cleanUpLogs = async (req, res) => {
-  try {
-    const { userId } = req.params;
+  try {    const { userId } = req.params;
     const maxLength = req.query.maxLength ? parseInt(req.query.maxLength) : 50;
     const clearAll = req.query.clearAll === 'true';
 
-    // Find the user
-    const user = await User.findById(userId);
+    // First try to find by authId
+    let user = await User.findOne({ authId: userId });
+    
+    // If not found by authId, try finding by _id
+    if (!user) {
+      user = await User.findById(userId);
+    }
+    
     if (!user) return createErrorResponse(res, 404, 'USER_NOT_FOUND', 'User not found.');
 
     // Use the user's method to clean up logs with maxLength parameter and clearAll flag
@@ -393,10 +448,26 @@ exports.cleanUpLogs = async (req, res) => {
 
 // Get user communities
 exports.getUserCommunities = async (req, res) => {
-  const userId = req.params.userId;
+  const { userId } = req.params;
   try {
-    const user = await User.findById(userId).populate('communities.id', 'name description');
-    if (!user) return createErrorResponse(res, 404, 'User not found.');
+    // First try to find by authId
+    let user = await User.findOne({ authId: userId }).populate('communities.id', 'name description');
+    
+    // If not found by authId, try finding by _id
+    if (!user) {
+      user = await User.findById(userId).populate('communities.id', 'name description');
+    }
+    
+    if (!user) {
+      return res.status(404).json({
+        error: {
+          code: 'USER_NOT_FOUND',
+          message: 'User not found.',
+          timestamp: new Date().toISOString(),
+          documentation: "https://api.kolocollect.com/docs/errors/USER_NOT_FOUND"
+        }
+      });
+    }
 
     // Filter out communities where the populated community object is null (i.e., community was deleted)
     const validCommunities = user.communities.filter(community => community.id !== null);
@@ -405,7 +476,15 @@ exports.getUserCommunities = async (req, res) => {
       communities: validCommunities,
     });
   } catch (err) {
-    createErrorResponse(res, 500, 'Error fetching user communities.');
+    console.error('Error fetching user communities:', err);
+    res.status(500).json({
+      error: {
+        code: 'COMMUNITY_ERROR',
+        message: 'Error fetching user communities.',
+        timestamp: new Date().toISOString(),
+        documentation: "https://api.kolocollect.com/docs/errors/COMMUNITY_ERROR"
+      }
+    });
   }
 }
 
@@ -414,19 +493,43 @@ exports.getUserNotifications = async (req, res) => {
   try {
     const { userId } = req.params;
     
-    const user = await User.findById(userId)
+    // First try to find by authId
+    let user = await User.findOne({ authId: userId })
       .select('notifications')
       .sort({ 'notifications.date': -1 }); // Sort by latest first
+    
+    // If not found by authId, try finding by _id
+    if (!user) {
+      user = await User.findById(userId)
+        .select('notifications')
+        .sort({ 'notifications.date': -1 });
+    }
 
-    if (!user) return createErrorResponse(res, 404, 'User not found.');
+    if (!user) {
+      return res.status(404).json({
+        error: {
+          code: 'User not found.',
+          message: 'User not found.',
+          timestamp: new Date().toISOString(),
+          documentation: "https://api.kolocollect.com/docs/errors/User not found."
+        }
+      });
+    }
 
     res.status(200).json({
       message: 'Notifications retrieved successfully.',
-      notifications: user.notifications,
+      notifications: user.notifications || [],
     });
   } catch (err) {
     console.error('Error fetching notifications:', err);
-    createErrorResponse(res, 500, 'Failed to fetch notifications.');
+    res.status(500).json({
+      error: {
+        code: 'NOTIFICATION_ERROR',
+        message: 'Failed to fetch notifications.',
+        timestamp: new Date().toISOString(),
+        documentation: "https://api.kolocollect.com/docs/errors/NOTIFICATION_ERROR"
+      }
+    });
   }
 };
 
@@ -605,10 +708,16 @@ exports.updatePassword = async (req, res) => {
 
 // Mark a single notification as read
 exports.markNotificationAsRead = async (req, res) => {
-  try {
-    const { userId, notificationId } = req.params;
+  try {    const { userId, notificationId } = req.params;
     
-    const user = await User.findById(userId);
+    // First try to find by authId
+    let user = await User.findOne({ authId: userId });
+    
+    // If not found by authId, try finding by _id
+    if (!user) {
+      user = await User.findById(userId);
+    }
+    
     if (!user) return createErrorResponse(res, 404, 'User not found.');
     
     const notification = user.notifications.id(notificationId);
@@ -628,11 +737,17 @@ exports.markNotificationAsRead = async (req, res) => {
 };
 
 // Mark all notifications as read
-exports.markAllNotificationsAsRead = async (req, res) => {
-  try {
+exports.markAllNotificationsAsRead = async (req, res) => {  try {
     const { userId } = req.params;
     
-    const user = await User.findById(userId);
+    // First try to find by authId
+    let user = await User.findOne({ authId: userId });
+    
+    // If not found by authId, try finding by _id
+    if (!user) {
+      user = await User.findById(userId);
+    }
+    
     if (!user) return createErrorResponse(res, 404, 'User not found.');
     
     // Mark all notifications as read
@@ -653,8 +768,7 @@ exports.markAllNotificationsAsRead = async (req, res) => {
 
 // Update User Profile Picture
 exports.updateProfilePicture = async (req, res) => {
-  try {
-    const { userId } = req.params;    const { fileId, url } = req.body;
+  try {    const { userId } = req.params;    const { fileId, url } = req.body;
 
     console.log('Updating profile picture:', { userId, fileId, url });
     
@@ -662,7 +776,14 @@ exports.updateProfilePicture = async (req, res) => {
       return createErrorResponse(res, 400, 'MISSING_FIELDS', 'File ID and URL are required.');
     }
     
-    const user = await User.findById(userId);
+    // First try to find by authId
+    let user = await User.findOne({ authId: userId });
+    
+    // If not found by authId, try finding by _id
+    if (!user) {
+      user = await User.findById(userId);
+    }
+    
     if (!user) return createErrorResponse(res, 404, 'USER_NOT_FOUND', 'User not found.');
     
     user.profilePicture = {
@@ -691,11 +812,17 @@ exports.updateProfilePicture = async (req, res) => {
 };
 
 // Get User Verification Documents
-exports.getVerificationDocuments = async (req, res) => {
-  try {
+exports.getVerificationDocuments = async (req, res) => {  try {
     const { userId } = req.params;
     
-    const user = await User.findById(userId).select('verificationDocuments');
+    // First try to find by authId
+    let user = await User.findOne({ authId: userId }).select('verificationDocuments');
+    
+    // If not found by authId, try finding by _id
+    if (!user) {
+      user = await User.findById(userId).select('verificationDocuments');
+    }
+    
     if (!user) return createErrorResponse(res, 404, 'USER_NOT_FOUND', 'User not found.');
     
     res.status(200).json({
@@ -708,11 +835,17 @@ exports.getVerificationDocuments = async (req, res) => {
 };
 
 // Delete Verification Document
-exports.deleteVerificationDocument = async (req, res) => {
-  try {
+exports.deleteVerificationDocument = async (req, res) => {  try {
     const { userId, documentId } = req.params;
     
-    const user = await User.findById(userId);
+    // First try to find by authId
+    let user = await User.findOne({ authId: userId });
+    
+    // If not found by authId, try finding by _id
+    if (!user) {
+      user = await User.findById(userId);
+    }
+    
     if (!user) return createErrorResponse(res, 404, 'USER_NOT_FOUND', 'User not found.');
     
     // Find the document by fileId
@@ -748,13 +881,19 @@ exports.deleteVerificationDocument = async (req, res) => {
 exports.verifyDocument = async (req, res) => {
   try {
     const { userId, documentId } = req.params;
-    
-    // Check if requesting user is admin
+      // Check if requesting user is admin
     if (req.user.role !== 'admin') {
       return createErrorResponse(res, 403, 'UNAUTHORIZED', 'Only administrators can verify documents.');
     }
     
-    const user = await User.findById(userId);
+    // First try to find by authId
+    let user = await User.findOne({ authId: userId });
+    
+    // If not found by authId, try finding by _id
+    if (!user) {
+      user = await User.findById(userId);
+    }
+    
     if (!user) return createErrorResponse(res, 404, 'USER_NOT_FOUND', 'User not found.');
     
     // Find the document
@@ -836,8 +975,24 @@ exports.getUserActivityLog = async (req, res) => {
   try {
     const { userId } = req.params;
     
-    const user = await User.findById(userId);
-    if (!user) return createErrorResponse(res, 404, 'USER_NOT_FOUND', 'User not found.');
+    // First try to find by authId
+    let user = await User.findOne({ authId: userId });
+    
+    // If not found by authId, try finding by _id
+    if (!user) {
+      user = await User.findById(userId);
+    }
+    
+    if (!user) {
+      return res.status(404).json({
+        error: {
+          code: 'USER_NOT_FOUND',
+          message: 'User not found.',
+          timestamp: new Date().toISOString(),
+          documentation: "https://api.kolocollect.com/docs/errors/USER_NOT_FOUND"
+        }
+      });
+    }
     
     // Return the activity log in reverse chronological order (newest first)
     const activityLog = user.activityLog || [];
@@ -854,15 +1009,21 @@ exports.getUserActivityLog = async (req, res) => {
 
 // Add a verification document
 exports.addVerificationDocument = async (req, res) => {
-  try {
-    const { userId } = req.params;
+  try {    const { userId } = req.params;
     const { fileId, url, documentType, documentDescription } = req.body;
     
     if (!fileId || !url || !documentType) {
       return createErrorResponse(res, 400, 'MISSING_FIELDS', 'File ID, URL, and document type are required.');
     }
     
-    const user = await User.findById(userId);
+    // First try to find by authId
+    let user = await User.findOne({ authId: userId });
+    
+    // If not found by authId, try finding by _id
+    if (!user) {
+      user = await User.findById(userId);
+    }
+    
     if (!user) return createErrorResponse(res, 404, 'USER_NOT_FOUND', 'User not found.');
     
     // Initialize verificationDocuments array if it doesn't exist

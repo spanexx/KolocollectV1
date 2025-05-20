@@ -34,9 +34,8 @@
             </div>
           </div>
           <input type="file" #profilePictureInput accept="image/*" style="display: none;" (change)="onProfilePictureSelected($event)">
-        </div>
-        <div class="profile-title">
-          <mat-card-title>{{ user?.name || 'User Profile' }}</mat-card-title>
+        </div>        <div class="profile-title">
+          <mat-card-title>{{ (user?.firstName && user?.lastName) ? (user?.firstName + ' ' + user?.lastName) : (user?.username || 'User Profile') }}</mat-card-title>
           <mat-card-subtitle>{{ user?.email }}</mat-card-subtitle>
         </div>
       </div>
@@ -48,13 +47,28 @@
         <mat-tab label="Profile Information">
           <div class="tab-content">
             <form [formGroup]="profileForm">
-              <div class="profile-form">
+              <div class="profile-form">                <div class="form-row">
+                  <mat-form-field appearance="outline" class="form-field">
+                    <mat-label>First Name</mat-label>
+                    <input matInput formControlName="firstName" [readonly]="!isEditing">
+                    <mat-icon matPrefix><fa-icon [icon]="faUser"></fa-icon></mat-icon>
+                    <mat-error *ngIf="profileForm.get('firstName')?.hasError('required')">First name is required</mat-error>
+                  </mat-form-field>
+
+                  <mat-form-field appearance="outline" class="form-field">
+                    <mat-label>Last Name</mat-label>
+                    <input matInput formControlName="lastName" [readonly]="!isEditing">
+                    <mat-icon matPrefix><fa-icon [icon]="faUser"></fa-icon></mat-icon>
+                    <mat-error *ngIf="profileForm.get('lastName')?.hasError('required')">Last name is required</mat-error>
+                  </mat-form-field>
+                </div>
+
                 <div class="form-row">
                   <mat-form-field appearance="outline" class="form-field">
-                    <mat-label>Full Name</mat-label>
-                    <input matInput formControlName="name" [readonly]="!isEditing">
+                    <mat-label>Username</mat-label>
+                    <input matInput formControlName="username" [readonly]="!isEditing">
                     <mat-icon matPrefix><fa-icon [icon]="faUser"></fa-icon></mat-icon>
-                    <mat-error *ngIf="profileForm.get('name')?.hasError('required')">Name is required</mat-error>
+                    <mat-error *ngIf="profileForm.get('username')?.hasError('required')">Username is required</mat-error>
                   </mat-form-field>
 
                   <mat-form-field appearance="outline" class="form-field">

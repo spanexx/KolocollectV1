@@ -81,6 +81,7 @@ export class DashboardComponent implements OnInit {
 
   // User data
   currentUser: User | null = null;
+  userId: string | null = null;
   
   // Financial overview
   walletBalance = {
@@ -141,11 +142,35 @@ export class DashboardComponent implements OnInit {
   ) {}
   ngOnInit(): void {
     // Get current user data
-    this.authService.currentUser$.subscribe(user => {
-      this.currentUser = user;
-      if (user) {
-        this.loadDashboardData();
+    this.authService.currentUser$.subscribe(user => {      
+      if(user){          this.userService.getUserProfile(user.id).subscribe({
+            next: (userData: any) => {
+              // First set user data, then load dashboard
+              this.currentUser = userData.user;
+              this.userId = userData.user.id || userData.user.authId;
+              
+              // Check if we have wallet data from the response and use it
+              if (userData.wallet) {
+                this.walletBalance = {
+                  availableBalance: userData.wallet.availableBalance || 0,
+                  fixedBalance: userData.wallet.fixedBalance || 0,
+                  totalBalance: userData.wallet.totalBalance || 0
+                };
+              }
+              
+              console.log('Current user id:', this.userId);
+              console.log('User profile data:', userData);
+              
+              // Now that we have currentUser set, we can load dashboard data
+              this.loadDashboardData();
+            },
+            error: (error: any) => {
+              console.error('Error fetching user profile:', error);
+              this.isLoading = false;
+            }
+      });
       }
+
     });
     
     // Subscribe to notification unread count
@@ -154,21 +179,34 @@ export class DashboardComponent implements OnInit {
       this.notificationCount = count;
     });
   }
-  
-  loadDashboardData(): void {
-    if (!this.currentUser?.id) {
-      console.error('Cannot load dashboard data: No current user ID');
+    loadDashboardData(): void {
+    console.log('User ID:', this.userId);
+    
+    // Check for current user ID - use both regular ID and authId if available
+    if (!this.currentUser) {
+      console.error('Cannot load dashboard data: No current user');
       this.isLoading = false;
       return;
-    }    
+    }
+    
+    // Ensure we have a user ID - prefer the regular ID but fall back to authId if needed
+    const userIdToUse = this.currentUser.id || this.userId;
+    
+    if (!userIdToUse) {
+      console.error('Cannot load dashboard data: No valid user ID found');
+      this.isLoading = false;
+      return;
+    }
+
+    console.log('Loading dashboard data for user:', this.currentUser);
+    console.log('Using user ID:', userIdToUse);
     
     this.isLoading = true;
-    
-    // Create an array to track all active API requests
+      // Create an array to track all active API requests
     const requests: any[] = [];
 
     // Get wallet balance
-    const walletRequest = this.walletService.getWalletBalance(this.currentUser.id);
+    const walletRequest = this.walletService.getWalletBalance(userIdToUse);
     requests.push(walletRequest);
     
     walletRequest.subscribe({
@@ -179,9 +217,8 @@ export class DashboardComponent implements OnInit {
         console.error('Error fetching wallet balance:', error);
       }
     });      
-    
-    // Get user communities
-    const communitiesRequest = this.userService.getUserCommunities(this.currentUser.id);
+      // Get user communities
+    const communitiesRequest = this.userService.getUserCommunities(userIdToUse);
     requests.push(communitiesRequest);
     
     communitiesRequest.subscribe({

@@ -1,7 +1,9 @@
 export interface User {
-  id: string;
-  name: string;
+ id: string;
   email: string;
+  username: string;
+  firstName?: string;
+  lastName?: string;
   role: 'user' | 'admin';
   dateJoined: Date;
   profilePicture?: ProfilePicture;
@@ -69,6 +71,7 @@ export interface Notification {
 }
 
 export interface AuthResponse {
-  token: string;
-  user: User;
+ user: User;
+  accessToken: string;   
+  refreshToken: string;
 }

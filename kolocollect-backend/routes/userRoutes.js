@@ -2,12 +2,14 @@ const express = require('express');
 const router = express.Router();
 const userController = require('../controllers/userController');
 const walletController = require('../controllers/walletController');
+const authSyncController = require('../controllers/authSyncController');
 
 // Public Routes (do not require authentication)
 router.post('/register', userController.registerUser);
 router.post('/login', userController.loginUser);
 router.post('/request-reset-password', userController.requestPasswordReset);
 router.post('/reset-password', userController.resetPassword);
+router.post('/from-auth', authSyncController.syncUserFromAuth); // New route for syncing users from auth service
 
 // Apply auth middleware for all routes defined after this point
 const authMiddleware = require('../middlewares/authMiddleware');

@@ -68,9 +68,8 @@ export class ForgotPasswordComponent {
         finalize(() => {
           this.loading = false;
         })
-      )
-      .subscribe({
-        next: (response) => {
+      )      .subscribe({
+        next: (response: any) => {
           this.emailSent = true;
           this.toastService.success('Password reset email sent. Please check your inbox.');
         }

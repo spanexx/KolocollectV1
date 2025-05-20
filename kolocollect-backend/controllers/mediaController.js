@@ -121,13 +121,19 @@ exports.uploadFile = async (req, res) => {
       
       if (type === 'profile' || type === 'profilePicture') {
         // Update user's profile picture
-        try {
-          console.log(`Looking up user with ID: ${userId} to update profile picture`);
-          const user = await User.findById(userId);
+        try {          console.log(`Looking up user with ID: ${userId} to update profile picture`);
+          // First try to find by authId
+          let user = await User.findOne({ authId: userId });
+          
+          // If not found by authId, try finding by _id
+          if (!user) {
+            user = await User.findById(userId);
+          }
+          
           if (!user) {
             console.error(`User not found with ID: ${userId}`);
             return createErrorResponse(res, 404, 'USER_NOT_FOUND', 'User not found.');
-          }          // For local storage, create a URL that can be used to access the file
+          }// For local storage, create a URL that can be used to access the file
           const fileUrl = `/api/media/files/${req.file.filename}`;
           const fileId = req.file.filename;
           
@@ -147,11 +153,16 @@ exports.uploadFile = async (req, res) => {
           return createErrorResponse(res, 500, 'USER_UPDATE_ERROR', 'Error updating user with profile picture.');
         }      } else if ((type === 'document' || type === 'verificationDocument') && documentType) {
         // For verification documents, we'll only return the file info and let the frontend handle adding it to the user
-        // This prevents duplicate entries when the frontend calls addVerificationDocument
-        try {
+        // This prevents duplicate entries when the frontend calls addVerificationDocument        try {
           console.log(`Verification document uploaded for user ${userId} of type: ${documentType}`);
-          // Check if user exists though
-          const user = await User.findById(userId);
+          // First try to find by authId
+          let user = await User.findOne({ authId: userId });
+          
+          // If not found by authId, try finding by _id
+          if (!user) {
+            user = await User.findById(userId);
+          }
+          
           if (!user) {
             console.error(`User not found with ID: ${userId}`);
             return createErrorResponse(res, 404, 'USER_NOT_FOUND', 'User not found.');
@@ -244,30 +255,49 @@ exports.deleteFile = async (req, res) => {
     if (!deleted) {
       console.log(`File not found: ${fileId}`);
     }    // Also remove any references to this file in the user model
-    // Get user ID from auth token
-    const userId = req.user._id;
+    // Get user ID from auth token    const userId = req.user._id;
     
     // Try to determine the file type from the user's data
-    const user = await User.findById(userId);
+    // First try to find by authId
+    let user = await User.findOne({ authId: userId });
+    
+    // If not found by authId, try finding by _id
+    if (!user) {
+      user = await User.findById(userId);
+    }
+    
     if (!user) {
       console.log(`User not found with ID: ${userId}`);
       return res.status(200).json({ message: 'File reference removed.' });
     }
-    
-    // Check if this is a profile picture
+      // Check if this is a profile picture
     if (user.profilePicture && user.profilePicture.fileId === fileId) {
       // Remove profile picture reference
-      await User.findByIdAndUpdate(userId, {
-        $unset: { profilePicture: 1 }
-      });
+      // Handle both update by authId and update by _id
+      if (user.authId) {
+        await User.findOneAndUpdate({ authId: userId }, {
+          $unset: { profilePicture: 1 }
+        });
+      } else {
+        await User.findByIdAndUpdate(userId, {
+          $unset: { profilePicture: 1 }
+        });
+      }
       console.log(`Removed profile picture reference for user ${userId}`);
     } 
     // Check if this is a verification document
     else if (user.verificationDocuments && user.verificationDocuments.some(doc => doc.fileId === fileId)) {
       // Remove verification document reference
-      await User.findByIdAndUpdate(userId, {
-        $pull: { verificationDocuments: { fileId } }
-      });
+      // Handle both update by authId and update by _id
+      if (user.authId) {
+        await User.findOneAndUpdate({ authId: userId }, {
+          $pull: { verificationDocuments: { fileId } }
+        });
+      } else {
+        await User.findByIdAndUpdate(userId, {
+          $pull: { verificationDocuments: { fileId } }
+        });
+      }
       console.log(`Removed document reference for user ${userId}`);
     }
 
@@ -282,10 +312,15 @@ exports.deleteFile = async (req, res) => {
 exports.listUserFiles = async (req, res) => {
   try {
     const { userId } = req.params;
-    const { type } = req.query;
-
-    // Get user
-    const user = await User.findById(userId);
+    const { type } = req.query;    // Get user
+    // First try to find by authId
+    let user = await User.findOne({ authId: userId });
+    
+    // If not found by authId, try finding by _id
+    if (!user) {
+      user = await User.findById(userId);
+    }
+    
     if (!user) {
       return createErrorResponse(res, 404, 'USER_NOT_FOUND', 'User not found.');
     }
@@ -397,9 +432,15 @@ exports.serveFile = async (req, res) => {
 exports.getProfilePicture = async (req, res) => {
   try {
     const { userId } = req.params;
+      // Look up the user to get their profile picture ID
+    // First try to find by authId
+    let user = await User.findOne({ authId: userId });
     
-    // Look up the user to get their profile picture ID
-    const user = await User.findById(userId);
+    // If not found by authId, try finding by _id
+    if (!user) {
+      user = await User.findById(userId);
+    }
+    
     if (!user || !user.profilePicture || !user.profilePicture.fileId) {
       return createErrorResponse(res, 404, 'PROFILE_PICTURE_NOT_FOUND', 'Profile picture not found for this user.');
     }
@@ -416,9 +457,15 @@ exports.getProfilePicture = async (req, res) => {
 exports.getDocumentByType = async (req, res) => {
   try {
     const { userId, documentType } = req.params;
+      // Look up the user to get their document
+    // First try to find by authId
+    let user = await User.findOne({ authId: userId });
     
-    // Look up the user to get their document
-    const user = await User.findById(userId);
+    // If not found by authId, try finding by _id
+    if (!user) {
+      user = await User.findById(userId);
+    }
+    
     if (!user || !user.verificationDocuments || user.verificationDocuments.length === 0) {
       return createErrorResponse(res, 404, 'DOCUMENT_NOT_FOUND', 'No documents found for this user.');
     }

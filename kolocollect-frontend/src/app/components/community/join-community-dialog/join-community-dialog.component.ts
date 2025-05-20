@@ -67,11 +67,10 @@ export class JoinCommunityDialogComponent implements OnInit {
       // Fetch the required contribution amount from the API
       this.fetchRequiredContribution();
     }
-    
-    // Pre-fill form with user data if available
+      // Pre-fill form with user data if available
     if (this.currentUser) {
       this.joinForm.patchValue({
-        name: this.currentUser.name,
+        name: this.authService.getUserFullName(),
         email: this.currentUser.email
       });
     }

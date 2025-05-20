@@ -81,14 +81,13 @@ export class ResetPasswordComponent implements OnInit {
     // Stop here if form is invalid
     if (this.resetForm.invalid || !this.token) {
       return;
-    }
-
-    this.loading = true;
+    }    this.loading = true;
     this.error = '';
 
     this.authService.resetPassword({
       token: this.token,
-      password: this.f['password'].value
+      newPassword: this.f['password'].value,
+      confirmPassword: this.f['confirmPassword'].value
     })
     .pipe(
       catchError(error => {
