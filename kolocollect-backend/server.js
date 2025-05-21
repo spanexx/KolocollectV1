@@ -89,12 +89,12 @@ app.use(
 //     communities.forEach((community) => {
 //       community.startPayoutMonitor();
       
-//       // Find active mid-cycle (should already be filtered by the populate match)
+      // Find active mid-cycle (should already be filtered by the populate match)
 //       const activeMidCycle = community.midCycle && community.midCycle.length > 0 
-//         ? community.midCycle[0] 
+        // ? community.midCycle[0] 
 //         : null;
       
-//       // Calculate countdown with type checking
+      // Calculate countdown with type checking
 //       const countdown = activeMidCycle && activeMidCycle.payoutDate 
 //         ? Math.max(0, new Date(activeMidCycle.payoutDate) - new Date()) 
 //         : 'N/A';
