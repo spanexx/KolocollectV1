@@ -1,6 +1,6 @@
 export const environment = {
   production: true,
-  apiUrl: 'https://api.kolocollect.com/api',
+  apiUrl: 'https://kolocollectv1.onrender.com/api',
   stripePublicKey: 'pk_live_your_stripe_live_key',
   version: '1.0.0',
   tokenExpirationTime: 60 * 60 * 1000, // 1 hour in milliseconds

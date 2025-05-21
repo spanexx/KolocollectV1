@@ -70,45 +70,51 @@ app.use(
 );
 
 // Function to start payout monitors for all communities
-const startPayoutMonitoringForAllCommunities = async () => {
-  try {
-    // Fetch all communities with populated references
-    const communities = await Community.find()
-      .populate('midCycle')
-      .populate('cycles')
-      .populate('members');
+// const startPayoutMonitoringForAllCommunities = async () => {
+//   try {
+//     // Fetch all communities with populated references
+//     const communities = await Community.find()
+//       .populate({
+//         path: 'midCycle',
+//         match: { isComplete: false }
+//       })
+//       .populate('cycles')
+//       .populate('members');
 
-    if (communities.length === 0) {
-      console.log('No communities found to monitor payouts.');
-      return;
-    }
+//     if (communities.length === 0) {
+//       console.log('No communities found to monitor payouts.');
+//       return;
+//     }
 
-    communities.forEach((community) => {
-      community.startPayoutMonitor();
+//     communities.forEach((community) => {
+//       community.startPayoutMonitor();
       
-      // Find active mid-cycle with proper populated data
-      const activeMidCycle = community.midCycle.find(mc => !mc.isComplete);
+//       // Find active mid-cycle (should already be filtered by the populate match)
+//       const activeMidCycle = community.midCycle && community.midCycle.length > 0 
+//         ? community.midCycle[0] 
+//         : null;
       
-      // Calculate countdown with type checking
-      const countdown = activeMidCycle && activeMidCycle.payoutDate 
-        ? Math.max(0, new Date(activeMidCycle.payoutDate) - new Date()) 
-        : 'N/A';
-      const countdownMinutes = countdown !== 'N/A' ? Math.floor(countdown / 60000) : 'N/A';
+//       // Calculate countdown with type checking
+//       const countdown = activeMidCycle && activeMidCycle.payoutDate 
+//         ? Math.max(0, new Date(activeMidCycle.payoutDate) - new Date()) 
+//         : 'N/A';
+//       const countdownMinutes = countdown !== 'N/A' ? Math.floor(countdown / 60000) : 'N/A';
       
-      console.log(`Payout monitor started for community: ${community.name} CountDown: ${countdownMinutes} mins`);
-    });
-  } catch (err) {
-    console.error('Error starting payout monitors:', err);
-  }
-};
+//       console.log(`Payout monitor started for community: ${community.name} CountDown: ${countdownMinutes} mins`);
+//     });
+//   } catch (err) {
+//     console.error('Error starting payout monitors:', err);
+//   }
+// };
 
 // Start the scheduler if enabled
 if (process.env.ENABLE_SCHEDULER === 'true') {
+  console.log('Starting centralized scheduler for payouts...');
   schedulePayouts();
+} else {
+  console.log('Starting individual payout monitors for communities...');
+  startPayoutMonitoringForAllCommunities();
 }
-
-// Start payout monitoring for communities
-startPayoutMonitoringForAllCommunities();
 
 // Server listen with error handling
 const PORT = process.env.PORT || 6000;

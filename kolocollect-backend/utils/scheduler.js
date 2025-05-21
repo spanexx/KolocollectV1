@@ -1,5 +1,6 @@
 const cron = require('node-cron');
-const Community = require('../models/Community'); // Adjust path if needed
+const Community = require('../models/Community');
+const MidCycle = require('../models/Midcycle');
 
 const retryOperation = async (operation, retries = 3, delay = 1000) => {
   for (let attempt = 1; attempt <= retries; attempt++) {
@@ -19,19 +20,27 @@ const schedulePayouts = () => {
           const now = new Date();
 
           await retryOperation(async () => {
+              // Fetch communities with upcoming payouts
               const communities = await Community.find({
-                  nextPayout: { $lte: now },
-                  'midCycle.isComplete': false,
+                  nextPayout: { $lte: now }
+              }).populate({
+                  path: 'midCycle',
+                  // Only populate active mid-cycles
+                  match: { isComplete: false }
               });
 
-              for (const community of communities) {
+              // Filter communities that actually have active mid-cycles
+              const communitiesWithActiveMidCycles = communities.filter(
+                  community => community.midCycle && community.midCycle.length > 0
+              );
+
+              for (const community of communitiesWithActiveMidCycles) {
                   console.log(`Processing payout for community: ${community.name}`);
                   try {
                       const result = await community.distributePayouts();
                       console.log(result.message);
                       await community.updatePayoutInfo();
                       await community.finalizeCycle();
-
                   } catch (err) {
                       console.error(`Error distributing payout for community ${community.name}:`, err);
                   }
