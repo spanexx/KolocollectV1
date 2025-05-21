@@ -70,8 +70,7 @@ const schedulePayouts = async () => {
     // Filter communities that have active mid-cycles
     const communitiesWithActiveMidCycles = allCommunities.filter(
         community => community.midCycle && community.midCycle.length > 0
-    );    // Display countdown information
-    communitiesWithActiveMidCycles.forEach(community => {
+    );    // Display countdown information    communitiesWithActiveMidCycles.forEach(community => {
       const activeMidCycle = community.midCycle[0]; // First active mid-cycle
       
       // Calculate countdown
@@ -83,7 +82,16 @@ const schedulePayouts = async () => {
       // Check if mid-cycle is ready
       const isReady = activeMidCycle && activeMidCycle.isReady;
       
-      console.log(`Scheduler monitoring community: ${community.name} - Countdown: ${countdownMinutes} mins - Ready: ${isReady}`);
+      // Check if payout is due
+      const isDue = activeMidCycle && activeMidCycle.payoutDate && new Date(activeMidCycle.payoutDate) <= new Date();
+      
+      // Save payout date for debugging
+      if (activeMidCycle && activeMidCycle.payoutDate) {
+        community.nextPayout = activeMidCycle.payoutDate;
+        community.save().catch(err => console.error(`Error saving nextPayout for community ${community.name}:`, err));
+      }
+      
+      console.log(`Scheduler monitoring community: ${community.name} - Countdown: ${countdownMinutes} mins - Ready: ${isReady} - Due: ${isDue || false} - Next payout: ${activeMidCycle && activeMidCycle.payoutDate ? new Date(activeMidCycle.payoutDate).toISOString() : 'Not set'}`);
       
       // If close to payout time but not ready, try to update readiness
       if (countdownMinutes !== 'N/A' && countdownMinutes < 5 && !isReady) {
@@ -102,45 +110,69 @@ const schedulePayouts = async () => {
     }
   } catch (err) {
     console.error('Error displaying community countdown information:', err);
-  }
-  // Start the actual scheduler
+  }  // Start the actual scheduler
   cron.schedule('* * * * *', async () => {
       try {
           const now = new Date();
           console.log(`Scheduler checking for payouts at ${now.toISOString()}`);
 
           await retryOperation(async () => {
-              // Fetch communities with upcoming payouts
-              const communities = await Community.find({
-                  nextPayout: { $lte: now }
+              // Fetch all communities with active mid-cycles first
+              const allCommunities = await Community.find()
+                .populate({
+                  path: 'midCycle',
+                  match: { isComplete: false }
+                });
+                
+              // Filter to only include communities with active mid-cycles that have payoutDate <= now
+              const communities = allCommunities.filter(community => {
+                if (!community.midCycle || community.midCycle.length === 0) return false;
+                
+                const activeMidCycle = community.midCycle[0];
+                const isDue = activeMidCycle && activeMidCycle.payoutDate && 
+                              new Date(activeMidCycle.payoutDate) <= now;
+                
+                return isDue;
               });
                 
-              console.log(`Found ${communities.length} communities with upcoming payouts based on nextPayout date.`);
+              console.log(`Found ${communities.length} communities with upcoming payouts out of ${allCommunities.length} total communities with active mid-cycles.`);
               
               if (communities.length === 0) {
                   return; // No communities to process
               }
               
-              // Get community IDs for further querying
+              // First check and prepare mid-cycles that aren't ready
+              for (const community of communities) {
+                  const activeMidCycle = community.midCycle[0];
+                  
+                  if (!activeMidCycle.isReady) {
+                      console.log(`Community ${community.name} has a mid-cycle that's not ready but due for payout. Preparing it...`);
+                      const prepared = await checkMidCycleReadiness(community._id);
+                      console.log(`Mid-cycle preparation for ${community.name}: ${prepared ? 'Success' : 'Failed'}`);
+                  }
+              }
+              
+              // Get community IDs for further querying after preparation
               const communityIds = communities.map(community => community._id);
               
-              // Find active and ready mid-cycles directly
+              // Find active and ready mid-cycles directly now that we've prepared them
               const readyMidCycles = await MidCycle.find({
-                  _id: { $in: communities.flatMap(c => c.midCycle) },
+                  _id: { $in: communities.flatMap(c => c.midCycle.map(mc => mc._id)) },
                   isReady: true,
-                  isComplete: false
+                  isComplete: false,
+                  payoutDate: { $lte: now }
               });
               
               console.log(`Found ${readyMidCycles.length} mid-cycles that are ready for payout.`);
-              
-              // If no ready mid-cycles were found, check why
+                // If no ready mid-cycles were found, check why
               if (readyMidCycles.length === 0) {
                   const allActiveMidCycles = await MidCycle.find({
-                      _id: { $in: communities.flatMap(c => c.midCycle) },
-                      isComplete: false
+                      _id: { $in: communities.flatMap(c => c.midCycle.map(mc => mc._id)) },
+                      isComplete: false,
+                      payoutDate: { $lte: now }
                   });
                   
-                  console.log(`Found ${allActiveMidCycles.length} active mid-cycles. Issues might be:`);
+                  console.log(`Found ${allActiveMidCycles.length} active mid-cycles due for payout. Issues might be:`);
                   console.log(`- Number not ready for payout (isReady=false): ${allActiveMidCycles.filter(mc => !mc.isReady).length}`);
                   
                   // For debugging, check the first few that are not ready
@@ -150,32 +182,51 @@ const schedulePayouts = async () => {
                           id: mc._id,
                           cycleNumber: mc.cycleNumber,
                           payoutAmount: mc.payoutAmount,
-                          payoutDate: mc.payoutDate
+                          payoutDate: mc.payoutDate ? new Date(mc.payoutDate).toISOString() : 'Not set',
+                          contributionCount: mc.contributions ? mc.contributions.length : 0,
+                          contributionsToNextInLine: mc.contributionsToNextInLine ? 
+                              (mc.contributionsToNextInLine instanceof Map ? 
+                                  Array.from(mc.contributionsToNextInLine.entries()).length : 
+                                  Object.keys(mc.contributionsToNextInLine).length) : 0
                       })));
                   }
                   
                   return; // No ready mid-cycles to process
               }
-              
-              // Process each community with ready mid-cycles
+                // Process each community with ready mid-cycles
               for (const community of communities) {
                   // Check if this community has any ready mid-cycles
-                  const communityHasReadyMidCycle = readyMidCycles.some(mc => 
-                      community.midCycle.map(id => id.toString()).includes(mc._id.toString())
+                  const communityReadyMidCycles = readyMidCycles.filter(mc => 
+                      community.midCycle.some(midCycle => midCycle._id.toString() === mc._id.toString())
                   );
                   
-                  if (communityHasReadyMidCycle) {
-                      console.log(`Processing payout for community: ${community.name}`);
+                  if (communityReadyMidCycles.length > 0) {
+                      console.log(`Processing payout for community: ${community.name} (${communityReadyMidCycles.length} ready mid-cycles)`);
                       try {
                           const result = await community.distributePayouts();
-                          console.log(result.message);
+                          console.log(`Payout result for ${community.name}: ${result.message}`);
                           await community.updatePayoutInfo();
-                          await community.finalizeCycle();
+                          // Note: finalizeCycle was removed as distributePayouts now handles this
                       } catch (err) {
                           console.error(`Error distributing payout for community ${community.name}:`, err);
                       }
                   } else {
-                      console.log(`Community ${community.name} has nextPayout <= now but no ready mid-cycles.`);
+                      // Try one more time to get the mid-cycle ready
+                      console.log(`Community ${community.name} has due payout but no ready mid-cycles. Making final attempt to prepare it...`);
+                      const prepared = await checkMidCycleReadiness(community._id);
+                      
+                      if (prepared) {
+                          try {
+                              console.log(`Mid-cycle for ${community.name} is now ready. Processing payout...`);
+                              const result = await community.distributePayouts();
+                              console.log(`Payout result for ${community.name}: ${result.message}`);
+                              await community.updatePayoutInfo();
+                          } catch (finalErr) {
+                              console.error(`Error in final attempt to distribute payout for community ${community.name}:`, finalErr);
+                          }
+                      } else {
+                          console.log(`Final attempt to prepare mid-cycle for ${community.name} failed. Skipping payout.`);
+                      }
                   }
               }
           });
