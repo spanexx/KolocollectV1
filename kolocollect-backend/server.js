@@ -110,10 +110,15 @@ app.use(
 // Start the scheduler if enabled
 if (process.env.ENABLE_SCHEDULER === 'true') {
   console.log('Starting centralized scheduler for payouts...');
-  schedulePayouts();
+  // Since schedulePayouts is now async, we need to call it properly
+  schedulePayouts().catch(err => {
+    console.error('Error initializing payout scheduler:', err);
+  });
 } else {
   console.log('Starting individual payout monitors for communities...');
-  startPayoutMonitoringForAllCommunities();
+  // This function is commented out in the file, you may need to uncomment it
+  // startPayoutMonitoringForAllCommunities();
+  console.log('Individual payout monitors are currently disabled. Please set ENABLE_SCHEDULER=true.');
 }
 
 // Server listen with error handling

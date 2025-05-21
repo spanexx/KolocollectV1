@@ -14,7 +14,42 @@ const retryOperation = async (operation, retries = 3, delay = 1000) => {
   }
 };
 
-const schedulePayouts = () => {
+const schedulePayouts = async () => {
+  // First, show countdown information for all communities
+  try {
+    // Fetch all communities with their active mid-cycles
+    const allCommunities = await Community.find()
+      .populate({
+        path: 'midCycle',
+        match: { isComplete: false }
+      });
+
+    // Filter communities that have active mid-cycles
+    const communitiesWithActiveMidCycles = allCommunities.filter(
+        community => community.midCycle && community.midCycle.length > 0
+    );
+
+    // Display countdown information
+    communitiesWithActiveMidCycles.forEach(community => {
+      const activeMidCycle = community.midCycle[0]; // First active mid-cycle
+      
+      // Calculate countdown
+      const countdown = activeMidCycle && activeMidCycle.payoutDate 
+        ? Math.max(0, new Date(activeMidCycle.payoutDate) - new Date()) 
+        : 'N/A';
+      const countdownMinutes = countdown !== 'N/A' ? Math.floor(countdown / 60000) : 'N/A';
+      
+      console.log(`Scheduler monitoring community: ${community.name} - Countdown: ${countdownMinutes} mins`);
+    });
+
+    if (communitiesWithActiveMidCycles.length === 0) {
+      console.log('No communities with active mid-cycles found for monitoring.');
+    }
+  } catch (err) {
+    console.error('Error displaying community countdown information:', err);
+  }
+
+  // Start the actual scheduler
   cron.schedule('* * * * *', async () => {
       try {
           const now = new Date();
