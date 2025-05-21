@@ -11,6 +11,7 @@ import { ToastService } from '../../../services/toast.service';
 import { AuthService } from '../../../services/auth.service';
 import { User } from '../../../models/user.model';
 import { Community } from '../../../models/community.model';
+import { CommunityEventService } from '../../../services/community-event.service';
 
 @Component({
   selector: 'app-join-community-dialog',
@@ -38,12 +39,12 @@ export class JoinCommunityDialogComponent implements OnInit {
   isFirstCycle = false; // Added to track if it's the first cycle
   contributionExplanation: string = '';
   midCycleInfo: any = null;
-  
-  constructor(
+    constructor(
     private fb: FormBuilder,
     private communityService: CommunityService,
     private authService: AuthService,
     private toastService: ToastService,
+    private communityEventService: CommunityEventService,
     private dialogRef: MatDialogRef<JoinCommunityDialogComponent>,
     @Inject(MAT_DIALOG_DATA) public data: { communityId: string, community: Community }
   ) {
@@ -64,8 +65,20 @@ export class JoinCommunityDialogComponent implements OnInit {
       // Check if this is the first cycle from community data
       this.isFirstCycle = !this.data.community.cycles || this.data.community.cycles.length <= 1;
       
-      // Fetch the required contribution amount from the API
-      this.fetchRequiredContribution();
+      // Check if community has no cycles
+      const hasCycles = this.data.community.cycles && this.data.community.cycles.length > 0;
+      
+      // If there are no cycles, set contribution to 0 and disable the input
+      if (!hasCycles) {
+        const contributionControl = this.joinForm.get('contributionAmount');
+        if (contributionControl) {
+          contributionControl.setValue(0);
+          contributionControl.disable();
+        }
+      } else {
+        // Fetch the required contribution amount from the API
+        this.fetchRequiredContribution();
+      }
     }
     
     // Pre-fill form with user data if available
@@ -129,7 +142,6 @@ export class JoinCommunityDialogComponent implements OnInit {
         }
       });
   }
-
   onSubmit(): void {
     if (this.joinForm.invalid || !this.currentUser) {
       return;
@@ -137,20 +149,29 @@ export class JoinCommunityDialogComponent implements OnInit {
     
     this.loading = true;
     
-    // Create the join data, with conditional contribution amount for first cycle
+    // Get the contribution amount, considering if it's disabled or first cycle
+    let contributionAmount = this.joinForm.get('contributionAmount')?.disabled 
+      ? 0 
+      : this.joinForm.value.contributionAmount;
+      
+    // Handle first cycle optional contribution
+    if (this.isFirstCycle && !contributionAmount) {
+      contributionAmount = null;
+    }
+    
+    // Create the join data with contribution amount
     const joinData = {
       userId: this.currentUser.id,
       name: this.joinForm.value.name,
       email: this.joinForm.value.email,
-      contributionAmount: this.isFirstCycle && !this.joinForm.value.contributionAmount 
-        ? null 
-        : this.joinForm.value.contributionAmount
+      contributionAmount: contributionAmount
     };
-    
-    this.communityService.joinCommunity(this.data.communityId, joinData)
+      this.communityService.joinCommunity(this.data.communityId, joinData)
       .subscribe({
         next: (response) => {
           this.toastService.success('Successfully joined the community');
+          // Notify all components that we've joined this community
+          this.communityEventService.notifyCommunityJoined(this.data.communityId);
           this.dialogRef.close(true);
         },
         error: (error) => {

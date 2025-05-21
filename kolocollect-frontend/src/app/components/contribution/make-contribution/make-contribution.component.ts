@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, RouterModule } from '@angular/router';
@@ -27,6 +27,8 @@ import {
   faTimes,
   faLock
 } from '@fortawesome/free-solid-svg-icons';
+import { Subject } from 'rxjs';
+import { takeUntil, debounceTime, distinctUntilChanged } from 'rxjs/operators';
 
 import { ContributionService } from '../../../services/contribution.service';
 import { WalletService } from '../../../services/wallet.service';
@@ -62,7 +64,14 @@ import { UserService } from '../../../services/user.service'; // Import UserServ
   templateUrl: './make-contribution.component.html',
   styleUrls: ['./make-contribution.component.scss']
 })
-export class MakeContributionComponent implements OnInit {  // FontAwesome icons
+export class MakeContributionComponent implements OnInit, OnDestroy {
+  // Destroy subject for cleanup
+  private destroy$ = new Subject<void>();
+  
+  // Flag to prevent duplicate API calls
+  private nextInLineCheckInProgress = false;
+  
+  // FontAwesome icons
   faMoneyBillWave = faMoneyBillWave;
   faHandHoldingDollar = faHandHoldingDollar;
   faPiggyBank = faPiggyBank;
@@ -127,8 +136,7 @@ export class MakeContributionComponent implements OnInit {  // FontAwesome icons
       remainingAmount: ['', [Validators.required, Validators.min(0)]],
       completionDate: ['', Validators.required]
     }, formOptions);
-  }
-  ngOnInit(): void {
+  }  ngOnInit(): void {
     this.loadWalletBalance();
     this.loadUserCommunities();
       // Get URL parameters if provided
@@ -143,20 +151,30 @@ export class MakeContributionComponent implements OnInit {  // FontAwesome icons
         // This ensures the communities are loaded first
         this.loadCommunityDetails(this.communityId);
       }
-    });    // Setup listener for amount changes to check next-in-line payment info
-    // Only react to value changes if the field is not disabled
-    this.contributionForm.get('amount')?.valueChanges.subscribe(amount => {
-      // Skip next-in-line check if the amount was changed programmatically while disabled
-      if (!this.amountInputDisabled) {
-        this.checkNextInLinePayment();
-      }
     });
     
-    // Also monitor the disabled state of the control
-    this.contributionForm.statusChanges.subscribe(status => {
-      console.log('Form status changed:', status);
-      console.log('Amount control disabled:', this.contributionForm.get('amount')?.disabled);
-    });
+    // Setup listener for amount changes to check next-in-line payment info
+    // Add debounce and distinctUntilChanged to prevent excessive API calls
+    this.contributionForm.get('amount')?.valueChanges
+      .pipe(
+        takeUntil(this.destroy$),
+        debounceTime(500),
+        distinctUntilChanged()
+      )
+      .subscribe(amount => {
+        // Skip next-in-line check if the amount was changed programmatically while disabled
+        if (!this.amountInputDisabled && !this.nextInLineCheckInProgress) {
+          this.checkNextInLinePayment();
+        }
+      });
+  }
+  
+  /**
+   * Clean up subscriptions when component is destroyed
+   */
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   /**
@@ -622,12 +640,12 @@ export class MakeContributionComponent implements OnInit {  // FontAwesome icons
       }
     });
   }
-
   /**
    * Check if the user owes payment to the next in line member
    * This validates if a user previously received a payout from the current next-in-line member
    * and provides information about any amount that may be deducted from their contribution
-   */  checkNextInLinePayment(): void {
+   */  
+  checkNextInLinePayment(): void {
     // Get current contribution amount (may be 0 if not yet set by user)
     const currentAmount = this.contributionForm.get('amount')?.value || 0;
     const communityId = this.contributionForm.get('communityId')?.value;
@@ -648,7 +666,14 @@ export class MakeContributionComponent implements OnInit {  // FontAwesome icons
       return;
     }
     
+    // Prevent duplicate API calls by checking if a request is already in progress
+    if (this.nextInLineCheckInProgress) {
+      console.log('Next-in-line check already in progress. Skipping duplicate request.');
+      return;
+    }
+    
     this.nextInLineLoading = true;
+    this.nextInLineCheckInProgress = true;
     
     // Use a minimum amount for the API call if the user hasn't entered one yet
     const amountForCheck = Math.max(currentAmount, this.minContributionAmount);
@@ -670,9 +695,10 @@ export class MakeContributionComponent implements OnInit {  // FontAwesome icons
       next: (response) => {
         console.log('Next-in-line payment response:', response);
         this.nextInLineLoading = false;
+        this.nextInLineCheckInProgress = false;
         
         // If there's an amount to deduct, show the info
-        if (response && response.amountToDeduct && response.amountToDeduct > 0) {          this.nextInLineInfo = {
+        if (response && response.amountToDeduct && response.amountToDeduct > 0) {this.nextInLineInfo = {
             message: response.message,
             amountToDeduct: response.amountToDeduct,
             effectiveContribution: Math.max(0, amountForCheck - response.amountToDeduct)

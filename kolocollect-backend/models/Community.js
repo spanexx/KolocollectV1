@@ -418,6 +418,10 @@ CommunitySchema.methods.startNewCycle = async function () {    try {
         // Update member positions for the new cycle
         await this.updateMemberPositions(members, false);        
         
+            if (members.length < this.settings.firstCycleMin) {
+            throw new Error(`Cannot start a new cycle: minimum required members is ${this.settings.firstCycleMin}, but only ${members.length} present.`);
+        }
+        
         // Create new cycle
         const newCycle = new Cycle({
             communityId: this._id,
