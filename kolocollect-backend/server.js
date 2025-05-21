@@ -14,6 +14,7 @@ const memberRoutes = require('./routes/memberRoutes');
 const midcycleRoutes = require('./routes/midcycleRoutes');
 const sharingRoutes = require('./routes/sharingRoutes');
 const mediaRoutes = require('./routes/mediaRoutes');
+const schedulerRoutes = require('./routes/schedulerRoutes');
 const webhookMiddleware = require('./middlewares/webhookMiddleware');
 
 // Import all separated models
@@ -57,6 +58,7 @@ app.use('/api/members', memberRoutes);
 app.use('/api/media', mediaRoutes);
 app.use('/api/midcycles', midcycleRoutes);
 app.use('/api/sharing', sharingRoutes);
+app.use('/api/scheduler', schedulerRoutes);
 
 app.use(
   '/webhook',
