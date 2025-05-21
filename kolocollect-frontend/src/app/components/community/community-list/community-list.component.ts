@@ -9,10 +9,11 @@ import { Router } from '@angular/router';
 import { AuthService } from '../../../services/auth.service';
 import { UserService } from '../../../services/user.service';
 import { MatDialog } from '@angular/material/dialog';
-import { catchError, finalize, throwError, forkJoin, of } from 'rxjs';
+import { catchError, finalize, throwError, forkJoin, of, Subject, takeUntil } from 'rxjs';
 import { Community, CommunityListResponse, MidCycle } from '../../../models/community.model';
 import { JoinCommunityDialogComponent } from '../join-community-dialog/join-community-dialog.component';
 import { MidcycleService } from '../../../services/midcycle.service';
+import { CommunityEventService } from '../../../services/community-event.service';
 // Removed unused import: CommunityFilterComponent
 import { CommunityFrontendFilterComponent } from '../community-frontend-filter/community-frontend-filter.component';
 
@@ -728,4 +729,12 @@ export class CommunityListComponent implements OnInit, OnDestroy {  // Font Awes
     this.pageIndex = 0; // Reset to first page when filters change
     this.loadCommunities();
   }  // No need for filter panel toggle with the new sidebar implementation
+
+  private destroy$ = new Subject<void>();
+
+  ngOnDestroy(): void {
+    // Complete the destroy subject to clean up subscriptions
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
 }

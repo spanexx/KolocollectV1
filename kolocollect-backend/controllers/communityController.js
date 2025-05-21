@@ -61,25 +61,13 @@ const getActiveCycle = async (communityId) => {
 };
 
 // Create Redis client
-let redisClient = null;
+// const redisClient = redis.createClient({
+//   url: process.env.REDIS_URL || 'redis://localhost:6379'
+// });
 
-if (process.env.REDIS_URL || process.env.USE_REDIS === 'true') {
-  redisClient = redis.createClient({
-    url: process.env.REDIS_URL || 'redis://localhost:6379'
-  });
-
-  (async () => {
-    try {
-      await redisClient.connect();
-      console.log('Redis connected successfully');
-    } catch (error) {
-      console.warn('Redis connection failed, will continue without caching:', error.message);
-      redisClient = null;
-    }
-  })();
-} else {
-  console.log('Redis disabled. Set REDIS_URL or USE_REDIS=true to enable caching.');
-}
+// (async () => {
+//   await redisClient.connect();
+// })();
 
 const createErrorResponse = (res, status, errorCode, message) => 
   res.status(status).json({
