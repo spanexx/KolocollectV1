@@ -110,8 +110,14 @@ CommunitySchema.methods.addActivityLog = async function(activityType, userId) {
         timestamp: new Date()
     });
     await activityLog.save();
-    this.activityLog.push(activityLog._id);
-    return this.save();
+    
+    // Update using updateOne instead of save to avoid DivergentArrayError
+    await this.constructor.updateOne(
+        { _id: this._id },
+        { $push: { activityLog: activityLog._id } }
+    );
+    
+    return activityLog;
 };
 
 /**
@@ -711,11 +717,12 @@ CommunitySchema.methods.validateMidCycleAndContributions = async function () {
             _id: { $in: this.cycles },
             isComplete: false
         });
-        if (!activeCycle) throw new Error('No active cycle found.');
-
-        if (!activeCycle.midCycles.includes(activeMidCycle._id)) {
-            activeCycle.midCycles.push(activeMidCycle._id);
-            await activeCycle.save();
+        if (!activeCycle) throw new Error('No active cycle found.');        if (!activeCycle.midCycles.includes(activeMidCycle._id)) {
+            // Use updateOne instead of modifying and saving the document directly
+            await Cycle.updateOne(
+                { _id: activeCycle._id },
+                { $addToSet: { midCycles: activeMidCycle._id } }
+            );
         }
 
         const eligibleMembers = await Member.find({
@@ -728,17 +735,20 @@ CommunitySchema.methods.validateMidCycleAndContributions = async function () {
                 c.user.equals(member.userId) && c.contributions.length > 0
             );
             return hasContributed;
-        }));
-
-        activeMidCycle.isReady = allContributed.every(contributed => contributed);
-        await activeMidCycle.save();
+        }));        activeMidCycle.isReady = allContributed.every(contributed => contributed);
+        // Use updateOne instead of save to avoid DivergentArrayError
+        await MidCycle.updateOne(
+            { _id: activeMidCycle._id },
+            { $set: { isReady: activeMidCycle.isReady } }
+        );
 
         if (activeMidCycle.isReady) {
             await this.addActivityLog('mid_cycle_ready', this.admin);
         }
 
-        this.markModified('midCycle');
-        await this.save();
+        // No need to modify midCycle array or call this.save() as it causes DivergentArrayError
+        // this.markModified('midCycle');
+        // await this.save();
 
         return {
             message: activeMidCycle.isReady

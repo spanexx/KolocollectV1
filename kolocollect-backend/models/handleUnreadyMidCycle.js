@@ -1,6 +1,8 @@
 /**
  * Implementation of handleUnreadyMidCycle method for Community model
  */
+const compensateDefaulters = require('../utils/compensateDefaulters');
+
 module.exports = async function() {
     try {
         // Get fresh instance of the active mid-cycle
@@ -31,8 +33,7 @@ module.exports = async function() {
             const hasContributed = activeMidCycle.contributions.some(c => 
                 c.user.equals(member.userId) && c.contributions.length > 0
             );
-            
-            if (!hasContributed) {
+              if (!hasContributed) {
                 missingContributions.push({
                     memberId: member._id,
                     userId: member.userId,
@@ -40,27 +41,61 @@ module.exports = async function() {
                     email: member.email
                 });
 
-                // Apply penalty to the member for missed contribution
-                member.penalty += this.settings.penalty;
-                
-                // Track the missed contribution with mid-cycle reference
-                member.missedContributions.push({
+                // Create the missed contribution record
+                const missedContribution = {
                     midCycles: [activeMidCycle._id],
                     amount: this.settings.minContribution,
                     date: new Date()
-                });
-                
-                // Save the updated member
-                await member.save();
+                };
+
+                // Update the member using updateOne instead of save
+                await Member.updateOne(
+                    { _id: member._id },
+                    { 
+                        $inc: { penalty: this.settings.penalty },
+                        $push: { missedContributions: missedContribution }
+                    }
+                );
                 
                 console.log(`Added missed contribution record for member ${member.name} (${member.userId})`);
             }
-        }
-
-        // Mark the mid-cycle as ready despite missing contributions
-        activeMidCycle.isReady = true;
-        await activeMidCycle.save();
+        }        // Create defaulters array with user IDs
+        const defaulters = missingContributions.map(member => member.userId);
         
+        // Get contributions made to the next-in-line
+        const contributionsToNextInLine = activeMidCycle.contributions
+            .filter(c => c.contributions && c.contributions.length > 0)
+            .map(c => c.user);
+          // Compensate the next-in-line member for defaulters using the backup fund
+        if (defaulters.length > 0) {
+            console.log(`Compensating for ${defaulters.length} defaulters using backup fund...`);
+            
+            // Call our compensateDefaulters function
+            const { community, midCycle } = await compensateDefaulters(
+                this, // community
+                defaulters,
+                contributionsToNextInLine,
+                activeMidCycle
+            );
+              // Update the community using updateOne instead of save to avoid DivergentArrayError
+            await this.constructor.updateOne(
+                { _id: this._id },
+                { $set: { backupFund: community.backupFund } }
+            );
+            
+            // Add activity log for the compensation - only pass the admin user ID
+            await this.addActivityLog('defaulter_compensation', this.admin);
+            
+            // Log compensation details separately
+            console.log(`Compensation details: Amount: ${activeMidCycle.payoutAmount}, Defaulters: ${defaulters.length}`);
+            console.log(`Next-in-line compensated from backup fund. New payout amount: ${activeMidCycle.payoutAmount}`);
+        }        // Mark the mid-cycle as ready despite missing contributions using updateOne
+        await MidCycle.updateOne(
+            { _id: activeMidCycle._id },
+            { $set: { isReady: true } }
+        );
+        
+        // Add activity log with correct user ID parameter
         await this.addActivityLog('mid_cycle_forced_ready', this.admin);
         
         console.log(`Mid-cycle ${activeMidCycle._id} marked as ready for payout.`);
