@@ -65,12 +65,13 @@ const schedulePayouts = async () => {
       .populate({
         path: 'midCycle',
         match: { isComplete: false }
-      });
-
-    // Filter communities that have active mid-cycles
+      });    // Filter communities that have active mid-cycles
     const communitiesWithActiveMidCycles = allCommunities.filter(
         community => community.midCycle && community.midCycle.length > 0
-    );    // Display countdown information    communitiesWithActiveMidCycles.forEach(community => {
+    );
+    
+    // Display countdown information
+    communitiesWithActiveMidCycles.forEach(community => {
       const activeMidCycle = community.midCycle[0]; // First active mid-cycle
       
       // Calculate countdown
@@ -103,14 +104,14 @@ const schedulePayouts = async () => {
           })
           .catch(err => console.error(`Failed to update readiness for ${community.name}:`, err));
       }
-    });
-
-    if (communitiesWithActiveMidCycles.length === 0) {
+    });    if (communitiesWithActiveMidCycles.length === 0) {
       console.log('No communities with active mid-cycles found for monitoring.');
     }
   } catch (err) {
     console.error('Error displaying community countdown information:', err);
-  }  // Start the actual scheduler
+  }
+  
+  // Start the actual scheduler
   cron.schedule('* * * * *', async () => {
       try {
           const now = new Date();
@@ -228,15 +229,14 @@ const schedulePayouts = async () => {
                           console.log(`Final attempt to prepare mid-cycle for ${community.name} failed. Skipping payout.`);
                       }
                   }
-              }
-          });
-      } catch (err) {
-          console.error('Error in payout scheduler:', err);
-      }
-  });
+        }
+    });
+  } catch (err) {
+    console.error('Error in payout scheduler:', err);
+  }
+});
 
-  console.log('Scheduler initialized.');
+console.log('Scheduler initialized.');
 };
-
 
 module.exports = schedulePayouts;
