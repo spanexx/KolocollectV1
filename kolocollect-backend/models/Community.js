@@ -1603,7 +1603,10 @@ CommunitySchema.methods.paySecondInstallment = async function (userId) {
               `Second installment payment for community ${this.name}`,
               null,
               this._id
-          );          owingMember.remainingAmount = 0;
+          );
+
+          // Update the owingMember record
+          owingMember.remainingAmount = 0;
           owingMember.installments = 2;
           owingMember.paidAmount += remainingAmount;
 
@@ -2572,7 +2575,7 @@ CommunitySchema.methods.backPaymentDistribute = async function (midCycleJoinersI
         
         if (joinerIndex >= 0) {
           midCycleToUpdate.midCycleJoiners[joinerIndex].isComplete = true;
-          midCycleToUpdate.midCycleJoiners[joinerIndex].secondInstallmentPaid = true;
+          midCycleToUpdate.midCycleJoiners[joinerId].secondInstallmentPaid = true;
           midCycleToUpdate.midCycleJoiners[joinerId].backPaymentDistributed = true;
           midCycleToUpdate.midCycleJoiners[joinerId].distributionDate = new Date();
           await midCycleToUpdate.save();
@@ -2708,5 +2711,7 @@ CommunitySchema.methods.leaveCommunity = async function (userId) {
         throw err;
     }
 };
+
+CommunitySchema.methods.handleUnreadyMidCycle = require('./handleUnreadyMidCycle');
 
 module.exports = mongoose.model('Community', CommunitySchema);
