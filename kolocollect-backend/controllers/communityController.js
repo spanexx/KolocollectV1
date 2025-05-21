@@ -61,13 +61,13 @@ const getActiveCycle = async (communityId) => {
 };
 
 // Create Redis client
-const redisClient = redis.createClient({
-  url: process.env.REDIS_URL || 'redis://localhost:6379'
-});
+// const redisClient = redis.createClient({
+//   url: process.env.REDIS_URL || 'redis://localhost:6379'
+// });
 
-(async () => {
-  await redisClient.connect();
-})();
+// (async () => {
+//   await redisClient.connect();
+// })();
 
 const createErrorResponse = (res, status, errorCode, message) => 
   res.status(status).json({

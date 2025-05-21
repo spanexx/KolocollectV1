@@ -61,8 +61,11 @@
         <mat-hint *ngIf="isFirstCycle">
           Since this is the first cycle, contribution is optional
         </mat-hint>
-        <mat-hint *ngIf="!isFirstCycle" class="mid-cycle-hint">
+        <mat-hint *ngIf="!isFirstCycle && !joinForm.get('contributionAmount')?.disabled" class="mid-cycle-hint">
           Mid-cycle joining requires a higher contribution
+        </mat-hint>
+        <mat-hint *ngIf="joinForm.get('contributionAmount')?.disabled" class="disabled-hint">
+          No active cycles - contribution set to $0
         </mat-hint>
       </mat-form-field>
     </form>
