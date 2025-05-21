@@ -68,6 +68,7 @@ const schedulePayouts = async () => {
               const communitiesWithActiveMidCycles = communities.filter(
                   community => community.midCycle && community.midCycle.length > 0
               );
+              console.log(`Found ${communitiesWithActiveMidCycles.length} communities with active mid-cycles for payout.`);
 
               for (const community of communitiesWithActiveMidCycles) {
                   console.log(`Processing payout for community: ${community.name}`);
