@@ -1,5 +1,4 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, RouterModule } from '@angular/router';
@@ -140,7 +139,6 @@ export class MakeContributionComponent implements OnInit, OnDestroy {  // FontAw
       remainingAmount: ['', [Validators.required, Validators.min(0)]],
       completionDate: ['', Validators.required]
     }, formOptions);
-  }  ngOnInit(): void {
   }  ngOnInit(): void {
     this.loadWalletBalance();
     this.loadUserCommunities();
@@ -738,7 +736,6 @@ export class MakeContributionComponent implements OnInit, OnDestroy {  // FontAw
     
     // Set loading state to prevent duplicate requests
     this.nextInLineLoading = true;
-    this.nextInLineCheckInProgress = true;
     
     // Use a minimum amount for the API call if the user hasn't entered one yet
     const amountForCheck = Math.max(currentAmount, this.minContributionAmount);
