@@ -16,6 +16,7 @@ const MemberSchema = new mongoose.Schema({
         cycleNumber: { type: Number, required: true },
         midCycles: [{ type: mongoose.Schema.Types.ObjectId, ref: 'MidCycle' }],
         amount: { type: Number },
+        reason: { type: String },
         nextInLineMissed: {
             userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
         },

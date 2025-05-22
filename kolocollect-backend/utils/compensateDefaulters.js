@@ -67,25 +67,53 @@ const compensateDefaulters = async (community, defaulters, contributionsToNextIn
     let withdrawalAmount = 0;
     if (backupFundAvailable >= deficitAmount) {
       withdrawalAmount = deficitAmount;
-      console.log(`Backup fund is sufficient. Withdrawing: ${withdrawalAmount}`);
-    } else {
+      console.log(`Backup fund is sufficient. Withdrawing: ${withdrawalAmount}`);    } else {
       withdrawalAmount = backupFundAvailable;
       console.log(`Backup fund is insufficient. Withdrawing all available: ${withdrawalAmount}`);
-    }    // Only proceed if there's something to withdraw
+    }
+    
+    // Only proceed if there's something to withdraw
     if (withdrawalAmount > 0) {
         console.log(`Withdrawing ${withdrawalAmount} from backup fund...`);
-        const backup = withdrawalAmount * community.settings.backupFundPercentage;
-        console.log(`BackUp: ${backup}`);
-        withdrawalAmount -= backup;
-        console.log(`Final withdrawal amount after backup: ${withdrawalAmount}`);
-      // Update backup fund in the community object
+        
+        // Get backup fund percentage and validate it
+        let backupFundPercentage = community.settings.backupFundPercentage;
+        
+        // Standardize the backup fund percentage to decimal format
+        // If it's stored as a whole number (like 3 for 3%), convert it to decimal (0.03)
+        if (backupFundPercentage > 1) {
+          console.log(`WARNING: Backup fund percentage (${backupFundPercentage}) appears to be configured as a whole number rather than a decimal.`);
+          console.log(`Converting from ${backupFundPercentage} to ${backupFundPercentage / 100}`);
+          backupFundPercentage = backupFundPercentage / 100;
+        }
+        
+        // Ensure the percentage is reasonable (not more than 50%)
+        if (backupFundPercentage > 0.5) {
+          console.log(`WARNING: Unusually high backup fund percentage (${backupFundPercentage * 100}%). Capping at 50%.`);
+          backupFundPercentage = 0.5; // Cap at 50%
+        }
+        
+        const backup = withdrawalAmount * backupFundPercentage;
+        console.log(`BackUp: ${backup} (${backupFundPercentage * 100}% of ${withdrawalAmount})`);
+        
+        // Ensure the final withdrawal is never negative
+        withdrawalAmount = Math.max(0, withdrawalAmount - backup);
+        console.log(`Final withdrawal amount after backup: ${withdrawalAmount}`);      // Update backup fund in the community object
       community.backupFund -= withdrawalAmount;
 
       // Update payout amount in the midCycle object
       midCycle.payoutAmount += withdrawalAmount;
-
+      
+      // Update payout amount in the community.payoutDetails object if it exists
+      if (community.payoutDetails) {
+        community.payoutDetails.payoutAmount = midCycle.payoutAmount;
+        console.log(`Updated community.payoutDetails.payoutAmount: ${community.payoutDetails.payoutAmount}`);
+      }
+      
       console.log(`Updated backup fund: ${community.backupFund}`);
-      console.log(`Updated payout amount: ${midCycle.payoutAmount}`);      // Create a compensation record for auditing
+      console.log(`Updated payout amount: ${midCycle.payoutAmount}`);
+      
+      // Create a compensation record for auditing
       const compensationRecord = {
         date: new Date(),
         amount: withdrawalAmount,
@@ -97,9 +125,9 @@ const compensateDefaulters = async (community, defaulters, contributionsToNextIn
       // This will be used by the caller to update the midCycle in the database
       if (!midCycle.compensations) {
         midCycle.compensations = [];
-      }
-      midCycle.compensations.push(compensationRecord);
-        // Check if we need to update the defaulters array based on actual count
+      }      midCycle.compensations.push(compensationRecord);
+      
+      // Check if we need to update the defaulters array based on actual count
       if (actualDefaultersCount !== defaulters.length) {
         console.log('Updating midCycle defaulters array to match actual defaulters count');
         // We're using the existing defaulters array, but if there's a mismatch, 

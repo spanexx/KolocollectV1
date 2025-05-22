@@ -18,9 +18,16 @@
     <div class="card-content">
       <div class="members-list">
         <div class="member-item" *ngFor="let member of members; let last = last" 
-             (click)="navigateToMemberDetail(member.userId)">
-          <div class="member-avatar">
-            <fa-icon [icon]="faUser"></fa-icon>
+             (click)="navigateToMemberDetail(member.userId)">          <div class="member-avatar" [class.has-image]="getMemberProfilePicture(member)">
+            <img *ngIf="getMemberProfilePicture(member)" 
+                 [src]="getMemberProfilePicture(member)" 
+                 class="member-image" 
+                 alt="Profile Picture" 
+                 (error)="handleImageError($event, member.userId)">
+            <div *ngIf="!getMemberProfilePicture(member) && member.name" class="member-initials">
+              {{ getUserInitials(member.name) }}
+            </div>
+            <fa-icon *ngIf="!getMemberProfilePicture(member) && !member.name" [icon]="faUser"></fa-icon>
           </div>
           <div class="member-info">
             <div class="member-name">{{ member.name }}</div>

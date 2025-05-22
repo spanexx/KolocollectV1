@@ -62,6 +62,37 @@
           justify-content: center;
           width: 48px;
           height: 48px;
+          position: relative;
+          overflow: hidden;
+            &.has-image {
+            background-color: transparent;
+            border: 2px solid #6D28D9;
+          }
+          
+          .profile-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            position: absolute;
+            top: 0;
+            left: 0;
+            transition: transform 0.3s ease;
+            
+            &:hover {
+              transform: scale(1.1);
+            }
+          }
+          
+          .avatar-initials {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: white;
+          }
         }
         
         mat-card-title {
@@ -205,6 +236,108 @@
           }
         }
         
+        // Membership details styling
+        .memberships-list {
+          .membership-item {
+            padding: 0.75rem 0;
+            border-bottom: 1px solid #E5E7EB;
+            
+            &:last-child {
+              border-bottom: none;
+            }
+            
+            .membership-header {
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              margin-bottom: 0.75rem;
+              
+              .membership-community {
+                font-weight: 600;
+                color: #111827;
+                font-size: 1.05rem;
+              }
+              
+              .membership-status {
+                display: flex;
+                align-items: center;
+                font-size: 0.85rem;
+                padding: 0.25rem 0.5rem;
+                border-radius: 1rem;
+                font-weight: 500;
+                
+                fa-icon {
+                  margin-right: 0.25rem;
+                }
+                
+                &.member-status-active {
+                  background-color: rgba(16, 185, 129, 0.1);
+                  color: #10B981;
+                }
+                
+                &.member-status-inactive {
+                  background-color: rgba(239, 68, 68, 0.1);
+                  color: #EF4444;
+                }
+                  &.member-status-waiting {
+                  background-color: rgba(245, 158, 11, 0.1);
+                  color: #F59E0B;
+                }
+                
+                &.member-status-unknown {
+                  background-color: rgba(107, 114, 128, 0.1);
+                  color: #6B7280;
+                }
+              }
+            }
+            
+            .membership-details {
+              .detail-item {
+                display: flex;
+                align-items: center;
+                margin-bottom: 0.5rem;
+                font-size: 0.9rem;
+                
+                fa-icon {
+                  color: #6D28D9;
+                  margin-right: 0.5rem;
+                  width: 16px;
+                }
+                
+                .label {
+                  color: #6B7280;
+                  margin-right: 0.5rem;
+                }
+                  .value {
+                  color: #111827;
+                  font-weight: 500;
+                  
+                  &.highlight {
+                    color: #6D28D9;
+                    font-weight: 600;
+                  }
+                  
+                  &.warning {
+                    color: #F59E0B;
+                    font-weight: 600;
+                  }
+                  
+                  &.error {
+                    color: #EF4444;
+                    font-weight: 600;
+                  }
+                  
+                  &.note {
+                    color: #6B7280;
+                    font-style: italic;
+                    font-size: 0.9rem;
+                  }
+                }
+              }
+            }
+          }
+        }
+        
         // No payouts styling
         .no-payouts {
           text-align: center;
@@ -221,7 +354,7 @@
         }
       }
       
-      mat-card_actions {
+      mat_card_actions {
         padding: 0.75rem 1.25rem 1.25rem;
         display: flex;
         justify-content: flex-end;

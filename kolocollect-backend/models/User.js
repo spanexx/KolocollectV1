@@ -87,6 +87,11 @@ const userSchema = new mongoose.Schema({
 userSchema.set('toJSON', { virtuals: true });
 userSchema.set('toObject', { virtuals: true });
 
+// Virtual field for createdAt that maps to dateJoined for frontend compatibility
+userSchema.virtual('createdAt').get(function() {
+  return this.dateJoined;
+});
+
 // Virtual field to check if the user is next in line for a payout
 userSchema.virtual('nextInLineDetails').get(async function () {
   const Community = mongoose.model('Community');

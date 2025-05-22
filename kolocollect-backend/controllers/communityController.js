@@ -873,11 +873,10 @@ exports.skipContributionAndMarkReady = async (req, res) => {
     }
     if (!midCycle.missedContributions.includes(member._id)) {
       midCycle.missedContributions.push(member._id);
-    }
-
-    // Update member's missed contributions record
+    }    // Update member's missed contributions record
     member.missedContributions.push({
-      midCycleId: midCycle._id,
+      cycleNumber: midCycle.cycleNumber, // Add required cycleNumber
+      midCycles: [midCycle._id], // Use the correct field name (midCycles instead of midCycleId)
       amount: community.settings.minContribution
     });
     await member.save();

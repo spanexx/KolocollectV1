@@ -163,7 +163,7 @@ const schedulePayouts = async () => {
       console.log(`Scheduler monitoring community: ${community.name} - Countdown: ${countdownMinutes} mins - Ready: ${isReady} - Due: ${isDue || false} - Next payout: ${payoutDate ? payoutDate.toISOString() : 'Not set'}`);
       
       // If close to payout time but not ready, try to update readiness
-      if (countdownMinutes !== 'N/A' && countdownMinutes < 10 && !isReady) {
+      if (countdownMinutes !== 'N/A' && countdownMinutes < 2 && !isReady) {
         console.log(`Community ${community.name} is approaching payout time (${countdownMinutes} mins) but not ready yet. Attempting to prepare.`);
         checkMidCycleReadiness(community._id)
           .then(success => {
