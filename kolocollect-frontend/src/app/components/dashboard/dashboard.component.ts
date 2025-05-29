@@ -20,6 +20,7 @@ import { NotificationService } from '../../services/notification.service';
 import { ApiService } from '../../services/api.service';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
+import { TrackComponentLifecycle, TrackPerformance } from '../../decorators/performance.decorator';
 
 // Import FontAwesome
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
@@ -40,6 +41,7 @@ import {
   faSpinner
 } from '@fortawesome/free-solid-svg-icons';
 
+@TrackComponentLifecycle('DashboardComponent')
 @Component({
   selector: 'app-dashboard',
   standalone: true,  
@@ -153,8 +155,8 @@ export class DashboardComponent implements OnInit {
       // This will keep the notification count in sync with header
       this.notificationCount = count;
     });
-  }
-  
+  }  
+  @TrackPerformance('DashboardComponent.loadDashboardData')
   loadDashboardData(): void {
     if (!this.currentUser?.id) {
       console.error('Cannot load dashboard data: No current user ID');

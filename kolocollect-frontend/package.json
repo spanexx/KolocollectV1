@@ -33,8 +33,10 @@
     "html2pdf.js": "^0.10.3",
     "jwt-decode": "^4.0.0",
     "ngx-image-cropper": "^9.1.5",
+    "ngx-logger": "^5.0.12",
     "rxjs": "~7.8.0",
     "tslib": "^2.3.0",
+    "web-vitals": "^5.0.2",
     "zone.js": "~0.14.3"
   },
   "devDependencies": {

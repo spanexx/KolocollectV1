@@ -1,0 +1,7 @@
+Test Type,Endpoint/Operation,Duration (ms),Status,Notes
+API,GET /api/users,16.41,0%,5 iterations
+API,GET /api/communities,4.02,0%,5 iterations
+API,GET /api/metrics/summary,3.15,0%,5 iterations
+Database,List Communities,2.62,error,0 records
+Database,User Operations,4.21,error,0 records
+Load Test,Concurrent Requests,11.48,0%,10 concurrent

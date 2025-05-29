@@ -15,7 +15,14 @@ const midcycleRoutes = require('./routes/midcycleRoutes');
 const sharingRoutes = require('./routes/sharingRoutes');
 const mediaRoutes = require('./routes/mediaRoutes');
 const schedulerRoutes = require('./routes/schedulerRoutes');
+const metricsRoutes = require('./routes/metricsRoutes');
 const webhookMiddleware = require('./middlewares/webhookMiddleware');
+
+// Import performance monitoring middleware
+const metricsMiddleware = require('./middlewares/prometheusMiddleware');
+const httpLogger = require('./middlewares/loggingMiddleware');
+const responseTimeMiddleware = require('./middlewares/responseTimeMiddleware');
+const { initMemoryMonitoring } = require('./utils/memoryMonitor');
 
 // Import all separated models
 const Community = require('./models/Community');
@@ -34,7 +41,12 @@ const app = express();
 // Connect to the databases
 connectDB();
 
-// Middleware
+// Performance Monitoring Middleware (Add before other middleware)
+app.use(metricsMiddleware);
+app.use(httpLogger);
+app.use(responseTimeMiddleware);
+
+// Standard Middleware
 app.use(cors());
 app.use(bodyParser.json());
 app.use(express.json());
@@ -59,6 +71,7 @@ app.use('/api/media', mediaRoutes);
 app.use('/api/midcycles', midcycleRoutes);
 app.use('/api/sharing', sharingRoutes);
 app.use('/api/scheduler', schedulerRoutes);
+app.use('/api/metrics', metricsRoutes);
 
 app.use(
   '/webhook',
@@ -90,6 +103,9 @@ if (process.env.ENABLE_SCHEDULER === 'true') {
 const PORT = process.env.PORT || 6000;
 const server = app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
+  
+  // Initialize memory monitoring after server starts
+  initMemoryMonitoring();
 });
 
 server.on('error', (error) => {

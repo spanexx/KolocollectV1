@@ -1,0 +1,240 @@
+{
+  "timestamp": "2025-05-29T16:08:49.851Z",
+  "tests": [
+    {
+      "endpoint": "/api/users",
+      "method": "GET",
+      "iterations": 5,
+      "avgDuration": 16.41,
+      "minDuration": 2.85,
+      "maxDuration": 65.2,
+      "successRate": 0,
+      "avgResponseSize": 0,
+      "details": [
+        {
+          "duration": 65.2029,
+          "status": 0,
+          "error": "",
+          "size": 0
+        },
+        {
+          "duration": 5.150199999999984,
+          "status": 0,
+          "error": "",
+          "size": 0
+        },
+        {
+          "duration": 3.9484999999999673,
+          "status": 0,
+          "error": "",
+          "size": 0
+        },
+        {
+          "duration": 4.875,
+          "status": 0,
+          "error": "",
+          "size": 0
+        },
+        {
+          "duration": 2.8547000000000367,
+          "status": 0,
+          "error": "",
+          "size": 0
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/communities",
+      "method": "GET",
+      "iterations": 5,
+      "avgDuration": 4.02,
+      "minDuration": 2.87,
+      "maxDuration": 6.66,
+      "successRate": 0,
+      "avgResponseSize": 0,
+      "details": [
+        {
+          "duration": 3.2396999999999707,
+          "status": 0,
+          "error": "",
+          "size": 0
+        },
+        {
+          "duration": 2.8736000000000104,
+          "status": 0,
+          "error": "",
+          "size": 0
+        },
+        {
+          "duration": 4.284800000000018,
+          "status": 0,
+          "error": "",
+          "size": 0
+        },
+        {
+          "duration": 6.656700000000001,
+          "status": 0,
+          "error": "",
+          "size": 0
+        },
+        {
+          "duration": 3.0265999999999735,
+          "status": 0,
+          "error": "",
+          "size": 0
+        }
+      ]
+    },
+    {
+      "endpoint": "/api/metrics/summary",
+      "method": "GET",
+      "iterations": 5,
+      "avgDuration": 3.15,
+      "minDuration": 2.41,
+      "maxDuration": 5.29,
+      "successRate": 0,
+      "avgResponseSize": 0,
+      "details": [
+        {
+          "duration": 2.4114999999999895,
+          "status": 0,
+          "error": "",
+          "size": 0
+        },
+        {
+          "duration": 5.286400000000015,
+          "status": 0,
+          "error": "",
+          "size": 0
+        },
+        {
+          "duration": 2.9394999999999527,
+          "status": 0,
+          "error": "",
+          "size": 0
+        },
+        {
+          "duration": 2.4827999999999975,
+          "status": 0,
+          "error": "",
+          "size": 0
+        },
+        {
+          "duration": 2.654699999999991,
+          "status": 0,
+          "error": "",
+          "size": 0
+        }
+      ]
+    },
+    {
+      "test": "Database Query",
+      "operation": "List Communities",
+      "duration": 2.62,
+      "status": "error",
+      "error": ""
+    },
+    {
+      "test": "Database Query",
+      "operation": "User Operations",
+      "duration": 4.21,
+      "status": "error",
+      "error": ""
+    },
+    {
+      "test": "Concurrent Load",
+      "concurrentRequests": 10,
+      "totalDuration": 11.48,
+      "avgRequestDuration": 11.6,
+      "successRate": 0,
+      "requestsPerSecond": 870.72,
+      "details": [
+        {
+          "requestId": 0,
+          "duration": 12.016900000000021,
+          "status": 0,
+          "success": false,
+          "error": ""
+        },
+        {
+          "requestId": 1,
+          "duration": 11.765899999999988,
+          "status": 0,
+          "success": false,
+          "error": ""
+        },
+        {
+          "requestId": 2,
+          "duration": 11.549199999999985,
+          "status": 0,
+          "success": false,
+          "error": ""
+        },
+        {
+          "requestId": 3,
+          "duration": 11.055200000000013,
+          "status": 0,
+          "success": false,
+          "error": ""
+        },
+        {
+          "requestId": 4,
+          "duration": 11.318300000000022,
+          "status": 0,
+          "success": false,
+          "error": ""
+        },
+        {
+          "requestId": 5,
+          "duration": 11.38900000000001,
+          "status": 0,
+          "success": false,
+          "error": ""
+        },
+        {
+          "requestId": 6,
+          "duration": 11.507299999999987,
+          "status": 0,
+          "success": false,
+          "error": ""
+        },
+        {
+          "requestId": 7,
+          "duration": 11.715599999999995,
+          "status": 0,
+          "success": false,
+          "error": ""
+        },
+        {
+          "requestId": 8,
+          "duration": 11.721299999999985,
+          "status": 0,
+          "success": false,
+          "error": ""
+        },
+        {
+          "requestId": 9,
+          "duration": 11.920000000000016,
+          "status": 0,
+          "success": false,
+          "error": ""
+        }
+      ]
+    }
+  ],
+  "summary": {
+    "api": {
+      "avgResponseTime": 7.86,
+      "avgSuccessRate": 0,
+      "endpointCount": 3
+    },
+    "database": {
+      "avgQueryTime": 3.42,
+      "totalQueries": 2
+    },
+    "load": {
+      "maxConcurrentRequests": 10,
+      "avgRequestsPerSecond": 870.72
+    }
+  }
+}
