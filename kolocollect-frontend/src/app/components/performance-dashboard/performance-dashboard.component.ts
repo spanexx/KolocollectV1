@@ -14,8 +14,11 @@ import {
   faClock,
   faServer,
   faMemory,
-  faTachometerAlt
+  faTachometerAlt,
+  faWifi,
+  faExclamationCircle
 } from '@fortawesome/free-solid-svg-icons';
+import { io, Socket } from 'socket.io-client';
 
 interface PerformanceMetric {
   name: string;
@@ -44,10 +47,13 @@ interface DashboardData {
         <div class="header-title">
           <fa-icon [icon]="faChartLine" class="header-icon"></fa-icon>
           <h2>{{ dashboardData?.title || 'Performance Dashboard' }}</h2>
-        </div>
-        <div class="last-updated">
+        </div>        <div class="last-updated">
           <fa-icon [icon]="faClock" class="time-icon"></fa-icon>
           Last updated: {{ dashboardData?.timestamp | date:'medium' }}
+          <div class="connection-status" [class]="isConnected ? 'connected' : 'disconnected'">
+            <fa-icon [icon]="isConnected ? faWifi : faWifiSlash" class="connection-icon"></fa-icon>
+            {{ isConnected ? 'Live' : 'Offline' }}
+          </div>
           <button 
             class="refresh-btn" 
             (click)="refreshData()"
@@ -169,10 +175,33 @@ interface DashboardData {
       gap: 15px;
       color: #666;
       font-size: 14px;
+    }    .time-icon {
+      color: #007bff;
     }
 
-    .time-icon {
-      color: #007bff;
+    .connection-status {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 8px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .connection-status.connected {
+      background: #d4edda;
+      color: #155724;
+    }
+
+    .connection-status.disconnected {
+      background: #f8d7da;
+      color: #721c24;
+    }
+
+    .connection-icon {
+      font-size: 12px;
     }
 
     .refresh-btn {
@@ -433,6 +462,7 @@ interface DashboardData {
 })
 export class PerformanceDashboardComponent implements OnInit, OnDestroy {
   private http = inject(HttpClient);
+  private socket!: Socket;
   
   // Font Awesome icons
   faChartLine = faChartLine;
@@ -444,11 +474,13 @@ export class PerformanceDashboardComponent implements OnInit, OnDestroy {
   faClock = faClock;
   faServer = faServer;
   faMemory = faMemory;
-  faTachometerAlt = faTachometerAlt;
+  faTachometerAlt = faTachometerAlt;  faWifi = faWifi;
+  faWifiSlash = faExclamationCircle;
   
   dashboardData: DashboardData | null = null;
   isLoading = false;
   error: string | null = null;
+  isConnected = false;
   
   private refreshSubscription?: Subscription;
   private readonly apiUrl = `${environment.apiUrl}/metrics/dashboard`;
@@ -483,20 +515,66 @@ export class PerformanceDashboardComponent implements OnInit, OnDestroy {
     if (this.warningMetrics > 0) return 'warning';
     return 'healthy';
   }
-
   ngOnInit(): void {
+    // Load initial data
     this.loadDashboardData();
     
-    // Auto-refresh every 30 seconds
-    this.refreshSubscription = interval(30000).subscribe(() => {
-      this.loadDashboardData();
-    });
+    // Initialize real-time connection
+    this.initializeRealTimeConnection();
   }
 
   ngOnDestroy(): void {
     this.refreshSubscription?.unsubscribe();
+    this.disconnectSocket();
   }
 
+  private initializeRealTimeConnection(): void {
+    // Extract the base URL without /api
+    const baseUrl = environment.apiUrl.replace('/api', '');
+    
+    // Initialize Socket.IO connection
+    this.socket = io(baseUrl, {
+      transports: ['websocket', 'polling'],
+      timeout: 20000,
+      forceNew: true
+    });
+
+    // Handle connection events
+    this.socket.on('connect', () => {
+      console.log('✅ Connected to performance monitoring socket');
+      this.isConnected = true;
+      this.error = null;
+    });
+
+    this.socket.on('disconnect', () => {
+      console.log('❌ Disconnected from performance monitoring socket');
+      this.isConnected = false;
+    });
+
+    this.socket.on('connect_error', (error) => {
+      console.error('🔌 Socket connection error:', error);
+      this.isConnected = false;
+      this.error = 'Real-time connection failed. Using manual refresh.';
+    });
+
+    // Listen for real-time performance data
+    this.socket.on('performance-data', (data: DashboardData) => {
+      console.log('📊 Received real-time performance data:', data);
+      this.dashboardData = data;
+      this.error = null;
+      this.isLoading = false;
+    });
+
+    // Join the performance monitoring room
+    this.socket.emit('join-performance-monitoring');
+  }
+
+  private disconnectSocket(): void {
+    if (this.socket) {
+      this.socket.disconnect();
+      this.isConnected = false;
+    }
+  }
   async loadDashboardData(): Promise<void> {
     this.isLoading = true;
     this.error = null;
@@ -511,8 +589,15 @@ export class PerformanceDashboardComponent implements OnInit, OnDestroy {
       this.isLoading = false;
     }
   }
+  
   refreshData(): void {
-    this.loadDashboardData();
+    if (this.isConnected) {
+      // If connected to real-time, just emit a request for fresh data
+      this.socket.emit('request-performance-data');
+    } else {
+      // Fallback to HTTP request
+      this.loadDashboardData();
+    }
   }
 
   getStatusIcon(status: 'healthy' | 'warning' | 'critical') {

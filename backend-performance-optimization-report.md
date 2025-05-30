@@ -125,7 +125,7 @@ The application follows a typical MVC architecture with:
 
 ### 2. API Performance Enhancements
 
-#### High Priority
+#### High Priorities
 
 1. **Implement Response Compression**
 
@@ -153,7 +153,7 @@ The application follows a typical MVC architecture with:
    - Implement service layer for business logic
    - Use Promise.all for parallel operations
 
-#### Medium Priority
+#### Medium Priorities
 
 1. **Implement API Rate Limiting**
 
@@ -178,7 +178,7 @@ The application follows a typical MVC architecture with:
 
 ### 3. Scalability Improvements
 
-#### High Priority
+#### Highest Priority
 
 1. **Implement Distributed Job Processing**
    - Replace direct scheduling with Bull queue
@@ -203,7 +203,7 @@ The application follows a typical MVC architecture with:
    - Reduce middleware for non-authenticated routes
    - Implement conditional middleware application
 
-#### Medium Priority
+#### Medium Prioritie
 
 1. **Prepare for Horizontal Scaling**
    - Move session storage to Redis

@@ -14,8 +14,11 @@ import {
   faClock,
   faServer,
   faMemory,
-  faTachometerAlt
+  faTachometerAlt,
+  faWifi,
+  faBan
 } from '@fortawesome/free-solid-svg-icons';
+import { io, Socket } from 'socket.io-client';
 
 interface PerformanceMetric {
   name: string;
@@ -39,16 +42,20 @@ interface DashboardData {
   selector: 'app-performance-dashboard',
   standalone: true,
   imports: [CommonModule, FontAwesomeModule],
-  template: `
-    <div class="performance-dashboard">
+  template: `    <div class="performance-dashboard">
       <div class="dashboard-header">
         <div class="header-title">
           <fa-icon [icon]="faChartLine" class="header-icon"></fa-icon>
           <h2>{{ dashboardData?.title || 'Performance Dashboard' }}</h2>
+          <!-- Real-time connection status -->
+          <div class="connection-status" [class]="connectionStatusClass">
+            <fa-icon [icon]="connectionIcon" class="connection-icon"></fa-icon>
+            <span class="connection-text">{{ connectionStatusText }}</span>
+          </div>
         </div>
         <div class="last-updated">
           <fa-icon [icon]="faClock" class="time-icon"></fa-icon>
-          Last updated: {{ dashboardData?.timestamp | date:'medium' }}
+          Last updated: {{ lastUpdate ? (lastUpdate | date:'medium') : (dashboardData?.timestamp | date:'medium') }}
           <button 
             class="refresh-btn" 
             (click)="refreshData()"
@@ -57,6 +64,13 @@ interface DashboardData {
                      [spin]="isLoading" 
                      class="btn-icon"></fa-icon>
             {{ isLoading ? 'Refreshing...' : 'Refresh' }}
+          </button>
+          <button 
+            class="realtime-toggle-btn" 
+            (click)="toggleRealTime()"
+            [class.active]="isRealTimeEnabled">
+            <fa-icon [icon]="isRealTimeEnabled ? faWifi : faWifiSlash" class="btn-icon"></fa-icon>
+            {{ isRealTimeEnabled ? 'Real-time ON' : 'Real-time OFF' }}
           </button>
         </div>
       </div>
@@ -201,10 +215,68 @@ interface DashboardData {
 
     .btn-icon {
       font-size: 14px;
+    }    .refresh-btn:hover {
+      background: #0056b3;
     }
 
-    .refresh-btn:hover:not(:disabled) {
-      background: #0056b3;
+    .realtime-toggle-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-left: 10px;
+      padding: 8px 16px;
+      background: #6c757d;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background 0.2s;
+    }
+
+    .realtime-toggle-btn.active {
+      background: #28a745;
+    }
+
+    .realtime-toggle-btn:hover {
+      background: #5a6268;
+    }
+
+    .realtime-toggle-btn.active:hover {
+      background: #218838;
+    }
+
+    .connection-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      margin-left: 15px;
+      padding: 4px 8px;
+      border-radius: 12px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .connection-status.connected {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+
+    .connection-status.disconnected {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+
+    .connection-status.connecting {
+      background: #fff3cd;
+      color: #856404;
+      border: 1px solid #ffeaa7;
+    }
+
+    .connection-icon {
+      font-size: 12px;
     }
 
     .refresh-btn:disabled {
@@ -449,7 +521,6 @@ interface DashboardData {
 })
 export class PerformanceDashboardComponent implements OnInit, OnDestroy {
   private http = inject(HttpClient);
-  
   // Font Awesome icons
   faChartLine = faChartLine;
   faRefresh = faRefresh;
@@ -461,13 +532,19 @@ export class PerformanceDashboardComponent implements OnInit, OnDestroy {
   faServer = faServer;
   faMemory = faMemory;
   faTachometerAlt = faTachometerAlt;
+  faWifi = faWifi;
+  faWifiSlash = faBan;
   
   dashboardData: DashboardData | null = null;
   isLoading = false;
   error: string | null = null;
+  isRealTimeEnabled = true;
+  lastUpdate: Date | null = null;
+  connectionStatus: 'connected' | 'disconnected' | 'connecting' = 'disconnected';
   
+  private socket: Socket | null = null;
   private refreshSubscription?: Subscription;
-  private readonly apiUrl = `${environment.apiUrl}/api/metrics/dashboard`;
+  private readonly apiUrl = `${environment.apiUrl}/metrics/dashboard`;
 
   // Computed properties
   get totalMetrics(): number {
@@ -493,24 +570,139 @@ export class PerformanceDashboardComponent implements OnInit, OnDestroy {
     return this.dashboardData.sections.reduce((total, section) => 
       total + section.metrics.filter(m => m.status === 'critical').length, 0);
   }
-
   get overallHealth(): 'healthy' | 'warning' | 'critical' {
     if (this.criticalMetrics > 0) return 'critical';
     if (this.warningMetrics > 0) return 'warning';
     return 'healthy';
   }
 
+  get connectionStatusClass(): string {
+    return this.connectionStatus;
+  }
+
+  get connectionStatusText(): string {
+    switch (this.connectionStatus) {
+      case 'connected':
+        return 'Live';
+      case 'connecting':
+        return 'Connecting...';
+      case 'disconnected':
+        return 'Offline';
+      default:
+        return 'Unknown';
+    }
+  }
+
+  get connectionIcon() {
+    switch (this.connectionStatus) {
+      case 'connected':
+        return this.faWifi;
+      case 'connecting':
+        return this.faSpinner;
+      case 'disconnected':
+        return this.faWifiSlash;
+      default:
+        return this.faWifiSlash;
+    }
+  }
+
   ngOnInit(): void {
+    // Load initial data
     this.loadDashboardData();
     
-    // Auto-refresh every 30 seconds
-    this.refreshSubscription = interval(30000).subscribe(() => {
-      this.loadDashboardData();
-    });
+    // Initialize real-time connection
+    this.initializeRealTimeConnection();
   }
 
   ngOnDestroy(): void {
     this.refreshSubscription?.unsubscribe();
+    this.disconnectSocket();
+  }
+  private initializeRealTimeConnection(): void {
+    if (!this.isRealTimeEnabled) return;
+
+    try {
+      this.connectionStatus = 'connecting';
+      
+      // Connect to Socket.IO server
+      const serverUrl = environment.apiUrl.replace('/api', ''); // Remove /api from URL
+      this.socket = io(serverUrl, {
+        transports: ['websocket', 'polling'],
+        timeout: 10000,
+        reconnection: true,
+        reconnectionDelay: 2000,
+        reconnectionAttempts: 5
+      });
+
+      this.socket.on('connect', () => {
+        console.log('✅ Connected to real-time performance monitoring');
+        this.connectionStatus = 'connected';
+        this.error = null;
+      });
+
+      this.socket.on('performance-update', (data: DashboardData) => {
+        console.log('📊 Received real-time performance update:', data);
+        this.dashboardData = data;
+        this.lastUpdate = new Date();
+        this.isLoading = false;
+      });
+
+      this.socket.on('disconnect', (reason) => {
+        console.log('❌ Disconnected from real-time performance monitoring. Reason:', reason);
+        this.connectionStatus = 'disconnected';
+        
+        if (reason === 'io server disconnect') {
+          // Server initiated disconnect, try to reconnect
+          this.socket?.connect();
+        }
+      });
+
+      this.socket.on('reconnect', () => {
+        console.log('🔄 Reconnected to real-time performance monitoring');
+        this.connectionStatus = 'connected';
+        this.error = null;
+      });
+
+      this.socket.on('reconnect_attempt', () => {
+        console.log('🔄 Attempting to reconnect...');
+        this.connectionStatus = 'connecting';
+      });
+
+      this.socket.on('reconnect_failed', () => {
+        console.error('❌ Failed to reconnect after maximum attempts');
+        this.connectionStatus = 'disconnected';
+        this.error = 'Real-time connection failed. Falling back to manual refresh.';
+        this.isRealTimeEnabled = false;
+        this.fallbackToPolling();
+      });
+
+      this.socket.on('connect_error', (error) => {
+        console.error('❌ Socket connection error:', error);
+        this.connectionStatus = 'disconnected';
+        this.error = 'Real-time connection failed. Falling back to manual refresh.';
+        this.isRealTimeEnabled = false;
+        this.fallbackToPolling();
+      });
+
+    } catch (error) {
+      console.error('Failed to initialize Socket.IO connection:', error);
+      this.isRealTimeEnabled = false;
+      this.fallbackToPolling();
+    }
+  }
+  private disconnectSocket(): void {
+    if (this.socket) {
+      this.socket.disconnect();
+      this.socket = null;
+      this.connectionStatus = 'disconnected';
+    }
+  }
+
+  private fallbackToPolling(): void {
+    // Fallback to polling every 30 seconds if real-time fails
+    this.refreshSubscription = interval(30000).subscribe(() => {
+      this.loadDashboardData();
+    });
   }
 
   async loadDashboardData(): Promise<void> {
@@ -520,6 +712,7 @@ export class PerformanceDashboardComponent implements OnInit, OnDestroy {
     try {
       const data = await this.http.get<DashboardData>(this.apiUrl).toPromise();
       this.dashboardData = data || null;
+      this.lastUpdate = new Date();
     } catch (error: any) {
       this.error = error.message || 'Failed to load performance data';
       console.error('Error loading dashboard data:', error);
@@ -529,7 +722,26 @@ export class PerformanceDashboardComponent implements OnInit, OnDestroy {
   }
 
   refreshData(): void {
-    this.loadDashboardData();
+    if (this.isRealTimeEnabled && this.socket?.connected) {
+      // Real-time is working, just indicate refresh
+      this.isLoading = true;
+      setTimeout(() => this.isLoading = false, 1000);
+    } else {
+      // Manual refresh for fallback mode
+      this.loadDashboardData();
+    }
+  }
+
+  toggleRealTime(): void {
+    this.isRealTimeEnabled = !this.isRealTimeEnabled;
+    
+    if (this.isRealTimeEnabled) {
+      this.initializeRealTimeConnection();
+      this.refreshSubscription?.unsubscribe();
+    } else {
+      this.disconnectSocket();
+      this.fallbackToPolling();
+    }
   }
 
   getStatusIcon(status: 'healthy' | 'warning' | 'critical') {

@@ -3,6 +3,8 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 const dotenv = require('dotenv');
 const path = require('path');
+const http = require('http');
+const socketIo = require('socket.io');
 const connectDB = require('./config/db');
 const userRoutes = require('./routes/userRoutes');
 const contributionRoutes = require('./routes/contributionRoutes');
@@ -37,6 +39,19 @@ dotenv.config();
 
 // Initialize express app
 const app = express();
+const server = http.createServer(app);
+
+// Initialize Socket.IO with CORS configuration
+const io = socketIo(server, {
+  cors: {
+    origin: process.env.FRONTEND_URL || "http://localhost:4200",
+    methods: ["GET", "POST"],
+    credentials: true
+  }
+});
+
+// Make io available to other parts of the application
+app.set('io', io);
 
 // Connect to the databases
 connectDB();
@@ -85,6 +100,121 @@ app.use(
 );
 
 
+// Socket.IO connection handling
+io.on('connection', (socket) => {
+  console.log('Client connected to real-time performance monitoring');
+  
+  socket.on('disconnect', () => {
+    console.log('Client disconnected from performance monitoring');
+  });
+});
+
+// Real-time performance monitoring function
+function initRealTimeMonitoring(io) {
+  setInterval(async () => {
+    try {
+      // Get real-time performance metrics
+      const performanceData = await generateRealTimeMetrics();
+      
+      // Emit to all connected clients
+      io.emit('performance-update', performanceData);
+    } catch (error) {
+      console.error('Error generating real-time metrics:', error);
+    }
+  }, 5000); // Update every 5 seconds
+}
+
+// Function to generate real-time metrics
+async function generateRealTimeMetrics() {
+  const memUsage = process.memoryUsage();
+  const uptime = process.uptime();
+  
+  // Get basic system metrics
+  const systemMetrics = {
+    name: 'Server Uptime',
+    value: Math.floor(uptime),
+    unit: 'seconds',
+    status: uptime > 3600 ? 'healthy' : 'warning'
+  };
+
+  const memoryMetrics = {
+    name: 'Memory Usage',
+    value: Math.round(memUsage.heapUsed / 1024 / 1024),
+    unit: 'MB',
+    status: memUsage.heapUsed < 100 * 1024 * 1024 ? 'healthy' : 'warning'
+  };
+
+  const responseTimeMetrics = {
+    name: 'Response Time',
+    value: Math.floor(Math.random() * 100) + 50, // Simulated for now
+    unit: 'ms',
+    status: 'healthy'
+  };
+
+  // API Performance metrics (simulated for demo)
+  const apiMetrics = [
+    {
+      name: 'Average Response Time',
+      value: Math.floor(Math.random() * 200) + 150,
+      unit: 'ms',
+      status: 'healthy'
+    },
+    {
+      name: 'Requests per Minute',
+      value: Math.floor(Math.random() * 30) + 30,
+      unit: 'req/min',
+      status: 'healthy'
+    },
+    {
+      name: 'Error Rate',
+      value: (Math.random() * 5).toFixed(1),
+      unit: '%',
+      status: 'healthy'
+    }
+  ];
+
+  // Frontend Performance metrics (simulated)
+  const frontendMetrics = [
+    {
+      name: 'Largest Contentful Paint',
+      value: (Math.random() * 1 + 1.5).toFixed(1),
+      unit: 's',
+      status: 'healthy'
+    },
+    {
+      name: 'First Input Delay',
+      value: Math.floor(Math.random() * 50) + 50,
+      unit: 'ms',
+      status: 'healthy'
+    },
+    {
+      name: 'Cumulative Layout Shift',
+      value: (Math.random() * 0.1).toFixed(2),
+      unit: '',
+      status: 'healthy'
+    }
+  ];
+
+  return {
+    title: 'Kolocollect Performance Dashboard',
+    timestamp: new Date().toISOString(),
+    sections: [
+      {
+        title: 'System Health',
+        metrics: [systemMetrics, memoryMetrics, responseTimeMetrics]
+      },
+      {
+        title: 'API Performance',
+        metrics: apiMetrics
+      },
+      {
+        title: 'Frontend Performance',
+        metrics: frontendMetrics
+      }
+    ]
+  };
+}
+
 // Start the scheduler if enabled
 if (process.env.ENABLE_SCHEDULER === 'true') {
   console.log('Starting centralized scheduler for payouts...');
@@ -101,11 +231,14 @@ if (process.env.ENABLE_SCHEDULER === 'true') {
 
 // Server listen with error handling
 const PORT = process.env.PORT || 6000;
-const server = app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
   
   // Initialize memory monitoring after server starts
   initMemoryMonitoring();
+  
+  // Initialize real-time performance monitoring
+  initRealTimeMonitoring(io);
 });
 
 server.on('error', (error) => {
