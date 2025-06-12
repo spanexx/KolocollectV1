@@ -4,7 +4,11 @@ const Schema = mongoose.Schema;
 // Transaction Schema to track deposits, withdrawals, and other activities
 const transactionSchema = new Schema(
   {
-    amount: { type: Number, required: true },
+    amount: { 
+      type: mongoose.Schema.Types.Decimal128, 
+      required: true,
+      get: v => v ? parseFloat(v.toString()) : 0
+    },
     type: { 
       type: String, 
       enum: ['deposit', 'withdrawal', 'contribution', 'penalty', 'transfer', 'payout', 'fixed'], 
@@ -26,7 +30,11 @@ const transactionSchema = new Schema(
 // Fixed Funds Schema to track funds that are locked for a specific duration
 const fixedFundsSchema = new Schema(
   {
-    amount: { type: Number, required: true },
+    amount: { 
+      type: mongoose.Schema.Types.Decimal128, 
+      required: true,
+      get: v => v ? parseFloat(v.toString()) : 0
+    },
     startDate: { type: Date, default: Date.now },
     endDate: { type: Date, required: true },
     isMatured: { type: Boolean, default: false },
@@ -37,12 +45,27 @@ const fixedFundsSchema = new Schema(
 // Wallet Schema to store balance, transactions, and fixed funds for each user
 const walletSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  availableBalance: { type: Number, default: 0 },
-  fixedBalance: { type: Number, default: 0 },
-  totalBalance: { type: Number, default: 0 },
+  availableBalance: { 
+    type: mongoose.Schema.Types.Decimal128, 
+    default: 0,
+    get: v => v ? parseFloat(v.toString()) : 0
+  },
+  fixedBalance: { 
+    type: mongoose.Schema.Types.Decimal128, 
+    default: 0,
+    get: v => v ? parseFloat(v.toString()) : 0
+  },
+  totalBalance: { 
+    type: mongoose.Schema.Types.Decimal128, 
+    default: 0,
+    get: v => v ? parseFloat(v.toString()) : 0
+  },
   transactions: [transactionSchema],
   fixedFunds: [fixedFundsSchema],
   isFrozen: { type: Boolean, default: false },
+}, { 
+  timestamps: true,
+  toJSON: { getters: true }
 });
 
 // Method to add a transaction and adjust balances
@@ -202,6 +225,144 @@ walletSchema.methods.fixFunds = async function (amount, endDate) {
 
   // Save the wallet
   await this.save();
+};
+
+// Method to add a transaction within a session (for transaction management)
+walletSchema.methods.addTransactionInSession = async function (amount, type, description, recipient = null, communityId = null, session) {
+  if (!['deposit', 'withdrawal', 'contribution', 'penalty', 'transfer', 'payout', 'fixed'].includes(type)) {
+    throw new Error(`Invalid transaction type: ${type}`);
+  }
+
+  if (this.isFrozen) {
+    throw new Error('Wallet is frozen. No transactions allowed.');
+  }
+
+  // Validate amount
+  if (typeof amount !== 'number' || isNaN(amount) || amount <= 0) {
+    throw new Error(`Invalid amount value: ${amount}`);
+  }
+
+  // Adjust balances based on transaction type
+  if (['withdrawal', 'transfer', 'penalty', 'contribution'].includes(type)) {
+    if (this.availableBalance < amount) {
+      throw new Error('Insufficient balance for the transaction.');
+    }
+    this.availableBalance = Number((this.availableBalance - amount).toFixed(2));
+  } else if (['deposit', 'payout'].includes(type)) {
+    this.availableBalance = Number((this.availableBalance + amount).toFixed(2));
+  } else if (type === 'fixed') {
+    if (this.availableBalance < amount) {
+      throw new Error('Insufficient balance to fix funds.');
+    }
+    this.availableBalance = Number((this.availableBalance - amount).toFixed(2));
+    this.fixedBalance = Number((this.fixedBalance + amount).toFixed(2));
+  }
+
+  // Create transaction record
+  const transactionData = {
+    amount,
+    type,
+    description,
+    date: new Date()
+  };
+
+  // Add optional fields if provided
+  if (recipient && mongoose.Types.ObjectId.isValid(recipient)) {
+    transactionData.recipient = recipient;
+  }
+  if (communityId && mongoose.Types.ObjectId.isValid(communityId)) {
+    transactionData.communityId = communityId;
+  }
+
+  this.transactions.push(transactionData);
+  this.markModified('transactions');
+  this.totalBalance = this.availableBalance + this.fixedBalance;
+
+  // Save with session
+  await this.save({ session });
+};
+
+// Transfer funds within a transaction session
+walletSchema.methods.transferFundsInSession = async function (amount, recipientWallet, description, session) {
+  if (this.isFrozen) {
+    throw new Error('Wallet is frozen. No transfers allowed.');
+  }
+
+  if (this.availableBalance < amount) {
+    throw new Error('Insufficient balance for transfer.');
+  }
+
+  // Deduct from sender
+  await this.addTransactionInSession(
+    amount,
+    'transfer',
+    description || `Transfer to ${recipientWallet.userId}`,
+    recipientWallet.userId,
+    null,
+    session
+  );
+
+  // Add to recipient
+  await recipientWallet.addTransactionInSession(
+    amount,
+    'deposit',
+    description || `Transfer from ${this.userId}`,
+    this.userId,
+    null,
+    session
+  );
+};
+
+// Freeze/unfreeze wallet within transaction session
+walletSchema.methods.setFreezeStatusInSession = async function (frozen, session) {
+  this.isFrozen = frozen;
+  await this.save({ session });
+};
+
+// Add funds within transaction session
+walletSchema.methods.addFundsInSession = async function (amount, description = 'Funds added', session) {
+  if (amount <= 0) {
+    throw new Error('Amount must be positive');
+  }
+
+  this.availableBalance += amount;
+  this.totalBalance += amount;
+
+  await this.addTransactionInSession(
+    amount,
+    'deposit',
+    description,
+    null,
+    null,
+    session
+  );
+
+  await this.save({ session });
+};
+
+// Withdraw funds within transaction session
+walletSchema.methods.withdrawFundsInSession = async function (amount, description = 'Withdrawal', session) {
+  if (amount <= 0) {
+    throw new Error('Amount must be positive');
+  }
+
+  if (this.availableBalance < amount) {
+    throw new Error('Insufficient funds');
+  }
+
+  this.availableBalance -= amount;
+  this.totalBalance -= amount;
+
+  await this.addTransactionInSession(
+    -amount,
+    'withdrawal',
+    description,
+    null,
+    null,
+    session
+  );
+
+  await this.save({ session });
 };
 
 // Indexing on userId for faster lookups

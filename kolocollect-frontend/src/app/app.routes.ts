@@ -92,7 +92,7 @@ export const routes: Routes = [
       // Performance monitoring route (admin only)
       {
         path: 'performance',
-        loadComponent: () => import('./components/performance/performance-dashboard.component').then(m => m.PerformanceDashboardComponent)
+        loadComponent: () => import('./components/performance-dashboard/performance-dashboard.component').then(m => m.PerformanceDashboardComponent)
       }
     ]
   },

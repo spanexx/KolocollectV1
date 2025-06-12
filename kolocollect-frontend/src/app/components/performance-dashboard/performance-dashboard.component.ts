@@ -78,7 +78,10 @@ interface DashboardData {
                 class="metric-card" 
                 *ngFor="let metric of section.metrics"
                 [class]="'status-' + metric.status">                <div class="metric-header">
-                  <span class="metric-name">{{ metric.name }}</span>
+                  <span class="metric-name">
+                    <fa-icon *ngIf="section.title === 'Cache Performance'" [icon]="getCacheMetricIcon(metric.name)" class="metric-icon"></fa-icon>
+                    {{ metric.name }}
+                  </span>
                   <span class="metric-status" [class]="'status-' + metric.status">
                     <fa-icon [icon]="getStatusIcon(metric.status)" class="status-icon"></fa-icon>
                     {{ metric.status }}
@@ -287,12 +290,18 @@ interface DashboardData {
       justify-content: space-between;
       align-items: center;
       margin-bottom: 5px;
-    }
-
-    .metric-name {
+    }    .metric-name {
       font-weight: 500;
       color: #333;
-    }    .metric-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .metric-icon {
+      color: #007bff;
+      font-size: 14px;
+    }.metric-status {
       display: flex;
       align-items: center;
       gap: 5px;
@@ -610,6 +619,21 @@ export class PerformanceDashboardComponent implements OnInit, OnDestroy {
         return this.faTimesCircle;
       default:
         return this.faCheckCircle;
+    }
+  }
+
+  getCacheMetricIcon(metricName: string) {
+    switch (metricName.toLowerCase()) {
+      case 'cache hit rate':
+        return this.faChartLine;
+      case 'average response time':
+        return this.faClock;
+      case 'redis connection':
+        return this.faServer;
+      case 'l1 cache size':
+        return this.faMemory;
+      default:
+        return this.faServer;
     }
   }
 }

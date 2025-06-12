@@ -59,7 +59,7 @@ export class JoinCommunityDialogComponent implements OnInit {
     
     // Set minimum contribution and check if it's first cycle
     if (this.data.community) {
-      this.minContribution = this.data.community.settings?.minContribution || 0;
+      this.minContribution = +(this.data.community.settings?.minContribution?.$numberDecimal || 0);
       this.communityName = this.data.community.name || '';
       
       // Check if this is the first cycle from community data

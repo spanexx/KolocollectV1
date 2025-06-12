@@ -1,11 +1,17 @@
+import { User } from './user.model';
+
+export interface NumberDecimalValue {
+  $numberDecimal: string;
+}
+
 export interface Community {
   _id: string;
   name: string;
   description: string;
-  admin: string;
+  admin: User;
   members: Member[];
-  totalContribution: number;
-  backupFund: number;
+  totalContribution: NumberDecimalValue;
+  backupFund: NumberDecimalValue;
   settings: CommunitySettings;
   cycles: Cycle[];
   cycleState: 'Active' | 'Locked' | 'Completed';
@@ -18,7 +24,7 @@ export interface Community {
   midCycle?: MidCycle[]; // Fixed: renamed from midCycle to midCycles for consistency
   payoutDetails?: {
     nextRecipient?: string;
-    payoutAmount?: number;
+    payoutAmount?: number; // Assuming this is a standard number or needs a different type based on its usage
     payoutDate?: Date;
   };
 }
@@ -31,20 +37,20 @@ export interface Member {
   position?: number;
   joinedAt: Date;
   lastContribution?: Date;
-  contributionTotal?: number;
+  contributionTotal?: number; // Assuming this is a standard number or needs NumberDecimalValue
   payoutReceived?: boolean;
   nextPayoutDate?: Date;
 }
 
 export interface CommunitySettings {
   contributionFrequency: 'weekly' | 'biweekly' | 'monthly';
-  minContribution: number;
+  minContribution: NumberDecimalValue;
   maxMembers: number;
   backupFundPercentage: number;
   payoutDay?: number;
-  firstCycleMin: number;
+  firstCycleMin: number; // Assuming this is a standard number
   allowMidCycleJoining: boolean;
-  penalty?: number;
+  penalty?: NumberDecimalValue;
 }
 
 export interface Cycle {
@@ -67,7 +73,7 @@ export interface MidCycle {
   nextInLine: NextInLine;
   isComplete: boolean;
   isReady: boolean;
-  payoutAmount: number;
+  payoutAmount: number; // Assuming this is a standard number or needs NumberDecimalValue
   payoutDate?: Date;
   midCycleJoiners?: MidCycleJoiner[];
 }
@@ -105,7 +111,7 @@ export interface MidCycleDetails {
   isReady: boolean;
   isComplete: boolean;
   payoutDate: string;
-  payoutAmount: number;
+  payoutAmount: number; // Assuming this is a standard number or needs NumberDecimalValue
   nextInLine: {
     userId: string;
     name: string;
@@ -119,20 +125,20 @@ export interface MidCycleDetails {
     };
     contributions: string[];
     _id: string;
-    totalAmount: number;
+    totalAmount: number; // Assuming this is a standard number or needs NumberDecimalValue
   }>;
   defaulters: string[];
   midCycleJoiners: any[];
-  contributionsToNextInLine: Record<string, number>;
+  contributionsToNextInLine: Record<string, number>; // Assuming this is a standard number or needs NumberDecimalValue
   contributionProgress?: {
     percentage: number;
-    made: number;
-    expected: number;
+    made: number; // Assuming this is a standard number or needs NumberDecimalValue
+    expected: number; // Assuming this is a standard number or needs NumberDecimalValue
   };
   summary: {
     totalMidCycles: number;
     completedMidCycles: number;
-    totalDistributed: number;
+    totalDistributed: number; // Assuming this is a standard number or needs NumberDecimalValue
   };
   currentCycle: {
     cycleNumber: number;

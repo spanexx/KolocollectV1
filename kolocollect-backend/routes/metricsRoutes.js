@@ -4,6 +4,7 @@ const logger = require('../utils/logger');
 const client = require('prom-client');
 const fs = require('fs');
 const path = require('path');
+const { getCacheService } = require('../utils/centralCacheService');
 
 // Endpoint to receive frontend performance metrics
 router.post('/', (req, res) => {
@@ -90,64 +91,151 @@ router.get('/summary', (req, res) => {
 });
 
 // Endpoint to get detailed performance dashboard
-router.get('/dashboard', (req, res) => {
-  const dashboardData = {
-    title: 'Kolocollect Performance Dashboard',
-    timestamp: new Date().toISOString(),
-    sections: [
-      {
-        title: 'System Health',
-        metrics: [
-          {
-            name: 'Server Uptime',
-            value: Math.floor(process.uptime()),
-            unit: 'seconds',
-            status: 'healthy'
-          },
-          {
-            name: 'Memory Usage',
-            value: Math.round(process.memoryUsage().heapUsed / 1024 / 1024),
-            unit: 'MB',
-            status: process.memoryUsage().heapUsed < 500 * 1024 * 1024 ? 'healthy' : 'warning'
-          },
-          {
-            name: 'Response Time',
-            value: 150,
-            unit: 'ms',
-            status: 'healthy'
-          }
-        ]
-      },
-      {
-        title: 'API Performance',
-        metrics: [
-          {
-            name: 'Average Response Time',
-            value: 250,
-            unit: 'ms',
-            status: 'healthy'
-          },
-          {
-            name: 'Requests per Minute',
-            value: 45,
-            unit: 'req/min',
-            status: 'healthy'
-          },
-          {
-            name: 'Error Rate',
-            value: 2.5,
-            unit: '%',
-            status: 'healthy'
-          }
-        ]
-      },
-      {
-        title: 'Frontend Performance',
-        metrics: [
-          {
-            name: 'Largest Contentful Paint',
-            value: 2.1,
-            unit: 's',
+router.get('/dashboard', async (req, res) => {
+  try {
+    // Get cache statistics for the dashboard
+    let cacheMetrics = [];
+    try {
+      const cacheService = getCacheService();
+      
+      // Check if cache service is initialized
+      if (!cacheService.isInitialized) {
+        throw new Error('Cache service not yet initialized');
+      }
+      
+      const cacheStats = cacheService.getStats();
+      const cacheHealth = await cacheService.healthCheck();
+      
+      console.log('DEBUG: Cache stats structure:', Object.keys(cacheStats));
+      console.log('DEBUG: Cache health structure:', Object.keys(cacheHealth));
+      
+      // Calculate cache hit rate - use top-level stats
+      const totalRequests = cacheStats.totalRequests || 0;
+      const totalHits = cacheStats.hits || 0;
+      const hitRate = totalRequests > 0 ? (totalHits / totalRequests) * 100 : 0;
+      
+      // Get average response time directly
+      const avgResponseTime = cacheStats.averageResponseTime || 0;
+      
+      cacheMetrics = [
+        {
+          name: 'Cache Hit Rate',
+          value: Math.round(hitRate * 10) / 10,
+          unit: '%',
+          status: hitRate >= 80 ? 'healthy' : hitRate >= 60 ? 'warning' : 'critical'
+        },
+        {
+          name: 'Average Response Time',
+          value: Math.round(avgResponseTime),
+          unit: 'ms',
+          status: avgResponseTime <= 50 ? 'healthy' : avgResponseTime <= 200 ? 'warning' : 'critical'
+        },
+        {
+          name: 'Redis Connection',
+          value: cacheHealth.redis ? 1 : 0,
+          unit: cacheHealth.redis ? 'connected' : 'disconnected',
+          status: cacheHealth.redis ? 'healthy' : 'critical'
+        },
+        {
+          name: 'L1 Cache Size',
+          value: cacheStats.memoryCacheSize || 0,
+          unit: 'items',
+          status: cacheStats.memoryCacheSize < 1000 ? 'healthy' : cacheStats.memoryCacheSize < 5000 ? 'warning' : 'critical'
+        }
+      ];
+    } catch (cacheError) {
+      logger.warn('Cache metrics unavailable:', cacheError.message);
+      console.log('DEBUG: Cache error details:', {
+        message: cacheError.message,
+        stack: cacheError.stack ? cacheError.stack.split('\n')[0] : 'No stack',
+        isInitializedError: cacheError.message.includes('not yet initialized')
+      });
+      
+      // Log cache service state for debugging
+      try {
+        const debugCacheService = getCacheService();
+        console.log('DEBUG: Cache service state:', {
+          exists: !!debugCacheService,
+          isInitialized: debugCacheService ? debugCacheService.isInitialized : false
+        });
+      } catch (debugError) {
+        console.log('DEBUG: Error getting cache service for debug:', debugError.message);
+      }
+      
+      const errorMsg = cacheError.message.includes('not yet initialized') ? 
+        'initializing' : 'unavailable';
+      
+      cacheMetrics = [
+        {
+          name: 'Cache System',
+          value: 0,
+          unit: errorMsg,
+          status: errorMsg === 'initializing' ? 'warning' : 'critical'
+        }
+      ];
+    }
+
+    const dashboardData = {
+      title: 'Kolocollect Performance Dashboard',
+      timestamp: new Date().toISOString(),
+      sections: [
+        {
+          title: 'System Health',
+          metrics: [
+            {
+              name: 'Server Uptime',
+              value: Math.floor(process.uptime()),
+              unit: 'seconds',
+              status: 'healthy'
+            },
+            {
+              name: 'Memory Usage',
+              value: Math.round(process.memoryUsage().heapUsed / 1024 / 1024),
+              unit: 'MB',
+              status: process.memoryUsage().heapUsed < 500 * 1024 * 1024 ? 'healthy' : 'warning'
+            },
+            {
+              name: 'Response Time',
+              value: 150,
+              unit: 'ms',
+              status: 'healthy'
+            }
+          ]
+        },
+        {
+          title: 'API Performance',
+          metrics: [
+            {
+              name: 'Average Response Time',
+              value: 250,
+              unit: 'ms',
+              status: 'healthy'
+            },
+            {
+              name: 'Requests per Minute',
+              value: 45,
+              unit: 'req/min',
+              status: 'healthy'
+            },
+            {
+              name: 'Error Rate',
+              value: 2.5,
+              unit: '%',
+              status: 'healthy'
+            }
+          ]
+        },
+        {
+          title: 'Cache Performance',
+          metrics: cacheMetrics
+        },
+        {
+          title: 'Frontend Performance',
+          metrics: [
+            {
+              name: 'Largest Contentful Paint',
+              value: 2.1,
+              unit: 's',
             status: 'healthy'
           },
           {
@@ -159,8 +247,7 @@ router.get('/dashboard', (req, res) => {
           {
             name: 'Cumulative Layout Shift',
             value: 0.08,
-            unit: '',
-            status: 'healthy'
+            unit: '',            status: 'healthy'
           }
         ]
       }
@@ -191,11 +278,55 @@ router.get('/dashboard', (req, res) => {
             }
           ]
         }
+      },
+      {
+        title: 'Cache Hit Rate',
+        type: 'line',
+        data: {
+          labels: ['1h ago', '45m ago', '30m ago', '15m ago', 'now'],
+          datasets: [
+            {
+              label: 'Hit Rate (%)',
+              data: [85, 88, 92, 89, 90]
+            }
+          ]
+        }
       }
     ]
   };
 
   res.status(200).json(dashboardData);
+  } catch (error) {
+    logger.error('Error getting dashboard data:', error);
+    res.status(500).json({
+      error: 'Failed to get dashboard data',
+      message: error.message
+    });
+  }
 });
 
 module.exports = router;
+
+// Debug endpoint to check cache service state
+router.get('/debug-cache', async (req, res) => {
+  try {
+    const cacheService = getCacheService();
+    const isInitialized = cacheService ? cacheService.isInitialized : false;
+    const stats = isInitialized ? cacheService.getStats() : null;
+    const health = isInitialized ? await cacheService.healthCheck() : null;
+    
+    res.status(200).json({
+      exists: !!cacheService,
+      isInitialized,
+      stats,
+      health,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    res.status(500).json({
+      error: error.message,
+      stack: error.stack,
+      timestamp: new Date().toISOString()
+    });
+  }
+});

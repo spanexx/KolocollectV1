@@ -44,6 +44,7 @@ import { ContributionHistoryHierarchicalComponent } from '../../contribution/con
 import { OwingMembersComponent } from '../owing-members/owing-members.component';
 import { UserProfileDialogComponent } from '../../profile/user-profile-dialog/user-profile-dialog.component';
 import { User } from '../../../models/user.model';
+import { DecimalUtilService } from '../../../services/decimal-util.service';
 import { CustomButtonComponent } from '../../../shared/components/custom-button/custom-button.component';
 import { CommunityVotesComponent } from '../community-votes/community-votes.component';
 import { CommunityPayoutsComponent } from '../community-payouts/community-payouts.component';
@@ -165,8 +166,7 @@ export class CommunityDetailComponent implements OnInit, OnDestroy {  // Font Aw
   };
   
   // Sharing links storage
-  private destroy$ = new Subject<void>();
-  constructor(
+  private destroy$ = new Subject<void>();  constructor(
     private route: ActivatedRoute,
     private router: Router,
     private communityService: CommunityService,
@@ -175,7 +175,8 @@ export class CommunityDetailComponent implements OnInit, OnDestroy {  // Font Aw
     private toastService: ToastService,
     private loadingService: LoadingService,
     private sharingService: SharingService,
-    private dialog: MatDialog
+    private dialog: MatDialog,
+    private decimalUtil: DecimalUtilService
   ) { }
   
   ngOnInit(): void {
@@ -239,7 +240,7 @@ export class CommunityDetailComponent implements OnInit, OnDestroy {  // Font Aw
         
         // Check if current user is the admin
         if (this.currentUserId && this.community?.admin) {
-          this.isAdmin = this.community.admin === this.currentUserId;
+          this.isAdmin = this.community.admin?.id === this.currentUserId;
         }
 
         // Load active midcycle details
@@ -708,12 +709,11 @@ export class CommunityDetailComponent implements OnInit, OnDestroy {  // Font Aw
   
   /**
    * Updates the mid-cycle summary numbers with the actual data from the API
-   */
-  getMidCycleSummary(): { total: number, completed: number, distributed: number } {
+   */  getMidCycleSummary(): { total: number, completed: number, distributed: number } {
     return {
       total: this.midCycleDetails?.summary?.totalMidCycles || 0,
       completed: this.midCycleDetails?.summary?.completedMidCycles || 0,
-      distributed: this.midCycleDetails?.summary?.totalDistributed || 0
+      distributed: this.decimalUtil.toNumber(this.midCycleDetails?.summary?.totalDistributed) || 0
     };
   }
 
@@ -1276,8 +1276,7 @@ export class CommunityDetailComponent implements OnInit, OnDestroy {  // Font Aw
    */
   openMidcycleSocialShareUrl(platform: 'twitter' | 'facebook' | 'whatsapp'): void {
     if (!this.midCycleSocialLinks) {
-      // If we don't have links yet, need to generate them first
-      this.toastService.info('Please use the share button on the specific midcycle first');
+      // If we don't have links yet, need to generate them first    this.toastService.info('Please use the share button on the specific midcycle first');
       return;
     }
 
@@ -1285,5 +1284,54 @@ export class CommunityDetailComponent implements OnInit, OnDestroy {  // Font Aw
     if (url) {
       window.open(url, '_blank');
     }
+  }
+
+  // Helper methods for safe decimal conversion
+  getMinContribution(): number {
+    return this.decimalUtil.toNumber(this.community?.settings?.minContribution);
+  }
+
+  getMinContributionSettings(): number {
+    return this.decimalUtil.toNumber(this.communitySettings?.minContribution);
+  }
+
+  getBackupFund(): number {
+    return this.decimalUtil.toNumber(this.community?.backupFund);
+  }
+
+  getTotalContribution(): number {
+    return this.decimalUtil.toNumber(this.community?.totalContribution);
+  }
+
+  getMinContributionCurrency(): string {
+    return this.decimalUtil.toCurrency(this.community?.settings?.minContribution);
+  }
+
+  getMinContributionSettingsCurrency(): string {
+    return this.decimalUtil.toCurrency(this.communitySettings?.minContribution);
+  }
+
+  getBackupFundCurrency(): string {
+    return this.decimalUtil.toCurrency(this.community?.backupFund);
+  }
+  getTotalContributionCurrency(): string {
+    return this.decimalUtil.toCurrency(this.community?.totalContribution);
+  }
+
+  // Helper methods for midcycle decimal values
+  getPayoutAmount(): number {
+    return this.decimalUtil.toNumber(this.midCycleDetails?.payoutAmount);
+  }
+
+  getPayoutAmountCurrency(): string {
+    return this.decimalUtil.toCurrency(this.midCycleDetails?.payoutAmount);
+  }
+
+  getContributorTotalAmount(contributor: any): number {
+    return this.decimalUtil.toNumber(contributor?.totalAmount);
+  }
+
+  getContributorTotalAmountCurrency(contributor: any): string {
+    return this.decimalUtil.toCurrency(contributor?.totalAmount);
   }
 }

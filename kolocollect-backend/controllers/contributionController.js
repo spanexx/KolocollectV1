@@ -1,4 +1,5 @@
 const { calculateTotalOwed, processBackPayment, recordContribution } = require('../utils/contributionUtils');
+const TransactionManager = require('../utils/transactionManager');
 const Contribution = require('../models/Contribution');
 const Community = require('../models/Community');
 const User = require('../models/User');
@@ -76,33 +77,33 @@ exports.createContribution = async (req, res) => {
 exports.updateContribution = async (req, res) => {
   try {
     const { id } = req.params;
-    const { amount: newAmount } = req.body;
+    const { amount: newAmount, reason } = req.body;
 
-    const contribution = await Contribution.findById(id);
-    if (!contribution) {
-      return createErrorResponse(res, 404, 'Contribution not found.');
+    // Validate required fields
+    if (!newAmount || newAmount <= 0) {
+      return createErrorResponse(res, 400, 'INVALID_AMOUNT', 'Valid amount is required');
     }
 
-    const oldAmount = contribution.amount;
+    // Use TransactionManager for ACID-compliant update
+    const result = await TransactionManager.handleContributionUpdate({
+      contributionId: id,
+      newAmount: parseFloat(newAmount),
+      reason: reason || 'Amount update'
+    });
 
-    if (newAmount !== oldAmount) {
-      const wallet = await Wallet.findOne({ userId: contribution.userId });
-      if (!wallet) {
-        return createErrorResponse(res, 404, 'Wallet not found.');
-      }
-
-      wallet.availableBalance += oldAmount;
-      wallet.availableBalance -= newAmount;
-      await wallet.save();
-    }
-
-    contribution.amount = newAmount;
-    await contribution.save();
-
-    res.status(200).json({ message: 'Contribution updated successfully.', contribution });
+    res.status(200).json({
+      message: result.message,
+      contribution: result.contribution,
+      oldAmount: result.oldAmount,
+      newAmount: result.newAmount,
+      amountDifference: result.amountDifference
+    });
   } catch (err) {
     console.error('Error updating contribution:', err);
-    createErrorResponse(res, 500, 'Server error while updating contribution.');
+    if (err.message === 'Contribution not found') {
+      return createErrorResponse(res, 404, 'CONTRIBUTION_NOT_FOUND', 'Contribution not found');
+    }
+    createErrorResponse(res, 500, 'UPDATE_CONTRIBUTION_ERROR', 'Server error while updating contribution: ' + err.message);
   }
 };
 
@@ -110,22 +111,25 @@ exports.updateContribution = async (req, res) => {
 exports.deleteContribution = async (req, res) => {
   try {
     const { id } = req.params;
+    const { reason } = req.body;
 
-    const contribution = await Contribution.findByIdAndDelete(id);
-    if (!contribution) {
-      return createErrorResponse(res, 404, 'Contribution not found.');
-    }
+    // Use TransactionManager for ACID-compliant deletion
+    const result = await TransactionManager.handleContributionDeletion({
+      contributionId: id,
+      reason: reason || 'Administrative deletion'
+    });
 
-    const wallet = await Wallet.findOne({ userId: contribution.userId });
-    if (wallet) {
-      wallet.availableBalance += contribution.amount;
-      await wallet.save();
-    }
-
-    res.status(200).json({ message: 'Contribution deleted successfully.' });
+    res.status(200).json({
+      message: result.message,
+      refundedAmount: result.refundedAmount,
+      deletedContribution: result.deletedContribution
+    });
   } catch (err) {
     console.error('Error deleting contribution:', err);
-    createErrorResponse(res, 500, 'Server error while deleting contribution.');
+    if (err.message === 'Contribution not found') {
+      return createErrorResponse(res, 404, 'CONTRIBUTION_NOT_FOUND', 'Contribution not found');
+    }
+    createErrorResponse(res, 500, 'DELETE_CONTRIBUTION_ERROR', 'Server error while deleting contribution: ' + err.message);
   }
 };
 

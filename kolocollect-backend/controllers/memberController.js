@@ -1,6 +1,7 @@
 const Member = require('../models/Member');
 const mongoose = require('mongoose');
 const { validationResult } = require('express-validator');
+const { QueryOptimizer } = require('../utils/queryOptimizer');
 
 // Get all members
 exports.getAllMembers = async (req, res) => {
@@ -9,11 +10,13 @@ exports.getAllMembers = async (req, res) => {
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
     
-    const members = await Member.find()
-      .skip(skip)
-      .limit(limit)
-      .populate('userId', 'name email')
-      .populate('communityId', 'name');
+    // Use optimized query
+    const members = await QueryOptimizer.getMembers({}, {
+      populate: true,
+      limit,
+      skip,
+      sort: { joinedAt: -1 }
+    });
       
     const total = await Member.countDocuments();
     
@@ -52,11 +55,16 @@ exports.getMembersByCommunityId = async (req, res) => {
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
     
-    const members = await Member.find({ communityId })
-      .skip(skip)
-      .limit(limit)
-      .populate('userId', 'name email')
-      .populate('communityId', 'name');
+    // Use optimized query
+    const members = await QueryOptimizer.getMembers(
+      { communityId }, 
+      {
+        populate: true,
+        limit,
+        skip,
+        sort: { position: 1 }
+      }
+    );
       
     const total = await Member.countDocuments({ communityId });
     

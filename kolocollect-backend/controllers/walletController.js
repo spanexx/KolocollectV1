@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const Wallet = require('../models/Wallet');
 const createErrorResponse = (res, status, message) => res.status(status).json({ error: { message } });
 const User = require('../models/User');
+const TransactionManager = require('../utils/transactionManager');
 
 const isValidObjectId = (id) => mongoose.Types.ObjectId.isValid(id);
 
@@ -40,22 +41,21 @@ exports.addFunds = async (req, res) => {
       return createErrorResponse(res, 400, `Invalid user ID(${userId}) or amount.`);
     }
 
-    const wallet = await Wallet.findOne({ userId });
-    if (!wallet) return createErrorResponse(res, 404, 'Wallet not found.');
+    // Use TransactionManager for ACID-compliant fund addition
+    const result = await TransactionManager.handleFundAddition({
+      userId,
+      amount,
+      description: 'Funds added manually'
+    });
 
-    // Use schema method
-    await wallet.addFunds(amount, 'Funds added manually');
-
-    // Notify user
-    const user = await User.findById(userId);
-    if (user) {
-      await user.addNotification('info', `€${amount} has been added to your wallet.`);
-    }
-
-    res.status(200).json({ message: `Successfully added €${amount} to wallet.`, wallet });
+    res.status(200).json({ 
+      message: `Successfully added €${amount} to wallet.`, 
+      wallet: result.wallet,
+      transaction: result.transaction
+    });
   } catch (err) {
     console.error('Error adding funds:', err);
-    createErrorResponse(res, 500, 'Failed to add funds.');
+    createErrorResponse(res, 500, err.message || 'Failed to add funds.');
   }
 };
 
@@ -68,28 +68,28 @@ exports.withdrawFunds = async (req, res) => {
       return createErrorResponse(res, 400, 'Invalid user ID or amount.');
     }
 
-    const wallet = await Wallet.findOne({ userId });
-    if (!wallet) return createErrorResponse(res, 404, 'Wallet not found.');
+    // Use TransactionManager for ACID-compliant fund withdrawal
+    const result = await TransactionManager.handleWithdrawal({
+      userId,
+      amount,
+      description: 'Manual withdrawal'
+    });
 
-    // Use schema method
-    await wallet.withdrawFunds(amount);
-
-    // Notify user
-    const user = await User.findById(userId);
-    if (user) {
-      await user.addNotification('info', `€${amount} has been withdrawn from your wallet.`);
-    }
-
-    res.status(200).json({ message: `Successfully withdrew €${amount} from wallet.`, wallet });
+    res.status(200).json({ 
+      message: `Successfully withdrew €${amount} from wallet.`, 
+      wallet: result.wallet,
+      transaction: result.transaction
+    });
   } catch (err) {
     console.error('Error withdrawing funds:', err);
-    createErrorResponse(res, 500, 'Failed to withdraw funds.');
+    createErrorResponse(res, 500, err.message || 'Failed to withdraw funds.');
   }
 };
 
 //  Transfer Funds
 exports.transferFunds = async (req, res) => {
-  try {    const { userId, amount, recipientId, recipientEmail, description } = req.body;
+  try {    
+    const { userId, amount, recipientId, recipientEmail, description } = req.body;
 
     console.log('Transfer funds request body:', req.body);
 
@@ -100,7 +100,9 @@ exports.transferFunds = async (req, res) => {
 
     if (!amount || amount <= 0) {
       return createErrorResponse(res, 400, 'Invalid amount. Amount must be greater than 0.');
-    }    let recipientUser;
+    }    
+
+    let recipientUser;
     // Handle both recipientId and recipientEmail
     if (recipientId && isValidObjectId(recipientId)) {
       console.log('Looking up recipient by ID:', recipientId);
@@ -119,44 +121,25 @@ exports.transferFunds = async (req, res) => {
     // Check if sender is transferring to themselves
     if (recipientUser._id.toString() === userId) {
       return createErrorResponse(res, 400, 'Cannot transfer funds to yourself.');
-    }    const senderWallet = await Wallet.findOne({ userId });
-    if (!senderWallet) return createErrorResponse(res, 404, 'Sender wallet not found.');
-
-    let recipientWallet = await Wallet.findOne({ userId: recipientUser._id });
-    if (!recipientWallet) {
-      // Create a wallet for the recipient if one doesn't exist
-      console.log('Creating new wallet for recipient:', recipientUser._id);
-      recipientWallet = new Wallet({
-        userId: recipientUser._id,
-        availableBalance: 0,
-        totalBalance: 0,
-        fixedBalance: 0,
-        transactions: []
-      });
-      await recipientWallet.save();
     }
 
-    // Check if sender has sufficient funds
-    if (senderWallet.availableBalance < amount) {
-      return createErrorResponse(res, 400, 'Insufficient funds for this transfer.');
-    }
+    // Use TransactionManager for ACID-compliant fund transfer
+    const result = await TransactionManager.handleTransfer({
+      senderId: userId,
+      recipientId: recipientUser._id,
+      amount,
+      description: description || `Transfer to ${recipientUser.email}`
+    });
 
-    // Use schema method
-    await senderWallet.transferFunds(amount, recipientWallet._id, description);// Notify sender
-    const sender = await User.findById(userId);
-    if (sender) {
-      await sender.addNotification('info', `You transferred €${amount} to ${recipientUser.email}.`);
-    }
-
-    // Notify recipient
-    if (recipientUser) {
-      await recipientUser.addNotification('info', `You received €${amount} from ${sender.email}.`);
-    }
-
-    res.status(200).json({ message: `Successfully transferred €${amount}.`, senderWallet, recipientWallet });
+    res.status(200).json({ 
+      message: `Successfully transferred €${amount}.`, 
+      senderWallet: result.senderWallet,
+      recipientWallet: result.recipientWallet,
+      transaction: result.transaction
+    });
   } catch (err) {
     console.error('Error transferring funds:', err);
-    createErrorResponse(res, 500, 'Failed to transfer funds.');
+    createErrorResponse(res, 500, err.message || 'Failed to transfer funds.');
   }
 };
 

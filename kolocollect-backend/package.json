@@ -12,7 +12,9 @@
     "profile:doctor": "node scripts/performance-profile.js doctor",
     "profile:flame": "node scripts/performance-profile.js flame",
     "profile:bubbleprof": "node scripts/performance-profile.js bubbleprof",
-    "profile:heap": "node scripts/performance-profile.js heapprofiler"
+    "profile:heap": "node scripts/performance-profile.js heapprofiler",
+    "clean": "rimraf node_modules",
+    "reinstall": "npm run clean && npm ci"
   },
   "keywords": [],
   "author": "",
@@ -22,16 +24,20 @@
     "@aws-sdk/client-s3": "^3.808.0",
     "@aws-sdk/s3-request-presigner": "^3.808.0",
     "aws-sdk": "^2.1692.0",
-    "axios": "^1.7.9",
+    "axios": "^1.9.0",
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.20.3",
+    "bull": "^4.16.5",
     "compression": "^1.7.4",
+    "connect-redis": "^7.1.1",
+    "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.21.0",
     "express-prom-bundle": "^7.0.0",
     "express-rate-limit": "^7.1.5",
     "express-validator": "^7.2.1",
+    "ioredis": "^5.6.1",
     "jsonwebtoken": "^9.0.2",
     "jwt-decode": "^4.0.0",
     "mongoose": "^8.7.0",
@@ -47,10 +53,11 @@
     "redis": "^4.7.0",
     "semver": "^7.5.4",
     "socket.io": "^4.8.1",
-    "stripe": "^17.4.0"
+    "stripe": "^17.4.0",
+    "uuid": "^9.0.1"
   },
   "devDependencies": {
-    "clinic": "^13.0.0",
-    "nodemon": "^3.1.7"
+    "nodemon": "^3.1.7",
+    "rimraf": "^6.0.1"
   }
 }

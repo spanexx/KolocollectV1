@@ -1,4 +1,5 @@
 const { calculateTotalOwed } = require('../utils/contributionUtils');
+const { QueryOptimizer, FIELD_SELECTORS } = require('../utils/queryOptimizer');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const Wallet = require('../models/Wallet');
@@ -159,21 +160,12 @@ exports.loginUser = async (req, res) => {
 exports.getUserProfile = async (req, res) => {
   const userId = req.params.userId; // Get user ID from request parameters
   try {
-    const user = await User.findById(userId)
-      .select('-password')
-      .populate({
-        path: 'communities.id',
-        select: 'name description',
-      })
-      .populate({
-        path: 'contributionsPaid.contributionId',
-        select: 'name',
-      });
+    // Use optimized query for user profile with communities
+    const user = await QueryOptimizer.getUserWithCommunities(userId, true);
 
     if (!user) return createErrorResponse(res, 404, 'USER_NOT_FOUND', 'User not found.');
 
     const wallet = await Wallet.findOne({ userId: user._id });
-
     const nextInLineDetails = await user.nextInLineDetails;
 
     res.status(200).json({
@@ -219,28 +211,21 @@ exports.getUpcomingPayouts = async (req, res) => {
     const mongoose = require('mongoose');
     const { userId } = req.params;
 
-    // Find user and populate their communities
-    const user = await User.findById(userId).populate('communities.id', 'name');
+    // Use optimized user query
+    const user = await QueryOptimizer.getUserWithCommunities(userId, false);
     if (!user) return res.status(404).json({ message: 'User not found.' });
 
     // Get upcoming payouts from virtual
     const virtualUpcomingPayouts = await user.upcomingPayouts || [];
-    
-    // Get all communities the user is a part of
+      // Get all communities the user is a part of using optimized query
     const userCommIds = user.communities.map(comm => comm.id._id);
     
-    // Find all communities the user is part of
-    const Community = mongoose.model('Community');
-    const Member = mongoose.model('Member');
-    const communities = await Community.find({
-      _id: { $in: userCommIds }
-    }).populate({
-      path: 'cycles',
-      match: { isComplete: false }
-    }).populate({
-      path: 'midCycle',
-      match: { isComplete: false }
-    });
+    // Use optimized QueryOptimizer to get communities with cycles and mid-cycles
+    const communities = await QueryOptimizer.getCommunities(
+      { _id: { $in: userCommIds } },
+      'medium',
+      {}
+    );
 
     // Calculate upcoming payouts based on member position in active cycles
     const calculatedUpcomingPayouts = [];
@@ -254,20 +239,22 @@ exports.getUpcomingPayouts = async (req, res) => {
         const activeCycle = community.cycles[0]; // The most recent active cycle
         if (!activeCycle) continue;
         
-        // Find the user's member record in this community
-        const member = await Member.findOne({
+        // Use optimized member query
+        const member = await QueryOptimizer.getMembers({
           communityId: community._id,
           userId: userId,
           status: 'active'
+        }, {
+          limit: 1,
+          populate: false
         });
         
-        if (!member) continue; // Skip if not an active member
+        if (!member || member.length === 0) continue; // Skip if not an active member
         
-        // Get active midcycle
-        const activeMidCycle = community.midCycle.find(mc => !mc.isComplete);
+        // Get active midcycle using optimized query
+        const activeMidCycle = await QueryOptimizer.getActiveMidCycle(community._id);
         if (!activeMidCycle) continue;
-        
-        // If user is next in line for current midcycle
+          // If user is next in line for current midcycle
         if (activeMidCycle.nextInLine && 
             activeMidCycle.nextInLine.userId && 
             activeMidCycle.nextInLine.userId.toString() === userId) {
@@ -284,12 +271,15 @@ exports.getUpcomingPayouts = async (req, res) => {
           continue;
         }
         
-        // Get all members who haven't been paid yet in this cycle
-        const unpaidMembers = await Member.find({
+        // Get all members who haven't been paid yet in this cycle using optimized query
+        const unpaidMembers = await QueryOptimizer.getMembers({
           _id: { $in: community.members },
           userId: { $nin: activeCycle.paidMembers },
           status: 'active'
-        }).sort('position');
+        }, {
+          sort: { position: 1 },
+          populate: false
+        });
         
         // Find user's position in the unpaid members queue
         const userPosition = unpaidMembers.findIndex(m => 
@@ -395,7 +385,8 @@ exports.cleanUpLogs = async (req, res) => {
 exports.getUserCommunities = async (req, res) => {
   const userId = req.params.userId;
   try {
-    const user = await User.findById(userId).populate('communities.id', 'name description');
+    // Use optimized query for user with communities
+    const user = await QueryOptimizer.getUserWithCommunities(userId, true);
     if (!user) return createErrorResponse(res, 404, 'User not found.');
 
     // Filter out communities where the populated community object is null (i.e., community was deleted)
@@ -479,14 +470,14 @@ exports.searchUsers = async (req, res) => {
     
     // Create a case-insensitive regex for search
     const searchRegex = new RegExp(normalizedQuery, 'i');
-    
+      // Use optimized user search with selective fields
     const users = await User.find({
       $or: [
         { name: searchRegex },
         { email: searchRegex }
       ]
     })
-    .select('_id name email') // Only return essential fields
+    .select(FIELD_SELECTORS.userBasic) // Use optimized field selector
     .limit(20); // Limit the number of results
     
     // Transform the result to match the frontend interface

@@ -13,11 +13,28 @@ const Member = require('./Member');
 
 const CommunitySchema = new mongoose.Schema({
     name: { type: String, required: true },
-    admin: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-    totalContribution: { type: Number, default: 0 },
-    totalDistributed: { type: Number, default: 0 },
+    admin: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },    totalContribution: { 
+        type: mongoose.Schema.Types.Decimal128, 
+        default: 0,
+        get: function(value) {
+            return value ? parseFloat(value.toString()) : 0;
+        }
+    },
+    totalDistributed: { 
+        type: mongoose.Schema.Types.Decimal128, 
+        default: 0,
+        get: function(value) {
+            return value ? parseFloat(value.toString()) : 0;
+        }
+    },
     description: { type: String },
-    backupFund: { type: Number, default: 0 },
+    backupFund: { 
+        type: mongoose.Schema.Types.Decimal128, 
+        default: 0,
+        get: function(value) {
+            return value ? parseFloat(value.toString()) : 0;
+        }
+    },
     lockPayout: { type: Boolean, default: false },
 
     // Reference to MidCycle documents
@@ -29,11 +46,16 @@ const CommunitySchema = new mongoose.Schema({
     // Reference to Member documents
     members: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Member' }],
 
-    nextPayout: { type: Date },
-    payoutDetails: {
+    nextPayout: { type: Date },    payoutDetails: {
         nextRecipient: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
         cycleNumber: { type: Number },
-        payoutAmount: { type: Number, default: 0 },
+        payoutAmount: { 
+            type: mongoose.Schema.Types.Decimal128, 
+            default: 0,
+            get: function(value) {
+                return value ? parseFloat(value.toString()) : 0;
+            }
+        },
         midCycleStatus: { type: String, default: "Just Started" }
     },
 
@@ -41,9 +63,20 @@ const CommunitySchema = new mongoose.Schema({
         contributionFrequency: { type: String, enum: ['Daily', 'Weekly', 'Monthly', 'Hourly'], default: 'Weekly' },
         maxMembers: { type: Number, default: 100 },
         backupFundPercentage: { type: Number, default: 10 },
-        isPrivate: { type: Boolean, default: false },
-        minContribution: { type: Number, default: 30 },
-        penalty: { type: Number, default: 10 },
+        isPrivate: { type: Boolean, default: false },        minContribution: { 
+            type: mongoose.Schema.Types.Decimal128, 
+            default: 30,
+            get: function(value) {
+                return value ? parseFloat(value.toString()) : 30;
+            }
+        },
+        penalty: { 
+            type: mongoose.Schema.Types.Decimal128, 
+            default: 10,
+            get: function(value) {
+                return value ? parseFloat(value.toString()) : 10;
+            }
+        },
         numMissContribution: { type: Number, default: 3 },
         firstCycleMin: { type: Number, default: 5 },
     },
@@ -1586,6 +1619,104 @@ CommunitySchema.methods.record = async function (contribution) {
 };
 
 /**
+ * Records a contribution in the community within a transaction session
+ */
+CommunitySchema.methods.recordInSession = async function (contribution, session) {
+    let retries = 3;
+    while (retries-- > 0) {
+        try {
+            const { contributorId, recipientId, amount, contributionId } = contribution;
+
+            const activeMidCycle = await MidCycle.findOne({
+                _id: { $in: this.midCycle },
+                isComplete: false
+            }).session(session);
+
+            if (!contributorId || !recipientId || !contributionId) {
+                throw new Error('Contributor ID, Recipient ID, and Contribution ID are required.');
+            }
+            if (!amount || amount <= 0) {
+                throw new Error('Contribution amount must be greater than zero.');
+            }
+            if (!activeMidCycle) {
+                throw new Error('No active mid-cycle found.');
+            }
+
+            if (!activeMidCycle.contributions) {
+                activeMidCycle.contributions = [];
+            }
+            if (!activeMidCycle.contributionsToNextInLine) {
+                activeMidCycle.contributionsToNextInLine = new Map();
+            }
+
+            let userContribution = activeMidCycle.contributions.find(c => c.user.equals(contributorId));
+            if (userContribution) {
+                userContribution.contributions.push(contributionId);
+            } else {
+                activeMidCycle.contributions.push({
+                    user: contributorId,
+                    contributions: [contributionId]
+                });
+            }            
+            
+            // Ensure contributionsToNextInLine is a Map
+            if (!activeMidCycle.contributionsToNextInLine) {
+                activeMidCycle.contributionsToNextInLine = new Map();
+            } else if (!(activeMidCycle.contributionsToNextInLine instanceof Map)) {
+                // Convert to Map if it's stored as a plain object
+                const tempMap = new Map();
+                Object.keys(activeMidCycle.contributionsToNextInLine).forEach(key => {
+                    tempMap.set(key, activeMidCycle.contributionsToNextInLine[key]);
+                });
+                activeMidCycle.contributionsToNextInLine = tempMap;
+            }
+            
+            // Update the contribution in the Map
+            const contributorKey = contributorId.toString();
+            const currentTotal = activeMidCycle.contributionsToNextInLine.get(contributorKey) || 0;
+            activeMidCycle.contributionsToNextInLine.set(contributorKey, currentTotal + amount);
+            
+            // Mark as modified to ensure Mongoose saves the changes
+            activeMidCycle.markModified('contributionsToNextInLine');
+            
+            // Calculate total amount from contributions array
+            const midCycleTotalAmount = activeMidCycle.contributions.reduce((total, contrib) => {
+                return total + (contrib.contributions.length * this.settings.minContribution);
+            }, 0);
+
+            const midCycleBackupFund = (this.settings.backupFundPercentage / 100) * midCycleTotalAmount;
+
+            this.backupFund += midCycleBackupFund;
+            this.totalContribution += amount;
+            activeMidCycle.payoutAmount = midCycleTotalAmount - midCycleBackupFund;
+
+            await activeMidCycle.save({ session });
+            const validationResult = await this.validateMidCycleAndContributions();
+            await this.updatePayoutInfo();
+
+            this.markModified('midCycle');
+            await this.save({ session });
+
+            return {
+                message: 'Contribution recorded successfully.',
+                totalContribution: this.totalContribution,
+                backupFund: this.backupFund,
+                midCycleBackupFund,
+                validationMessage: validationResult.message,
+                isMidCycleReady: activeMidCycle.isReady,
+            };
+        } catch (err) {
+            if (err.name === 'VersionError' && retries > 0) {
+                console.log(`Retrying record operation (${retries} retries left)`);
+                continue;
+            }
+            console.error('Error in record method:', err);
+            throw err;
+        }
+    }
+};
+
+/**
  * Reactivates an inactive member
  */
 CommunitySchema.methods.reactivateMember = async function (userId, contributionAmount) {
@@ -2520,5 +2651,13 @@ CommunitySchema.methods.leaveCommunity = async function (userId) {
 };
 
 CommunitySchema.methods.handleUnreadyMidCycle = require('./handleUnreadyMidCycle');
+
+// Strategic compound indexes for performance optimization
+CommunitySchema.index({ 'settings.contributionFrequency': 1, 'members': 1 });
+CommunitySchema.index({ 'admin': 1, 'settings.isPrivate': 1 });
+CommunitySchema.index({ 'nextPayout': 1, 'cycleState': 1 });
+CommunitySchema.index({ 'name': 'text', 'description': 'text' }); // Text index for search
+CommunitySchema.index({ 'members': 1, 'cycles': 1, 'midCycle': 1 }); // For member-cycle queries
+CommunitySchema.index({ 'payoutDetails.nextRecipient': 1, 'payoutDetails.cycleNumber': 1 });
 
 module.exports = mongoose.model('Community', CommunitySchema);

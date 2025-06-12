@@ -85,14 +85,14 @@
                 <fa-icon [icon]="faDollarSign" class="stat-icon"></fa-icon>
                 <div class="stat-content">
                   <span class="stat-label">Contribution</span>
-                  <span class="stat-value">${{ communitySettings?.minContribution || 0 }} {{ getContributionFrequencyText(community.settings.contributionFrequency) }}</span>
+                  <span class="stat-value">${{ getMinContributionSettingsCurrency() }} {{ getContributionFrequencyText(community.settings.contributionFrequency) }}</span>
                 </div>
               </div>
               <div class="stat-item">
                 <fa-icon [icon]="faPiggyBank" class="stat-icon"></fa-icon>
                 <div class="stat-content">
                   <span class="stat-label">Backup Fund</span>
-                  <span class="stat-value">${{ community.backupFund || 0 }}</span>
+                  <span class="stat-value">${{ getBackupFundCurrency() }}</span>
                 </div>
               </div>
             </div>
@@ -166,7 +166,7 @@
                       <div class="item-label">Admin</div>
                       <div class="item-value admin-info">
                         <fa-icon [icon]="faUser" class="admin-icon"></fa-icon>
-                        <span>{{ community.admin || 'Not assigned' }}</span>
+                        <span>{{ community.admin.id || 'Not assigned' }}</span>
                       </div>
                     </div>
                     <div class="overview-item">
@@ -183,7 +183,7 @@
                     </div>
                     <div class="overview-item">
                       <div class="item-label">Total Contribution</div>
-                      <div class="item-value">${{ community.totalContribution || 0 }}</div>
+                      <div class="item-value">${{ getTotalContributionCurrency() }}</div>
                     </div>
                     <div class="overview-item">
                       <div class="item-label">Contribution Frequency</div>
@@ -191,7 +191,7 @@
                     </div>
                     <div class="overview-item">
                       <div class="item-label">Minimum Contribution</div>
-                      <div class="item-value">${{ community.settings.minContribution || 0 }}</div>
+                      <div class="item-value">${{ getMinContributionCurrency() }}</div>
                     </div>
                     <div class="overview-item">
                       <div class="item-label">Maximum Members</div>
@@ -215,7 +215,7 @@
                     </div>
                     <div class="overview-item">
                       <div class="item-label">Penalty Fee</div>
-                      <div class="item-value">{{ communitySettings?.penalty || 0 }}</div>
+                      <div class="item-value">{{ communitySettings?.penalty?.$numberDecimal }}</div>
                     </div>
                   </div>
                 </div>
@@ -347,10 +347,9 @@
                           <div *ngIf="midCycleDetails?.nextInLine" class="midcycle-item">
                             <span class="item-label">Next In Line:</span>
                             <span class="item-value">{{ midCycleDetails.nextInLine?.name }}</span>
-                          </div>
-                          <div class="midcycle-item">
+                          </div>                          <div class="midcycle-item">
                             <span class="item-label">Payout Amount:</span>
-                            <span class="item-value">${{ midCycleDetails.payoutAmount || 0 }}</span>
+                            <span class="item-value">${{ getPayoutAmountCurrency() || '0' }}</span>
                           </div>
                           <div *ngIf="midCycleDetails.payoutDate" class="midcycle-item">
                             <span class="item-label">Payout Date:</span>
@@ -524,10 +523,9 @@
                         <div class="payout-item">
                           <div class="payout-label">Recipient</div>
                           <div class="payout-value">{{ midCycleDetails.nextInLine.name }}</div>
-                        </div>
-                        <div class="payout-item">
+                        </div>                        <div class="payout-item">
                           <div class="payout-label">Amount</div>
-                          <div class="payout-value">${{ midCycleDetails.payoutAmount }}</div>
+                          <div class="payout-value">${{ getPayoutAmountCurrency() || '0' }}</div>
                         </div>
                         <div class="payout-item">
                           <div class="payout-label">Scheduled Date</div>
@@ -560,10 +558,9 @@
                         <div class="contributor-info">
                           <span class="contributor-name">{{ contributor.user ? contributor.user.name : 'Unknown User' }}</span>
                           <span class="contributor-email">{{ contributor.user ? contributor.user.email : '' }}</span>
-                        </div>
-                        <div class="contribution-amount">
+                        </div>                        <div class="contribution-amount">
                           <span class="amount-label">Amount:</span>
-                          <span class="amount-value">${{ contributor.totalAmount || 0 }}</span>
+                          <span class="amount-value">${{ getContributorTotalAmountCurrency(contributor) || '0' }}</span>
                         </div>
                         <div class="contribution-status">
                           <fa-icon [icon]="faCheckCircle" class="status-icon contributed"></fa-icon>

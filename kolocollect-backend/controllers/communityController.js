@@ -1,5 +1,6 @@
 const { calculateTotalOwed, processBackPayment } = require('../utils/contributionUtils');
 const { processContributionsMap } = require('../utils/mapUtils');
+const { QueryOptimizer, FIELD_SELECTORS } = require('../utils/queryOptimizer');
 const redis = require('redis');
 const Community = require('../models/Community');
 const User = require('../models/User');
@@ -310,12 +311,8 @@ exports.joinCommunity = async (req, res) => {
     });
     await activityLog.save();
     community.activityLog.push(activityLog._id);
-    await community.save();
-
-    // Return populated community data
-    const populatedCommunity = await Community.findById(community._id)
-      .populate('members')
-      .populate('activityLog');
+    await community.save();    // Return optimized community data
+    const populatedCommunity = await QueryOptimizer.getCommunityById(community._id, 'withMembers');
 
     res.status(200).json({
       status: 'success',
@@ -613,12 +610,8 @@ exports.getMidCycleContributions = async (req, res) => {
 // Get community by ID
 exports.getCommunityById = async (req, res) => {
   try {
-    const community = await Community.findById(req.params.id)
-      .populate('members')
-      .populate('midCycle')
-      .populate('cycles')
-      .populate('votes')
-      .populate('activityLog');
+    // Use optimized query with selective population
+    const community = await QueryOptimizer.getCommunityById(req.params.id, 'withMembers');
       
     if (!community) {
       return res.status(404).json({ error: 'Community not found' });

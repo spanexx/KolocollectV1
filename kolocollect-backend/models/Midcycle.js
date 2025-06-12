@@ -12,7 +12,12 @@ const MidCycleSchema = new mongoose.Schema({
         secondInstallmentPaid: { type: Boolean, default: false },
         backPaymentDistributed: { type: Boolean, default: false },
         distributionDate: { type: Date },
-        distributionAmount: { type: Number }
+        distributionAmount: { 
+            type: mongoose.Schema.Types.Decimal128,
+            get: function(value) {
+                return value ? parseFloat(value.toString()) : 0;
+            }
+        }
     }],nextInLine: {
         userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
         memberReference: { type: mongoose.Schema.Types.ObjectId, ref: 'Member' },
@@ -21,15 +26,30 @@ const MidCycleSchema = new mongoose.Schema({
     },
     defaulters: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
     isComplete: { type: Boolean, default: false },
-    isReady: { type: Boolean, default: false },
-    payoutAmount: { type: Number },
+    isReady: { type: Boolean, default: false },    payoutAmount: { 
+        type: mongoose.Schema.Types.Decimal128,
+        get: function(value) {
+            return value ? parseFloat(value.toString()) : 0;
+        }
+    },
     payoutDate: { type: Date },
     contributionsToNextInLine: {
         type: Map,
-        of: Number,
+        of: mongoose.Schema.Types.Decimal128,
         default: {}
     },
 });
+
+// Configure toJSON to use getters for Decimal128 fields
+MidCycleSchema.set('toJSON', { getters: true });
+
+// Strategic indexes for MidCycle model
+MidCycleSchema.index({ cycleNumber: 1, isComplete: 1 }); // Cycle and completion status
+MidCycleSchema.index({ isReady: 1, isComplete: 1, payoutDate: 1 }); // Payout readiness queries
+MidCycleSchema.index({ 'nextInLine.userId': 1, isComplete: 1 }); // Next in line queries
+MidCycleSchema.index({ cycleNumber: 1, 'nextInLine.userId': 1 }); // User-cycle relationship
+MidCycleSchema.index({ payoutDate: 1, isReady: 1 }); // Scheduled payout queries
+MidCycleSchema.index({ 'midCycleJoiners.joiners': 1 }); // Joiner queries
 
 /**
  * Get a mid-cycle with populated data
