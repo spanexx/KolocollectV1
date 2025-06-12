@@ -33,6 +33,9 @@ html, body {
   font-family: 'Inter', 'Roboto', 'Helvetica Neue', sans-serif;
 }
 
+/* Import compact scale styles for smaller UI elements */
+@import 'styles/compact-scale.scss';
+
 /* Color variables based on theme for custom components */
 :root {
   --primary-color: #6D28D9;

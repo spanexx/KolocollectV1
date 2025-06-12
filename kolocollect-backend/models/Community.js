@@ -2653,11 +2653,16 @@ CommunitySchema.methods.leaveCommunity = async function (userId) {
 CommunitySchema.methods.handleUnreadyMidCycle = require('./handleUnreadyMidCycle');
 
 // Strategic compound indexes for performance optimization
-CommunitySchema.index({ 'settings.contributionFrequency': 1, 'members': 1 });
+// Removed compound index with array field for MongoDB compatibility
+CommunitySchema.index({ 'settings.contributionFrequency': 1 });
 CommunitySchema.index({ 'admin': 1, 'settings.isPrivate': 1 });
 CommunitySchema.index({ 'nextPayout': 1, 'cycleState': 1 });
 CommunitySchema.index({ 'name': 'text', 'description': 'text' }); // Text index for search
-CommunitySchema.index({ 'members': 1, 'cycles': 1, 'midCycle': 1 }); // For member-cycle queries
+// Removed problematic compound index on parallel arrays (members, cycles, midCycle)
+// These can be indexed separately if needed:
+// CommunitySchema.index({ 'members': 1 });
+// CommunitySchema.index({ 'cycles': 1 });
+// CommunitySchema.index({ 'midCycle': 1 });
 CommunitySchema.index({ 'payoutDetails.nextRecipient': 1, 'payoutDetails.cycleNumber': 1 });
 
 module.exports = mongoose.model('Community', CommunitySchema);

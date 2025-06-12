@@ -6,6 +6,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatBadgeModule } from '@angular/material/badge';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { AuthService } from '../../services/auth.service';
 import { User, ProfilePicture } from '../../models/user.model';
 import { Observable, tap, of, Subscription } from 'rxjs';
@@ -24,13 +25,14 @@ import {
   faWallet,
   faMoneyBill,
   faUsers,
-  faCalendarCheck
+  faCalendarCheck,
+  faCompress,
+  faExpand
 } from '@fortawesome/free-solid-svg-icons';
 
 @Component({
   selector: 'app-header',
-  standalone: true,
-  imports: [
+  standalone: true,  imports: [
     CommonModule,
     RouterModule,
     MatToolbarModule,
@@ -38,6 +40,7 @@ import {
     MatIconModule,
     MatMenuModule,
     MatBadgeModule,
+    MatTooltipModule,
     FontAwesomeModule
   ],
   templateUrl: './header.component.html',
@@ -62,8 +65,7 @@ import {
     ])
   ]
 })
-export class HeaderComponent implements OnInit, OnDestroy {
-  // FontAwesome icons
+export class HeaderComponent implements OnInit, OnDestroy {  // FontAwesome icons
   faBell = faBell;
   faChevronDown = faChevronDown;
   faSignOutAlt = faSignOutAlt;
@@ -72,6 +74,11 @@ export class HeaderComponent implements OnInit, OnDestroy {
   faMoneyBill = faMoneyBill;
   faUsers = faUsers;
   faCalendarCheck = faCalendarCheck;
+  faCompress = faCompress;
+  faExpand = faExpand;
+  
+  // Compact mode state
+  isCompactMode = false;
   currentUser$: Observable<User | null>;
   notificationCount = 0;
   private subscriptions: Subscription[] = [];
@@ -103,8 +110,10 @@ export class HeaderComponent implements OnInit, OnDestroy {
     const userSubscription = this.currentUser$.subscribe();
     this.subscriptions.push(userSubscription);
   }
-
   ngOnInit(): void {
+    // Initialize compact mode from localStorage
+    this.initializeCompactMode();
+    
     // Subscribe to the notification service's unread count
     const subscription = this.notificationService.unreadCount$.subscribe(count => {
       this.notificationCount = count;
@@ -303,9 +312,38 @@ export class HeaderComponent implements OnInit, OnDestroy {
     console.error('Profile image failed to load:', event);
     this.userProfilePicture = null;
   }
-
   logout(): void {
     this.authService.logout();
+  }
+
+  /**
+   * Initialize compact mode from localStorage
+   */
+  private initializeCompactMode(): void {
+    const saved = localStorage.getItem('compactMode');
+    this.isCompactMode = saved === 'true';
+    this.applyCompactMode();
+  }
+
+  /**
+   * Toggle compact mode
+   */
+  toggleCompactMode(): void {
+    this.isCompactMode = !this.isCompactMode;
+    localStorage.setItem('compactMode', this.isCompactMode.toString());
+    this.applyCompactMode();
+  }
+
+  /**
+   * Apply or remove compact mode class to body
+   */
+  private applyCompactMode(): void {
+    const body = document.body;
+    if (this.isCompactMode) {
+      body.classList.add('compact-mode');
+    } else {
+      body.classList.remove('compact-mode');
+    }
   }
 
   ngOnDestroy(): void {

@@ -85,14 +85,14 @@
                 <fa-icon [icon]="faDollarSign" class="stat-icon"></fa-icon>
                 <div class="stat-content">
                   <span class="stat-label">Contribution</span>
-                  <span class="stat-value">${{ getMinContributionSettingsCurrency() }} {{ getContributionFrequencyText(community.settings.contributionFrequency) }}</span>
+                  <span class="stat-value">{{ getMinContributionSettingsCurrency() }} {{ getContributionFrequencyText(community.settings.contributionFrequency) }}</span>
                 </div>
               </div>
               <div class="stat-item">
                 <fa-icon [icon]="faPiggyBank" class="stat-icon"></fa-icon>
                 <div class="stat-content">
                   <span class="stat-label">Backup Fund</span>
-                  <span class="stat-value">${{ getBackupFundCurrency() }}</span>
+                  <span class="stat-value">{{ getBackupFundCurrency() }}</span>
                 </div>
               </div>
             </div>
@@ -183,7 +183,7 @@
                     </div>
                     <div class="overview-item">
                       <div class="item-label">Total Contribution</div>
-                      <div class="item-value">${{ getTotalContributionCurrency() }}</div>
+                      <div class="item-value">{{ getTotalContributionCurrency() }}</div>
                     </div>
                     <div class="overview-item">
                       <div class="item-label">Contribution Frequency</div>
@@ -191,7 +191,7 @@
                     </div>
                     <div class="overview-item">
                       <div class="item-label">Minimum Contribution</div>
-                      <div class="item-value">${{ getMinContributionCurrency() }}</div>
+                      <div class="item-value">{{ getMinContributionCurrency() }}</div>
                     </div>
                     <div class="overview-item">
                       <div class="item-label">Maximum Members</div>
