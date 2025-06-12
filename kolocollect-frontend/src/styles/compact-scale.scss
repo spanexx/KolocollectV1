@@ -1,0 +1,459 @@
+// Compact Scale Override for KoloCollect Frontend
+// This file makes the entire application more compact and browser-friendly
+
+// ============================================================================
+// COMPACT FONT SIZES - Reduce all font sizes by 15-20%
+// ============================================================================
+
+// Override font size variables to be more compact
+$compact-font-size-xs: 0.625rem;    // 10px (was 12px)
+$compact-font-size-sm: 0.75rem;     // 12px (was 14px)
+$compact-font-size-base: 0.875rem;  // 14px (was 16px)
+$compact-font-size-lg: 1rem;        // 16px (was 18px)
+$compact-font-size-xl: 1.125rem;    // 18px (was 20px)
+$compact-font-size-2xl: 1.25rem;    // 20px (was 24px)
+$compact-font-size-3xl: 1.5rem;     // 24px (was 30px)
+$compact-font-size-4xl: 1.75rem;    // 28px (was 36px)
+$compact-font-size-5xl: 2rem;       // 32px (was 48px)
+
+// ============================================================================
+// COMPACT SPACING - Reduce all spacing by 25%
+// ============================================================================
+
+$compact-spacing-1: 0.1875rem;  // 3px (was 4px)
+$compact-spacing-2: 0.375rem;   // 6px (was 8px)
+$compact-spacing-3: 0.5625rem;  // 9px (was 12px)
+$compact-spacing-4: 0.75rem;    // 12px (was 16px)
+$compact-spacing-5: 0.9375rem;  // 15px (was 24px)
+$compact-spacing-6: 1.125rem;   // 18px (was 32px)
+$compact-spacing-8: 1.5rem;     // 24px (was 48px)
+$compact-spacing-10: 1.875rem;  // 30px (was 40px)
+
+// ============================================================================
+// GLOBAL COMPACT OVERRIDES
+// ============================================================================
+
+// Apply compact styling globally
+body.compact-mode {
+  font-size: $compact-font-size-base;
+  line-height: 1.4; // Tighter line height
+  
+  // Override all headings
+  h1 { font-size: $compact-font-size-3xl !important; }
+  h2 { font-size: $compact-font-size-2xl !important; }
+  h3 { font-size: $compact-font-size-xl !important; }
+  h4 { font-size: $compact-font-size-lg !important; }
+  h5 { font-size: $compact-font-size-base !important; }
+  h6 { font-size: $compact-font-size-sm !important; }
+  
+  // Reduce paragraph and text sizes
+  p, span, div { font-size: $compact-font-size-sm !important; }
+  
+  // ============================================================================
+  // COMPONENT-SPECIFIC COMPACT OVERRIDES
+  // ============================================================================
+  
+  // Community Detail Component Compaction
+  .community-detail-container {
+    margin: $compact-spacing-4 !important;
+    
+    .community-header {
+      margin-bottom: $compact-spacing-6 !important;
+      
+      .community-header-content {
+        padding: $compact-spacing-6 !important;
+      }
+      
+      h1 {
+        font-size: $compact-font-size-2xl !important;
+        margin-bottom: $compact-spacing-2 !important;
+      }
+      
+      .description {
+        font-size: $compact-font-size-sm !important;
+        margin-bottom: $compact-spacing-4 !important;
+      }
+    }
+    
+    // Compact community stats
+    .community-stats {
+      gap: $compact-spacing-3 !important;
+      margin-top: $compact-spacing-3 !important;
+      
+      .stat-item {
+        padding: $compact-spacing-2 !important;
+        
+        .stat-label {
+          font-size: $compact-font-size-xs !important;
+        }
+        
+        .stat-value {
+          font-size: $compact-font-size-sm !important;
+        }
+      }
+    }
+    
+    // Compact tabs
+    .custom-tabs-header {
+      .tab-button {
+        padding: $compact-spacing-2 $compact-spacing-4 !important;
+        font-size: $compact-font-size-sm !important;
+        
+        fa-icon {
+          font-size: $compact-font-size-sm !important;
+          margin-right: $compact-spacing-2 !important;
+        }
+      }
+    }
+    
+    // Compact tab content
+    .tab-content {
+      padding: $compact-spacing-6 !important;
+    }
+    
+    // Compact cards
+    .custom-card {
+      margin-bottom: $compact-spacing-4 !important;
+      
+      .card-header {
+        padding: $compact-spacing-3 $compact-spacing-4 !important;
+        
+        h3 {
+          font-size: $compact-font-size-lg !important;
+        }
+      }
+      
+      .card-content {
+        padding: $compact-spacing-4 !important;
+      }
+    }
+    
+    // Compact overview grid
+    .overview-grid {
+      gap: $compact-spacing-4 !important;
+      
+      .overview-item {
+        padding-bottom: $compact-spacing-2 !important;
+        
+        .item-label {
+          font-size: $compact-font-size-xs !important;
+          margin-bottom: $compact-spacing-1 !important;
+        }
+        
+        .item-value {
+          font-size: $compact-font-size-sm !important;
+        }
+      }
+    }
+    
+    // Compact midcycle elements
+    .midcycle-card {
+      padding: $compact-spacing-4 !important;
+      margin-bottom: $compact-spacing-4 !important;
+      
+      .midcycle-header {
+        margin-bottom: $compact-spacing-3 !important;
+        
+        h5 {
+          font-size: $compact-font-size-base !important;
+        }
+      }
+      
+      .midcycle-details {
+        gap: $compact-spacing-3 !important;
+        
+        .midcycle-item {
+          .item-label {
+            font-size: $compact-font-size-xs !important;
+            margin-bottom: $compact-spacing-1 !important;
+          }
+          
+          .item-value {
+            font-size: $compact-font-size-sm !important;
+          }
+        }
+      }
+    }
+  }
+  
+  // Community List Component Compaction
+  .community-list-container {
+    margin: $compact-spacing-4 !important;
+    
+    .header-section {
+      margin-bottom: $compact-spacing-6 !important;
+      padding-bottom: $compact-spacing-3 !important;
+      
+      h1 {
+        font-size: $compact-font-size-2xl !important;
+        
+        .section-icon {
+          font-size: $compact-font-size-xl !important;
+          margin-right: $compact-spacing-2 !important;
+        }
+      }
+    }
+    
+    // Compact community cards
+    .communities-grid {
+      gap: $compact-spacing-4 !important;
+      margin-bottom: $compact-spacing-6 !important;
+      
+      // Adjust grid to fit more cards
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)) !important;
+      
+      @media (max-width: 1200px) {
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)) !important;
+      }
+      
+      @media (max-width: 992px) {
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)) !important;
+      }
+      
+      .community-card {
+        mat-card-header {
+          padding: $compact-spacing-3 $compact-spacing-4 $compact-spacing-2 !important;
+          
+          .card-icon-container {
+            min-width: 2.5rem !important;
+            height: 2.5rem !important;
+            margin-right: $compact-spacing-3 !important;
+            
+            .card-icon {
+              font-size: $compact-font-size-lg !important;
+            }
+          }
+          
+          mat-card-title {
+            font-size: $compact-font-size-lg !important;
+            margin-bottom: $compact-spacing-1 !important;
+          }
+          
+          mat-card-subtitle {
+            font-size: $compact-font-size-xs !important;
+          }
+        }
+        
+        mat-card-content {
+          padding: $compact-spacing-2 $compact-spacing-4 $compact-spacing-4 !important;
+          
+          .description {
+            font-size: $compact-font-size-sm !important;
+            margin-bottom: $compact-spacing-3 !important;
+            line-height: 1.3 !important;
+          }
+          
+          .community-stats {
+            gap: $compact-spacing-3 !important;
+            
+            .stat {
+              font-size: $compact-font-size-xs !important;
+              
+              .label {
+                font-size: $compact-font-size-xs !important;
+                margin-bottom: $compact-spacing-1 !important;
+              }
+              
+              .value {
+                font-size: $compact-font-size-sm !important;
+              }
+            }
+          }
+        }
+        
+        mat-card-actions {
+          padding: $compact-spacing-2 $compact-spacing-4 $compact-spacing-4 !important;
+        }
+      }
+    }
+  }
+  
+  // Profile Component Compaction
+  .profile-container {
+    margin: $compact-spacing-4 !important;
+    
+    .profile-header {
+      padding: $compact-spacing-6 !important;
+      
+      .profile-info {
+        h1 {
+          font-size: $compact-font-size-2xl !important;
+          margin-bottom: $compact-spacing-2 !important;
+        }
+        
+        .profile-meta {
+          font-size: $compact-font-size-sm !important;
+        }
+      }
+    }
+  }
+  
+  // Button Compaction
+  .custom-button, button, .mat-mdc-button {
+    padding: $compact-spacing-2 $compact-spacing-4 !important;
+    font-size: $compact-font-size-sm !important;
+    min-height: auto !important;
+    
+    &.size-small {
+      padding: $compact-spacing-1 $compact-spacing-3 !important;
+      font-size: $compact-font-size-xs !important;
+    }
+    
+    &.size-medium {
+      padding: $compact-spacing-2 $compact-spacing-4 !important;
+      font-size: $compact-font-size-sm !important;
+    }
+    
+    &.size-large {
+      padding: $compact-spacing-3 $compact-spacing-5 !important;
+      font-size: $compact-font-size-base !important;
+    }
+    
+    .button-icon {
+      font-size: $compact-font-size-sm !important;
+      margin-right: $compact-spacing-2 !important;
+    }
+  }
+  
+  // Form Element Compaction
+  .mat-mdc-form-field {
+    .mat-mdc-text-field-wrapper {
+      .mat-mdc-form-field-flex {
+        .mat-mdc-form-field-infix {
+          min-height: 32px !important;
+          padding: $compact-spacing-2 0 !important;
+          
+          input, textarea {
+            font-size: $compact-font-size-sm !important;
+          }
+        }
+      }
+    }
+    
+    .mat-mdc-form-field-subscript-wrapper {
+      font-size: $compact-font-size-xs !important;
+    }
+  }
+  
+  // Material Design Component Overrides
+  .mat-mdc-card {
+    .mat-mdc-card-header {
+      padding: $compact-spacing-4 !important;
+      
+      .mat-mdc-card-title {
+        font-size: $compact-font-size-lg !important;
+      }
+      
+      .mat-mdc-card-subtitle {
+        font-size: $compact-font-size-sm !important;
+      }
+    }
+    
+    .mat-mdc-card-content {
+      padding: $compact-spacing-4 !important;
+    }
+    
+    .mat-mdc-card-actions {
+      padding: $compact-spacing-3 $compact-spacing-4 !important;
+    }
+  }
+  
+  // Table Compaction
+  .mat-mdc-table {
+    .mat-mdc-header-cell, .mat-mdc-cell {
+      padding: $compact-spacing-2 $compact-spacing-3 !important;
+      font-size: $compact-font-size-sm !important;
+    }
+    
+    .mat-mdc-header-cell {
+      font-size: $compact-font-size-xs !important;
+      font-weight: 600 !important;
+    }
+  }
+  
+  // Icon Compaction
+  fa-icon, .fa-icon, mat-icon {
+    font-size: $compact-font-size-base !important;
+    
+    &.stat-icon, &.menu-icon {
+      font-size: $compact-font-size-sm !important;
+    }
+    
+    &.large-icon {
+      font-size: $compact-font-size-xl !important;
+    }
+  }
+  
+  // Progress Bar Compaction
+  .progress-bar-container {
+    height: 6px !important; // Smaller progress bars
+  }
+  
+  // Status Chip Compaction
+  .status-chip, .badge {
+    padding: $compact-spacing-1 $compact-spacing-2 !important;
+    font-size: $compact-font-size-xs !important;
+  }
+  
+  // Loading Spinner Compaction
+  .loading-spinner {
+    padding: $compact-spacing-6 !important;
+    
+    .spinner-container {
+      width: 40px !important;
+      height: 40px !important;
+      
+      fa-icon {
+        font-size: 1.5em !important;
+      }
+    }
+    
+    p {
+      font-size: $compact-font-size-sm !important;
+      margin-top: $compact-spacing-3 !important;
+    }
+  }
+}
+
+// ============================================================================
+// RESPONSIVE COMPACT SCALING
+// ============================================================================
+
+// For smaller screens, make it even more compact
+@media (max-width: 768px) {
+  body.compact-mode {
+    .community-detail-container,
+    .community-list-container,
+    .profile-container {
+      margin: $compact-spacing-2 !important;
+    }
+    
+    .tab-content {
+      padding: $compact-spacing-4 !important;
+    }
+    
+    .custom-card .card-content {
+      padding: $compact-spacing-3 !important;
+    }
+    
+    h1 { font-size: $compact-font-size-xl !important; }
+    h2 { font-size: $compact-font-size-lg !important; }
+    h3 { font-size: $compact-font-size-base !important; }
+  }
+}
+
+// For very small screens, ultra-compact
+@media (max-width: 480px) {
+  body.compact-mode {
+    .community-detail-container,
+    .community-list-container,
+    .profile-container {
+      margin: $compact-spacing-1 !important;
+    }
+    
+    .communities-grid {
+      grid-template-columns: 1fr !important; // Single column on mobile
+      gap: $compact-spacing-2 !important;
+    }
+  }
+}

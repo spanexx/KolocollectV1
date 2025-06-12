@@ -55,10 +55,14 @@ import {
   faHourglass
 } from '@fortawesome/free-solid-svg-icons';
 
+// Performance tracking
+import { TrackComponentLifecycle, TrackPerformance } from '../../../decorators/performance.decorator';
+
 // RxJS
 import { Subject } from 'rxjs';
 import { takeUntil, catchError, finalize } from 'rxjs/operators';
 
+@TrackComponentLifecycle('WalletDashboardComponent')
 @Component({
   selector: 'app-wallet-dashboard',
   standalone: true,
@@ -146,6 +150,7 @@ export class WalletDashboardComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
+  @TrackPerformance('WalletDashboardComponent.loadWalletData')
   loadWalletData(): void {
     if (!this.userId) return;
     
@@ -230,6 +235,7 @@ export class WalletDashboardComponent implements OnInit, OnDestroy {
       });
   }
   
+  @TrackPerformance('WalletDashboardComponent.calculateTransactionMetrics')
   calculateTransactionMetrics(): void {
     const currentDate = new Date();
     const oneMonthAgo = new Date();

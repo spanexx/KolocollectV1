@@ -28,7 +28,7 @@ import {
   faLock
 } from '@fortawesome/free-solid-svg-icons';
 import { Subject } from 'rxjs';
-import { debounceTime, takeUntil } from 'rxjs/operators';
+import { takeUntil, debounceTime, distinctUntilChanged } from 'rxjs/operators';
 
 import { ContributionService } from '../../../services/contribution.service';
 import { WalletService } from '../../../services/wallet.service';
@@ -64,7 +64,14 @@ import { UserService } from '../../../services/user.service'; // Import UserServ
   templateUrl: './make-contribution.component.html',
   styleUrls: ['./make-contribution.component.scss']
 })
-export class MakeContributionComponent implements OnInit, OnDestroy {  // FontAwesome icons
+export class MakeContributionComponent implements OnInit, OnDestroy {
+  // Destroy subject for cleanup
+  private destroy$ = new Subject<void>();
+  
+  // Flag to prevent duplicate API calls
+  private nextInLineCheckInProgress = false;
+  
+  // FontAwesome icons
   faMoneyBillWave = faMoneyBillWave;
   faHandHoldingDollar = faHandHoldingDollar;
   faPiggyBank = faPiggyBank;
@@ -75,10 +82,6 @@ export class MakeContributionComponent implements OnInit, OnDestroy {  // FontAw
   faTimes = faTimes;
   faLock = faLock;
 
-  // RxJS
-  private destroy$ = new Subject<void>();
-  private nextInLineCheck$ = new Subject<void>();
-  
   // Form groups
   contributionForm: FormGroup;
   installmentForm: FormGroup;
@@ -91,18 +94,12 @@ export class MakeContributionComponent implements OnInit, OnDestroy {  // FontAw
   activeMidCycle: any = null;
   minContributionAmount = 0;
   installmentsAllowed = false; // Add this property to track if installments are allowed
+  
   // Next in line payment information
   nextInLineInfo: any = null;
   nextInLineLoading = false;
   hasNextInLineDue = false;
   amountInputDisabled = false; // New property to control disabling the amount input
-  effectiveContributionAmount = 0; // Cached version of effective contribution
-  minimumRequiredContribution = 0; // Cached version of minimum required contribution
-  
-  // API call control
-  private nextInLineCheckLock = false;
-  private nextInLineLastCheck = 0;
-  private readonly CHECK_THROTTLE_MS = 5000; // Only allow checks every 5 seconds
 
   // Route params
   communityId: string | null = null;
@@ -142,54 +139,42 @@ export class MakeContributionComponent implements OnInit, OnDestroy {  // FontAw
   }  ngOnInit(): void {
     this.loadWalletBalance();
     this.loadUserCommunities();
-    // Initialize the effective contribution amount
-    this.updateEffectiveContributionAmount();
-      
-    // Get URL parameters if provided
+      // Get URL parameters if provided
     this.route.queryParams.subscribe(params => {
       this.communityId = params['communityId'] || null;
       this.cycleId = params['cycleId'] || null;
       this.midcycleId = params['midcycleId'] || null;
       
       if (this.communityId) {
+        console.log('Received communityId from query params:', this.communityId);
         // We'll set the community ID in the form after loading user communities
         // This ensures the communities are loaded first
         this.loadCommunityDetails(this.communityId);
       }
     });
-      // Set up debounced next-in-line payment check to avoid multiple API calls
-    this.nextInLineCheck$
+    
+    // Setup listener for amount changes to check next-in-line payment info
+    // Add debounce and distinctUntilChanged to prevent excessive API calls
+    this.contributionForm.get('amount')?.valueChanges
       .pipe(
         takeUntil(this.destroy$),
-        debounceTime(1000) // Increased to 1 second to further reduce API calls
+        debounceTime(500),
+        distinctUntilChanged()
       )
-      .subscribe(() => {
-        // Avoid checking next-in-line if we don't have complete data yet
-        if (this.contributionForm.get('communityId')?.value && 
-            this.activeMidCycle?._id && 
-            !this.nextInLineLoading) {
-          this.performNextInLineCheck();
+      .subscribe(amount => {
+        // Skip next-in-line check if the amount was changed programmatically while disabled
+        if (!this.amountInputDisabled && !this.nextInLineCheckInProgress) {
+          this.checkNextInLinePayment();
         }
-      });    // Setup listener for amount changes to check next-in-line payment info
-    // Only react to value changes if the field is not disabled
-    this.contributionForm.get('amount')?.valueChanges.subscribe(amount => {
-      // Skip next-in-line check if the amount was changed programmatically while disabled
-      // Also limit API calls by only checking when amount is meaningful (greater than the minimum contribution)
-      if (!this.amountInputDisabled && amount && amount >= this.minContributionAmount) {
-        // Update the effective contribution amount when the amount changes
-        this.updateEffectiveContributionAmount();
-        // Trigger the debounced check instead of calling directly
-        this.nextInLineCheck$.next();
-      }
-    });
-    
-    // Only log status changes in development, don't trigger any checks here
-    if (console.debug) { // Using debug to indicate dev environment
-      this.contributionForm.statusChanges.subscribe(status => {
-        console.debug('Form status changed:', status);
-        console.debug('Amount control disabled:', this.contributionForm.get('amount')?.disabled);
       });
-    }
+  }
+  
+  /**
+   * Clean up subscriptions when component is destroyed
+   */
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   /**
@@ -269,18 +254,14 @@ export class MakeContributionComponent implements OnInit, OnDestroy {  // FontAw
   }
   /**
    * Load details for the selected community
-   */  loadCommunityDetails(communityId: string): void {
+   */
+  loadCommunityDetails(communityId: string): void {
     if (!communityId) return;
     
     // Log the community ID that we're trying to load
     console.log('Loading community details for ID:', communityId);
     
     this.loadingService.start('community-details');
-    
-    // Reset next-in-line info while loading new community details
-    this.nextInLineInfo = null;
-    this.hasNextInLineDue = false;
-    this.nextInLineLoading = false; // Ensure we're not in a loading state
     
     this.communityService.getCommunityById(communityId).subscribe({
       next: (response) => {
@@ -394,17 +375,11 @@ export class MakeContributionComponent implements OnInit, OnDestroy {  // FontAw
           } else {
             console.error('No midcycles found in community:', this.selectedCommunity);
             this.toastService.warning('No contribution cycles found for this community');          }
-            this.loadingService.stop('community-details');
           
-          // Delay the check to prevent request overlapping
-          if (this.activeMidCycle?._id) {
-            // Don't check immediately, let the UI update first
-            setTimeout(() => {
-              // Reset loading state once more just to be extra safe
-              this.nextInLineLoading = false;
-              this.checkNextInLinePayment();
-            }, 500);
-          }
+          this.loadingService.stop('community-details');
+          
+          // Check for next-in-line payment info after loading community details
+          this.checkNextInLinePayment();
         }
       },
       error: (error) => {
@@ -432,18 +407,17 @@ export class MakeContributionComponent implements OnInit, OnDestroy {  // FontAw
       const selectedCommunity = this.userCommunities.find(c => c._id === communityId);
       
       if (selectedCommunity) {
-        console.log('Selected community found:', selectedCommunity);          // Check if we already have full community details and can reuse them
-          if (this.selectedCommunity && 
-              (this.selectedCommunity._id === selectedCommunity._id || 
-               this.selectedCommunity._id === selectedCommunity.originalId)) {
-            console.log('Reusing existing community details');
-            // Only check for next-in-line payment info if we have an active midcycle
-            if (this.activeMidCycle && this.activeMidCycle._id) {
-              // Don't trigger the check directly, just queue it with proper controls
-              setTimeout(() => this.checkNextInLinePayment(), 100);
-            }
-            return; // We already have this community selected, no need to reload
-          }
+        console.log('Selected community found:', selectedCommunity);
+        
+        // Check if we already have full community details and can reuse them
+        if (this.selectedCommunity && 
+            (this.selectedCommunity._id === selectedCommunity._id || 
+             this.selectedCommunity._id === selectedCommunity.originalId)) {
+          console.log('Reusing existing community details');
+          // Even if reusing details, still check for next-in-line payment info
+          this.checkNextInLinePayment();
+          return; // We already have this community selected, no need to reload
+        }
         
         // Use originalId (which should match the actual ID on the backend) for API calls
         const apiCommunityId = selectedCommunity.originalId || selectedCommunity._id;
@@ -665,62 +639,21 @@ export class MakeContributionComponent implements OnInit, OnDestroy {  // FontAw
         console.error('Error creating contribution:', error);
       }
     });
-  }  /**
+  }
+  /**
    * Check if the user owes payment to the next in line member
    * This validates if a user previously received a payout from the current next-in-line member
    * and provides information about any amount that may be deducted from their contribution
-   * 
-   * This method is now enhanced with:
-   * - Aggressive throttling to prevent excessive API calls
-   * - Time-based lock to prevent rapid calls
-   * - Check for actual data changes to prevent redundant calls
    */  
   checkNextInLinePayment(): void {
-    // Only trigger the check if we have necessary data and we're not already loading
-    if (!this.contributionForm.get('communityId')?.value || 
-        !this.activeMidCycle?._id || 
-        this.nextInLineLoading || 
-        this.nextInLineCheckLock) {
-      console.log('Skipping next-in-line check: Missing data or already in progress');
-      return;
-    }
-    
-    // Check if enough time has passed since the last check
-    const now = Date.now();
-    if (now - this.nextInLineLastCheck < this.CHECK_THROTTLE_MS) {
-      console.log(`Throttling next-in-line check (last check was ${(now - this.nextInLineLastCheck)/1000}s ago)`);
-      return;
-    }
-    
-    // Set the lock and update last check time
-    this.nextInLineCheckLock = true;
-    this.nextInLineLastCheck = now;
-    
-    // Use the debounced call with a single emission to prevent cascading calls
-    setTimeout(() => {
-      this.nextInLineCheck$.next();
-      
-      // Release the lock after a minimum delay to prevent rapid successive calls
-      setTimeout(() => {
-        this.nextInLineCheckLock = false;
-      }, 2000);
-    }, 100);
-  }  /**
-   * Actual implementation of the next-in-line payment check
-   * This is executed after debouncing to reduce API calls
-   */
-  private performNextInLineCheck(): void {
     // Get current contribution amount (may be 0 if not yet set by user)
     const currentAmount = this.contributionForm.get('amount')?.value || 0;
     const communityId = this.contributionForm.get('communityId')?.value;
     const userId = this.authService.currentUserValue?.id;
     
-    // Super aggressive check to prevent any unnecessary API calls
-    if (this.nextInLineLoading || this.nextInLineCheckLock || !communityId || !this.activeMidCycle || !userId) {
-      console.log('Skipping next-in-line check: ' +
-                  (this.nextInLineLoading ? 'Already loading' : 
-                   this.nextInLineCheckLock ? 'API locked' : 'Missing data'));
-      this.nextInLineCheckLock = false; // Release the lock if we're exiting early
+    if (!communityId || !this.activeMidCycle || !userId) {
+      this.nextInLineInfo = null;
+      this.hasNextInLineDue = false;
       return;
     }
     
@@ -730,12 +663,17 @@ export class MakeContributionComponent implements OnInit, OnDestroy {  // FontAw
       console.error('Invalid midCycleId:', this.activeMidCycle);
       this.nextInLineInfo = null;
       this.hasNextInLineDue = false;
-      this.nextInLineCheckLock = false; // Release the lock
       return;
     }
     
-    // Set loading state to prevent duplicate requests
+    // Prevent duplicate API calls by checking if a request is already in progress
+    if (this.nextInLineCheckInProgress) {
+      console.log('Next-in-line check already in progress. Skipping duplicate request.');
+      return;
+    }
+    
     this.nextInLineLoading = true;
+    this.nextInLineCheckInProgress = true;
     
     // Use a minimum amount for the API call if the user hasn't entered one yet
     const amountForCheck = Math.max(currentAmount, this.minContributionAmount);
@@ -744,8 +682,7 @@ export class MakeContributionComponent implements OnInit, OnDestroy {  // FontAw
       communityId,
       contributorId: userId,
       midCycleId,
-      contributionAmount: amountForCheck,
-      timestamp: new Date().toISOString()
+      contributionAmount: amountForCheck
     });
     
     // Call the payNextInLine method to check if the user owes payment
@@ -758,20 +695,17 @@ export class MakeContributionComponent implements OnInit, OnDestroy {  // FontAw
       next: (response) => {
         console.log('Next-in-line payment response:', response);
         this.nextInLineLoading = false;
-          // If there's an amount to deduct, show the info
-        if (response && response.amountToDeduct && response.amountToDeduct > 0) {
-          this.nextInLineInfo = {
+        this.nextInLineCheckInProgress = false;
+        
+        // If there's an amount to deduct, show the info
+        if (response && response.amountToDeduct && response.amountToDeduct > 0) {this.nextInLineInfo = {
             message: response.message,
             amountToDeduct: response.amountToDeduct,
             effectiveContribution: Math.max(0, amountForCheck - response.amountToDeduct)
           };
           this.hasNextInLineDue = true;
-          
-          // Update the cached effective contribution amount
-          this.updateEffectiveContributionAmount();
-          
-          // Set the flag to disable the amount input when the user owes money
-          this.amountInputDisabled = true;// Disable the amount form control - this is the proper way to disable reactive form controls
+            // Set the flag to disable the amount input when the user owes money
+          this.amountInputDisabled = true;          // Disable the amount form control - this is the proper way to disable reactive form controls
           const amountControl = this.contributionForm.get('amount');
           if (amountControl) {
             amountControl.disable({emitEvent: false});
@@ -861,51 +795,32 @@ export class MakeContributionComponent implements OnInit, OnDestroy {  // FontAw
         }
       }
     });
-  }  /**
+  }
+  /**
    * Helper method to get the effective contribution amount after any deductions
-   * This method is now optimized to use a cached value instead of recalculating every time
    */
   getEffectiveContributionAmount(): number {
-    // Return the cached value
-    return this.effectiveContributionAmount;
-  }
-    /**
-   * Update the cached effective contribution amount
-   * This should be called whenever relevant values change
-   */
-  private updateEffectiveContributionAmount(): void {
     // Get value even from disabled controls
     const contributionAmount = this.isInstallment ? 
       this.installmentForm.get('initialAmount')?.value : 
       (this.contributionForm.get('amount')?.disabled ? 
         this.contributionForm.getRawValue().amount : 
-        this.contributionForm.get('amount')?.value) || 0;
+        this.contributionForm.get('amount')?.value);
       
     if (this.hasNextInLineDue && this.nextInLineInfo?.amountToDeduct) {
-      this.effectiveContributionAmount = Math.max(0, contributionAmount - this.nextInLineInfo.amountToDeduct);
-    } else {
-      this.effectiveContributionAmount = contributionAmount;
+      return Math.max(0, contributionAmount - this.nextInLineInfo.amountToDeduct);
     }
     
-    // Also update minimum required contribution
-    this.updateMinimumRequiredContribution();
+    return contributionAmount;
   }
+
   /**
-   * Calculates the minimum required contribution based on:
+   * Calculates the minimum required contribution amount based on:
    * 1. The community's minimum contribution setting
    * 2. Any amount owed to the next-in-line member
    * @returns The minimum required contribution amount
    */
   getMinimumRequiredContribution(): number {
-    // Return the cached value
-    return this.minimumRequiredContribution;
-  }
-  
-  /**
-   * Update the cached minimum required contribution
-   * This should be called whenever relevant values change
-   */
-  private updateMinimumRequiredContribution(): void {
     let minimumRequired = this.minContributionAmount;
     
     // Add any amount owed to the next-in-line
@@ -914,7 +829,7 @@ export class MakeContributionComponent implements OnInit, OnDestroy {  // FontAw
       minimumRequired += this.nextInLineInfo.amountToDeduct;
     }
     
-    this.minimumRequiredContribution = minimumRequired;
+    return minimumRequired;
   }
 
   /**
@@ -958,15 +873,5 @@ export class MakeContributionComponent implements OnInit, OnDestroy {  // FontAw
     console.log('- Amount value:', amountControl?.value);
     console.log('- Raw amount value:', this.contributionForm.getRawValue().amount);
     console.log('- Form valid:', this.contributionForm.valid);
-  }
-
-  ngOnDestroy(): void {
-    // Complete the subjects to prevent memory leaks
-    this.destroy$.next();
-    this.destroy$.complete();
-    
-    // Also complete the nextInLineCheck$ subject if it's active
-    this.nextInLineCheck$.next();
-    this.nextInLineCheck$.complete();
   }
 }

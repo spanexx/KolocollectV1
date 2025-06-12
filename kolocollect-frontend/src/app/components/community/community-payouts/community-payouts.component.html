@@ -34,7 +34,7 @@
               <fa-icon [icon]="faMoneyBillTransfer" class="payout-icon"></fa-icon>
               <div class="payout-content">
                 <span class="payout-label">Amount</span>
-                <span class="payout-value">${{ community.payoutDetails.payoutAmount || 0 }}</span>
+                <span class="payout-value">${{ community.payoutDetails.payoutAmount.$numberDecimal || 0 }}</span>
               </div>
             </div>
             

@@ -278,10 +278,9 @@ export class CommunitySharingComponent {
             this.activeTab = 'overview';
           }
         }
-        
-        // Check if current user is the admin
+          // Check if current user is the admin
         if (this.currentUserId && this.community?.admin) {
-          this.isAdmin = this.community.admin === this.currentUserId;
+          this.isAdmin = this.community.admin.id === this.currentUserId;
         }
 
         // Load active midcycle details

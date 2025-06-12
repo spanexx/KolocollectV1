@@ -3,16 +3,17 @@
   top: 0;
   z-index: 1000;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  background-color: #ab4502; // Warm terracotta color to complement colorful African logo
+  background-color: #680fa0; // Warm terracotta color to complement colorful African logo
   height: 70px; // Increased height to accommodate larger logo
+  padding: 0
 }
 
 .header-container {
   display: flex;
   width: 100%;
   max-width: 1280px;
-  margin: 0 auto;
-  padding: 0 1rem;
+  // margin: 0 auto;
+  // padding: 0 1rem;
   align-items: center;
 }
 
@@ -32,9 +33,9 @@
       opacity: 0.9;
     }
   }  .brand-logo {
-    height: 60px;
+    height: 90px;
     width: auto;
-    margin-left: 0.5rem;
+    // margin-left: 0.5rem;
     display: block;
   }
 }
@@ -64,12 +65,29 @@
   display: flex;
   align-items: center;
   
-  .notification-btn {
+  .compact-toggle-btn {
     margin-right: 0.5rem;
+    color: white;
+    opacity: 0.8;
+    transition: opacity 0.2s ease;
+    
+    &:hover {
+      opacity: 1;
+      background-color: rgba(255, 255, 255, 0.1);
+    }
+    
+    fa-icon {
+      font-size: 1.1rem;
+    }
+  }
+  
+  .notification-btn {
+    margin-right: 0.2rem;
     
     .fa-icon-badge {
       position: relative;
       display: inline-flex;
+      color: white;
       
       fa-icon {
         font-size: 1.25rem;
@@ -98,6 +116,7 @@
     align-items: center;
     
     .user-avatar {
+      background-color:  rgb(133, 133, 4);
       margin-right: 0.5rem;
       width: 36px;
       height: 36px;
@@ -332,7 +351,7 @@
 // Responsive styles
 @media (max-width: 480px) {
   .brand .brand-logo {
-    height: 48px;
+    height: 52px;
   }
   
   .header-actions .user-menu-btn .username {

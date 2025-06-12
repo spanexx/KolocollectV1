@@ -5,6 +5,7 @@ const Cycle = require('../models/Cycle');
 const MidCycle = require('../models/Midcycle');
 const Contribution = require('../models/Contribution');
 const mongoose = require('mongoose');
+const { QueryOptimizer } = require('../utils/queryOptimizer');
 
 // Helper function to create standardized error responses
 const createErrorResponse = (res, status, code, message) => {
@@ -20,42 +21,18 @@ const createErrorResponse = (res, status, code, message) => {
 // Get community contribution history
 exports.getCommunityContributionHistory = async (req, res) => {
   try {
-    const { communityId } = req.params;    // First, find the community and populate cycles, mid-cycles, and members    console.log(`Fetching community history for ID: ${communityId}`);
+    const { communityId } = req.params;
+    console.log(`Fetching community history for ID: ${communityId}`);
     
-    // Get the community with all necessary data
-    const community = await Community.findById(communityId)
-      .populate('cycles')
-      .populate('members')
-      .populate({
-        path: 'midCycle',
-        populate: [
-          {
-            path: 'nextInLine.userId',
-            select: 'name email'
-          },
-          {
-            path: 'nextInLine.memberReference',
-            select: 'name email position userId'
-          },
-          {
-            path: 'contributions',
-            populate: [
-              { 
-                path: 'user', 
-                select: 'name email' 
-              },
-              { 
-                path: 'contributions', 
-                model: 'Contribution', 
-                select: 'amount date status user' 
-              }
-            ]
-          }
-        ]
-      });
-      
-    console.log('Community loaded, has midCycle:', community && community.midCycle ? 
-      community.midCycle.length : 'none');
+    // Use optimized query for community history
+    const community = await QueryOptimizer.getCommunityById(communityId, 'history');
+    
+    if (!community) {
+      return createErrorResponse(res, 404, 'COMMUNITY_NOT_FOUND', 'Community not found');
+    }
+    
+    console.log('Community loaded with optimized query, has midCycle:', 
+      community && community.midCycle ? community.midCycle.length : 'none');
       
     // If midCycle is populated, log the first one as a sample
     if (community && community.midCycle && community.midCycle.length > 0) {

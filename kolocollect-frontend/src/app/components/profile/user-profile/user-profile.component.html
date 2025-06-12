@@ -14,21 +14,24 @@
   <!-- User profile content -->
   <div *ngIf="userProfile && !isLoading && !error" class="profile-content">
     <!-- Basic Information Card -->
-    <mat-card class="profile-card">
-      <mat-card-header>
-        <div class="header-avatar" mat-card-avatar>
-          <fa-icon [icon]="faUser" size="2x"></fa-icon>
+    <mat-card class="profile-card">      <mat-card-header>
+        <div class="header-avatar" mat-card-avatar [class.has-image]="profilePictureUrl">          
+          <img *ngIf="profilePictureUrl" [src]="profilePictureUrl" class="profile-image" alt="Profile Picture" 
+              (error)="handleImageError($event)" 
+              (load)="handleImageLoaded()">
+          <div *ngIf="!profilePictureUrl && userProfile?.name" class="avatar-initials">
+            {{ getUserInitials(userProfile.name) }}
+          </div>
+          <fa-icon *ngIf="!profilePictureUrl && !userProfile?.name" [icon]="faUser" size="2x"></fa-icon>
         </div>
         <mat-card-title>{{ userProfile.name }}</mat-card-title>
         <mat-card-subtitle>{{ userProfile.email }}</mat-card-subtitle>
       </mat-card-header>
       
       <mat-card-content>
-        <div class="user-info">
-          <div class="info-item">
-            <fa-icon [icon]="faCalendarAlt"></fa-icon>
-            <span class="label">Member Since:</span>
-            <span class="value">{{ formatDate(userProfile.joinedAt || userProfile.dateJoined) }}</span>
+        <div class="user-info">          <div class="info-item">
+            <fa-icon [icon]="faCalendarAlt"></fa-icon>            <span class="label">Member Since:</span>
+            <span class="value">{{ formatDate(userProfile.joinedAt || userProfile.dateJoined || userProfile.createdAt) }}</span>
           </div>
           
           <div class="info-item">
@@ -83,6 +86,82 @@
           View All Communities
         </button>
       </mat-card-actions>
+    </mat-card>
+
+    <!-- Membership Details Card -->
+    <mat-card class="profile-card membership-card" *ngIf="communityMemberships && communityMemberships.length > 0">
+      <mat-card-header>
+        <div class="header-avatar" mat-card-avatar>
+          <fa-icon [icon]="faBadgeCheck" size="2x"></fa-icon>
+        </div>
+        <mat-card-title>Membership Details</mat-card-title>
+      </mat-card-header>
+      
+      <mat-card-content>
+        <div class="memberships-list">
+          <div class="membership-item" *ngFor="let membership of communityMemberships">
+            <div class="membership-header">
+              <div class="membership-community">{{ membership.communityName }}</div>
+              <div class="membership-status" [ngClass]="getMemberStatusClass(membership.status)">
+                <fa-icon [icon]="faInfoCircle"></fa-icon>
+                {{ membership.status | titlecase }}
+              </div>
+            </div>
+              <div class="membership-details">
+              <div class="detail-item">
+                <fa-icon [icon]="faStar"></fa-icon>
+                <span class="label">Position:</span>
+                <span class="value">{{ membership.position || 'Not specified' }}</span>
+              </div>
+              
+              <div class="detail-item">
+                <fa-icon [icon]="faCalendarDay"></fa-icon>
+                <span class="label">Joined:</span>
+                <span class="value">{{ formatDate(membership.joinedAt) }}</span>
+              </div>
+              
+              <div class="detail-item" *ngIf="membership.isAdmin">
+                <fa-icon [icon]="faUserShield"></fa-icon>
+                <span class="value highlight">Community Administrator</span>
+              </div>
+                <!-- Member Status Note -->
+              <div class="detail-item" *ngIf="membership.status === 'unknown'">
+                <fa-icon [icon]="faInfoCircle"></fa-icon>
+                <span class="value note">Limited information available</span>
+              </div>
+              
+              <!-- Added missed contributions -->
+              <div class="detail-item" *ngIf="membership.missedContributions && membership.missedContributions.length > 0">
+                <fa-icon [icon]="faHistory"></fa-icon>
+                <span class="label">Missed Contributions:</span>
+                <span class="value warning">{{ membership.missedContributions.length }}</span>
+              </div>
+              
+              <!-- Added penalty information -->
+              <div class="detail-item" *ngIf="membership.penalty > 0">
+                <fa-icon [icon]="faMoneyBillWave"></fa-icon>
+                <span class="label">Penalty:</span>
+                <span class="value warning">€{{ membership.penalty }}</span>
+              </div>
+              
+              <!-- Payment plan information if applicable -->
+              <div class="detail-item" *ngIf="membership.paymentPlan && membership.paymentPlan.type && membership.paymentPlan.type !== 'Full'">
+                <fa-icon [icon]="faMoneyBillTransfer"></fa-icon>
+                <span class="label">Payment Plan:</span>
+                <span class="value">{{ membership.paymentPlan.type }} 
+                  <span *ngIf="membership.paymentPlan.installments">({{ membership.paymentPlan.installments }} installments)</span>
+                </span>
+              </div>
+                <!-- Contributions paid -->
+              <div class="detail-item" *ngIf="membership.contributionPaid && membership.contributionPaid.length > 0">
+                <fa-icon [icon]="faBadgeCheck"></fa-icon>
+                <span class="label">Contributions Paid:</span>
+                <span class="value">{{ membership.contributionPaid.length }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </mat-card-content>
     </mat-card>
 
     <!-- Next In Line Details Card -->

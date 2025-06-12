@@ -82,12 +82,12 @@
               <div class="stat">
                 <fa-icon [icon]="faShieldAlt" class="stat-icon"></fa-icon>
                 <span class="label">Backup Fund:</span>
-                <span class="value">{{ community.settings.backupFundPercentage || 0 }}% (€{{ formatBackupFundAmount(community.backupFund) }})</span>
+                <span class="value">{{ community.settings.backupFundPercentage || 0 }}% (€{{ formatBackupFundAmount(+community.backupFund.$numberDecimal) }})</span>
               </div>
               <div class="stat">
                 <fa-icon [icon]="faHandHoldingDollar" class="stat-icon"></fa-icon>
                 <span class="label">Total Distributed:</span>
-                <span class="value">{{ formatCurrency(community.totalContribution) }}</span>
+                <span class="value">{{ formatCurrency(+community.totalContribution.$numberDecimal) }}</span>
               </div>
             </div>
             

@@ -100,6 +100,11 @@ const userSchema = new mongoose.Schema({
 userSchema.set('toJSON', { virtuals: true });
 userSchema.set('toObject', { virtuals: true });
 
+// Virtual field for createdAt that maps to dateJoined for frontend compatibility
+userSchema.virtual('createdAt').get(function() {
+  return this.dateJoined;
+});
+
 // Virtual field to check if the user is next in line for a payout
 userSchema.virtual('nextInLineDetails').get(async function () {
   const Community = mongoose.model('Community');
@@ -230,6 +235,37 @@ userSchema.methods.addContribution = async function (contributionId, amount) {
   await this.save();
 };
 
+// Add contribution to a user within a transaction session
+userSchema.methods.addContributionInSession = async function (contributionId, amount, session) {
+  const contribution = this.contributionsPaid.find((c) => c.contributionId.equals(contributionId));
+
+  if (contribution) {
+    contribution.amount += amount;
+  } else {
+    this.contributionsPaid.push({
+      contributionId,
+      amount,
+    });
+  }
+
+  // Log the action
+  this.activityLog.push({
+    action: 'contributed',
+    details: `Contributed ${amount} to contribution ${contributionId}`,
+    date: new Date(),
+  });
+
+  // Add notification
+  this.notifications.push({
+    type: 'info',
+    message: `You have successfully created a contribution.`,
+    contributionId: contributionId,
+    date: new Date(),
+  });
+
+  await this.save({ session });
+};
+
 // Add a notification to the user
 userSchema.methods.addNotification = async function (type, message, communityId = null) {
   try {
@@ -266,6 +302,49 @@ userSchema.methods.addNotification = async function (type, message, communityId 
       }
 
       await this.save();
+    }
+  } catch (err) {
+    console.error('Error adding notification:', err);
+    throw new Error('Failed to add notification.');
+  }
+};
+
+// Add a notification to the user within a transaction session
+userSchema.methods.addNotificationInSession = async function (type, message, communityId = null, session) {
+  try {
+    // Prevent duplicate notifications of the same type and message
+    const duplicateNotification = this.notifications.find(
+      (n) => n.type === type && n.message === message && String(n.communityId) === String(communityId)
+    );
+
+    if (!duplicateNotification) {      
+      this.notifications.push({
+        type,
+        message,
+        communityId,
+        date: new Date(),
+        read: false,
+      });
+
+      // Log the action in the user's activity log
+      this.activityLog.push({
+        action: 'notification',
+        details: `New notification: ${message}`,
+      });
+
+      // Auto-trim notifications and activity log if they exceed maxLength
+      const maxLength = 50;
+      if (this.notifications.length > maxLength) {
+        this.notifications.sort((a, b) => b.date - a.date);
+        this.notifications = this.notifications.slice(0, maxLength);
+      }
+      
+      if (this.activityLog.length > maxLength) {
+        this.activityLog.sort((a, b) => b.date - a.date);
+        this.activityLog = this.activityLog.slice(0, maxLength);
+      }
+
+      await this.save({ session });
     }
   } catch (err) {
     console.error('Error adding notification:', err);
@@ -405,9 +484,16 @@ userSchema.methods.handlePenalty = async function (amount, action, reason, commu
       this.activityLog = this.activityLog.slice(0, maxLength);
     }
   }
-
   await this.save();
   return this.penalty;
 };
+
+// Strategic compound indexes for performance optimization
+userSchema.index({ 'email': 1, 'role': 1 });
+userSchema.index({ 'communities.id': 1, 'communities.isAdmin': 1 });
+userSchema.index({ 'contributions.communityId': 1, 'contributions.payoutDate': -1 });
+userSchema.index({ 'contributionsPaid.contributionId': 1 });
+userSchema.index({ 'dateJoined': -1, 'role': 1 });
+userSchema.index({ 'notifications.communityId': 1, 'notifications.read': 1, 'notifications.date': -1 });
 
 module.exports = mongoose.model('User', userSchema);

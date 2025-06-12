@@ -16,10 +16,16 @@
     </div>
 
     <!-- Spacer -->
-    <span class="spacer"></span>
-
-    <!-- Right side actions -->
+    <span class="spacer"></span>    <!-- Right side actions -->
     <div class="header-actions">
+      <!-- Compact Mode Toggle -->
+      <button mat-icon-button 
+              (click)="toggleCompactMode()" 
+              [matTooltip]="isCompactMode ? 'Switch to Normal View' : 'Switch to Compact View'"
+              class="compact-toggle-btn">
+        <fa-icon [icon]="isCompactMode ? faExpand : faCompress"></fa-icon>
+      </button>
+      
       <!-- Show these actions when user is authenticated -->
       <ng-container *ngIf="(currentUser$ | async) as user; else loginActions">
         <!-- Notifications -->

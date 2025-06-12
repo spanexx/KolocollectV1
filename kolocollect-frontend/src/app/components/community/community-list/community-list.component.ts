@@ -258,7 +258,7 @@ export class CommunityListComponent implements OnInit, OnDestroy {  // Font Awes
         
         // Find communities where the user is admin
         const adminCommunities = this.communities
-          .filter(community => community.admin === userId)
+          .filter(community => community.admin?.id === userId)
           .map(community => community._id);
         
         if (adminCommunities.length > 0) {

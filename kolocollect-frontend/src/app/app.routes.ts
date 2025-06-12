@@ -83,12 +83,16 @@ export const routes: Routes = [
       { 
         path: 'payouts', 
         loadComponent: () => import('./components/payout/payout-history/payout-history.component').then(m => m.PayoutHistoryComponent)
-      },
-
-      // Notifications route
+      },      // Notifications route
       {
         path: 'notifications',
         loadComponent: () => import('./components/notifications/notifications.component').then(m => m.NotificationsComponent)
+      },
+
+      // Performance monitoring route (admin only)
+      {
+        path: 'performance',
+        loadComponent: () => import('./components/performance-dashboard/performance-dashboard.component').then(m => m.PerformanceDashboardComponent)
       }
     ]
   },
