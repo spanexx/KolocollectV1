@@ -453,11 +453,9 @@ exports.skipPayoutForDefaulters = async (req, res) => {
           community._id
         );
       }
-    }
-
-    // Mark mid-cycle as complete
-    midCycle.isComplete = true;
-    await midCycle.save();
+    }    // Mark mid-cycle as complete
+    const { completeMidcycle } = require('../models/midcycleCompletionHandler');
+    await completeMidcycle(midCycle._id);
 
     // Create activity log
     const activityLog = new CommunityActivityLog({

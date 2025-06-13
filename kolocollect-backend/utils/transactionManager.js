@@ -278,12 +278,13 @@ class TransactionManager {
         distributorId,
         communityId,
         session
-      );
-
-      // 3. Update mid-cycle status
+      );      // 3. Update mid-cycle status
+      const { completeMidcycle } = require('../models/midcycleCompletionHandler');
+      await completeMidcycle(midCycleId, session);
+      
+      // Also update completedAt for historical reasons
       const midCycle = await MidCycle.findById(midCycleId).session(session);
       if (midCycle) {
-        midCycle.isComplete = true;
         midCycle.completedAt = new Date();
         await midCycle.save({ session });
       }

@@ -76,11 +76,10 @@ const POPULATION_CONFIGS = {
       path: 'cycles', 
       select: FIELD_SELECTORS.cycleMedium,
       options: { sort: { cycleNumber: -1 }, limit: 10 } // Latest 10 cycles only
-    },
-    { 
+    },    { 
       path: 'midCycle', 
       select: FIELD_SELECTORS.midCycleMedium,
-      match: { isComplete: false }, // Only active mid-cycles
+      // Fetch all midcycles, including completed ones
       populate: [
         { path: 'nextInLine.userId', select: FIELD_SELECTORS.userBasic },
         { path: 'nextInLine.memberReference', select: FIELD_SELECTORS.memberBasic },

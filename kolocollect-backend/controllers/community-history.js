@@ -6,6 +6,8 @@ const MidCycle = require('../models/Midcycle');
 const Contribution = require('../models/Contribution');
 const mongoose = require('mongoose');
 const { QueryOptimizer } = require('../utils/queryOptimizer');
+// Import the enhanced history query optimizer
+require('../utils/historyQueryOptimizer');
 
 // Helper function to create standardized error responses
 const createErrorResponse = (res, status, code, message) => {
@@ -24,7 +26,26 @@ exports.getCommunityContributionHistory = async (req, res) => {
     const { communityId } = req.params;
     console.log(`Fetching community history for ID: ${communityId}`);
     
-    // Use optimized query for community history
+    // Try the enhanced query optimizer first
+    try {
+      // Use the new enhanced history query optimizer
+      const communityData = await QueryOptimizer.getCompleteCommunityHistory(communityId);
+      
+      console.log(`Enhanced query found ${communityData.contributionHistory.length} cycles with midcycles`);
+      
+      // Return the history data
+      res.status(200).json({
+        status: 'success',
+        message: 'Community contribution history retrieved successfully',
+        data: communityData.contributionHistory
+      });
+      return;
+    } catch (optimizerError) {
+      console.warn('Enhanced query optimizer failed, falling back to standard method:', optimizerError.message);
+      // Continue with the original implementation as a fallback
+    }
+    
+    // Original implementation as fallback
     const community = await QueryOptimizer.getCommunityById(communityId, 'history');
     
     if (!community) {

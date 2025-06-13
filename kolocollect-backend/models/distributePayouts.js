@@ -163,11 +163,9 @@ module.exports = async function () {
             
             // Update the community's total distributed amount
             this.totalDistributed = (this.totalDistributed || 0) + netPayout;
-        }
-
-        // STEP 7: Mark mid-cycle as complete
-        activeMidCycle.isComplete = true;
-        await activeMidCycle.save();
+        }        // STEP 7: Mark mid-cycle as complete using the handler
+        const { completeMidcycle } = require('./midcycleCompletionHandler');
+        await completeMidcycle(activeMidCycle._id);
 
         // STEP 8: Update the active cycle's paid members list
         const activeCycle = await Cycle.findOne({ _id: { $in: this.cycles }, isComplete: false });
