@@ -202,10 +202,65 @@ export class WalletDashboardComponent implements OnInit, OnDestroy {
           // Load fixed funds next
           this.loadFixedFunds();
         })
-      )
-      .subscribe(data => {
-        this.transactions = data.transactions || [];
-        console.log('Transactions:', this.transactions);
+      )      .subscribe(data => {
+        console.log('Raw transaction data received:', data);
+        
+        // Ensure all transaction data is properly formatted
+        this.transactions = (data.transactions || []).map((tx: any, index: number) => {
+          console.log(`Processing transaction ${index}:`, tx);
+          
+          // Make sure amount is a valid number
+          let validAmount = 0;
+          
+          // First check if the amount property exists
+          if (tx.amount === undefined || tx.amount === null) {
+            console.warn(`Transaction ${index} missing amount property`);
+          } else if (typeof tx.amount === 'object' && tx.amount.$numberDecimal) {
+            // Handle MongoDB Decimal128 format
+            validAmount = Number(tx.amount.$numberDecimal);
+            console.log(`Transaction ${index} has Decimal128 amount: ${validAmount}`);
+          } else {
+            // Handle regular number format
+            const parsedAmount = Number(tx.amount);
+            if (isNaN(parsedAmount)) {
+              console.warn(`Transaction ${index} has invalid amount: "${tx.amount}" (${typeof tx.amount})`);
+            } else {
+              validAmount = parsedAmount;
+            }
+          }
+          
+          // Always assign a valid amount
+          tx.amount = validAmount;
+          
+          // Make sure date is properly formatted
+          if (tx.date && !(tx.date instanceof Date)) {
+            // Try to parse the date if it's a string
+            if (typeof tx.date === 'string') {
+              // Store the original date string
+              const originalDate = tx.date;
+              try {
+                const parsedDate = new Date(tx.date);
+                // Verify that the date is valid
+                if (!isNaN(parsedDate.getTime())) {
+                  tx.date = parsedDate;
+                } else {
+                  console.warn(`Invalid date format detected: ${originalDate}, using current date instead`);
+                  tx.date = new Date(); // Fallback to current date if invalid
+                }
+              } catch (error) {
+                console.error(`Error parsing date: ${originalDate}`, error);
+                tx.date = new Date(); // Fallback to current date
+              }
+            } else {
+              // If it's neither a Date nor a string, set to current date
+              console.warn(`Unexpected date format: ${typeof tx.date}`);
+              tx.date = new Date();
+            }
+          }
+          return tx;
+        });
+        
+        console.log('Processed Transactions:', this.transactions);
         
         // Calculate monthly metrics from transactions
         this.calculateTransactionMetrics();
@@ -234,12 +289,14 @@ export class WalletDashboardComponent implements OnInit, OnDestroy {
         this.fixedFunds = data || [];
       });
   }
-  
-  @TrackPerformance('WalletDashboardComponent.calculateTransactionMetrics')
+    @TrackPerformance('WalletDashboardComponent.calculateTransactionMetrics')
   calculateTransactionMetrics(): void {
     const currentDate = new Date();
     const oneMonthAgo = new Date();
     oneMonthAgo.setMonth(currentDate.getMonth() - 1);
+    
+    console.log('Date range for monthly calculations:', 
+      { from: oneMonthAgo.toISOString(), to: currentDate.toISOString() });
     
     // Calculate monthly change
     let monthlyCreditTotal = 0;
@@ -250,39 +307,84 @@ export class WalletDashboardComponent implements OnInit, OnDestroy {
     let totalOutgoing = 0;
     let totalPending = 0;
     
-    this.transactions.forEach(tx => {
+    if (!this.transactions || this.transactions.length === 0) {
+      console.log('No transactions to calculate metrics from');
+      this.monthlyChange = 0;
+      this.incomingAmount = 0;
+      this.outgoingAmount = 0;
+      this.pendingAmount = 0;
+      return;
+    }
+    
+    console.log(`Processing ${this.transactions.length} transactions`);
+    
+    this.transactions.forEach((tx, index) => {
+      // Skip transactions with invalid amounts
+      if (tx.amount === undefined || tx.amount === null || isNaN(Number(tx.amount))) {
+        console.warn(`Transaction at index ${index} has invalid amount:`, tx.amount);
+        return;
+      }
+      
+      // Ensure amount is a number
+      const amount = Number(tx.amount);
+      
       const txDate = new Date(tx.date);
+      if (isNaN(txDate.getTime())) {
+        console.warn(`Transaction at index ${index} has invalid date:`, tx.date);
+        return;
+      }
+      
+      // Debug transaction date
+      console.log(`Transaction ${index}: ${tx.type}, ${amount}, date: ${tx.date}, 
+        in date range: ${txDate >= oneMonthAgo ? 'Yes' : 'No'}`);
       
       // Check if transaction is from the last month
       if (txDate >= oneMonthAgo) {
         if (['deposit', 'payout'].includes(tx.type)) {
-          monthlyCreditTotal += tx.amount;
+          monthlyCreditTotal += amount;
+          console.log(`Added ${amount} to credits. New total: ${monthlyCreditTotal}`);
         } else if (['withdrawal', 'contribution', 'penalty', 'transfer'].includes(tx.type)) {
-          monthlyDebitTotal += tx.amount;
+          monthlyDebitTotal += amount;
+          console.log(`Added ${amount} to debits. New total: ${monthlyDebitTotal}`);
         }
       }
       
       // Calculate incoming (expected money to receive)
       if (['deposit', 'payout'].includes(tx.type) && tx.status === 'pending') {
-        totalIncoming += tx.amount;
+        totalIncoming += amount;
       }
       
       // Calculate outgoing (money to be paid)
       if (['withdrawal', 'contribution', 'penalty', 'transfer'].includes(tx.type) && 
           tx.status === 'pending') {
-        totalOutgoing += tx.amount;
+        totalOutgoing += amount;
       }
       
       // Calculate pending (all pending transactions)
       if (tx.status === 'pending') {
-        totalPending += tx.amount;
+        totalPending += amount;
       }
     });
     
-    this.monthlyChange = monthlyCreditTotal - monthlyDebitTotal;
-    this.incomingAmount = totalIncoming;
-    this.outgoingAmount = totalOutgoing;
-    this.pendingAmount = totalPending;
+    console.log('Monthly calculation totals:', { 
+      credits: monthlyCreditTotal, 
+      debits: monthlyDebitTotal
+    });
+      this.monthlyChange = monthlyCreditTotal - monthlyDebitTotal;
+    console.log('Monthly Change:', this.monthlyChange);
+    
+    // Ensure all final values are valid numbers
+    this.monthlyChange = isNaN(this.monthlyChange) ? 0 : this.monthlyChange;
+    this.incomingAmount = isNaN(totalIncoming) ? 0 : totalIncoming;
+    this.outgoingAmount = isNaN(totalOutgoing) ? 0 : totalOutgoing;
+    this.pendingAmount = isNaN(totalPending) ? 0 : totalPending;
+    
+    console.log('Final calculated metrics:', {
+      monthlyChange: this.monthlyChange,
+      incomingAmount: this.incomingAmount,
+      outgoingAmount: this.outgoingAmount,
+      pendingAmount: this.pendingAmount
+    });
   }
   
   getTransactionIcon(type: TransactionType): any {
@@ -332,14 +434,30 @@ export class WalletDashboardComponent implements OnInit, OnDestroy {
       day: 'numeric' 
     });
   }
-  
-  formatCurrency(amount: number): string {
+  formatCurrency(amount: number | any): string {
+    let numericAmount = 0;
+    
+    // Handle MongoDB Decimal128 format
+    if (typeof amount === 'object' && amount !== null && amount.$numberDecimal) {
+      numericAmount = Number(amount.$numberDecimal);
+    } 
+    // Handle regular number or string
+    else {
+      numericAmount = Number(amount);
+    }
+    
+    // Check if the conversion resulted in a valid number
+    if (isNaN(numericAmount)) {
+      console.warn('Invalid amount passed to formatCurrency:', amount);
+      numericAmount = 0; // Default to 0 for invalid values
+    }
+    
     return new Intl.NumberFormat('en-US', { 
       style: 'currency',
       currency: 'USD',
       minimumFractionDigits: 2,
       maximumFractionDigits: 2
-    }).format(amount);
+    }).format(numericAmount);
   }
   
   getRemainingDays(endDate: Date | string): number {

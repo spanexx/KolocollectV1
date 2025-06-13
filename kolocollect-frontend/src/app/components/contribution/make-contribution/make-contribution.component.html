@@ -44,7 +44,8 @@
             Select Community
             </h2>          <mat-form-field appearance="outline" class="full-width">
             <mat-label>Select Community</mat-label>
-            <mat-select formControlName="communityId" (selectionChange)="onCommunityChange()">              <mat-option *ngFor="let community of userCommunities" [value]="community._id">
+            <mat-select formControlName="communityId" (selectionChange)="onCommunityChange()">              
+              <mat-option *ngFor="let community of userCommunities" [value]="community._id">
                 {{ community.id.name }}
               </mat-option>
             </mat-select>
@@ -57,7 +58,7 @@
             <div class="community-info-row">
               <div class="info-item">
                 <span class="info-label">Min. Contribution:</span>
-                <span class="info-value">${{ selectedCommunity.settings?.minContribution || 0 }}</span>
+                <span class="info-value">${{ selectedCommunity.settings?.minContribution.$numberDecimal || 0 }}</span>
               </div>
               <div class="info-item">
                 <span class="info-label">Frequency:</span>

@@ -105,7 +105,7 @@ export class CommunityListComponent implements OnInit, OnDestroy {  // Font Awes
   
   // Frontend filter flag
   useFrontendFilter: boolean = true; // Set to true to enable frontend filtering
-    constructor(
+  constructor(
     private communityService: CommunityService,
     private userService: UserService,
     private memberService: MemberService,
@@ -114,13 +114,22 @@ export class CommunityListComponent implements OnInit, OnDestroy {  // Font Awes
     private router: Router,
     private authService: AuthService,
     private dialog: MatDialog,
-    private midcycleService: MidcycleService
-  ) {}
-  ngOnInit(): void {
+    private midcycleService: MidcycleService,
+    private communityEventService: CommunityEventService
+  ) {}  ngOnInit(): void {
     // Set frontend filter flag to true to use the new frontend filtering
     this.useFrontendFilter = true;
     this.loadCommunities();
     this.loadUserCommunities();
+    
+    // Subscribe to community joined events to refresh the list
+    this.communityEventService.communityMembershipChanged$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((communityId: string) => {
+        // Refresh both the communities list and user communities when a community is joined
+        this.loadCommunities();
+        this.loadUserCommunities();
+      });
   }loadCommunities(): void {
     this.isLoading = true;
     this.error = null;

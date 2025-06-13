@@ -24,7 +24,7 @@ export interface Community {
   midCycle?: MidCycle[]; // Fixed: renamed from midCycle to midCycles for consistency
   payoutDetails?: {
     nextRecipient?: string;
-    payoutAmount?: number; // Assuming this is a standard number or needs a different type based on its usage
+    payoutAmount?: NumberDecimalValue; // Assuming this is a standard number or needs a different type based on its usage
     payoutDate?: Date;
   };
 }

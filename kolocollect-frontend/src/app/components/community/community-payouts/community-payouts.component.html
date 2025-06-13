@@ -21,12 +21,11 @@
       <div *ngIf="!loadingPayouts && community.payoutDetails && community.cycles && community.cycles.length > 0" class="payout-info">
         <div class="next-payout-large">
           <h3>Next Payout</h3>
-          <div class="payout-details">
-            <div class="payout-stat">
+          <div class="payout-details">            <div class="payout-stat">
               <fa-icon [icon]="faUser" class="payout-icon"></fa-icon>
               <div class="payout-content">
                 <span class="payout-label">Recipient: </span>
-                <span class="payout-value">{{ community.payoutDetails.nextRecipient || 'Not assigned yet' }}</span>
+                <span class="payout-value">{{ nextRecipientName }}</span>
               </div>
             </div>
             
@@ -34,7 +33,7 @@
               <fa-icon [icon]="faMoneyBillTransfer" class="payout-icon"></fa-icon>
               <div class="payout-content">
                 <span class="payout-label">Amount</span>
-                <span class="payout-value">${{ community.payoutDetails.payoutAmount.$numberDecimal || 0 }}</span>
+                <span class="payout-value">${{ community.payoutDetails.payoutAmount || 0 }}</span>
               </div>
             </div>
             

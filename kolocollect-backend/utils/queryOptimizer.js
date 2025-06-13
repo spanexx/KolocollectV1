@@ -21,11 +21,10 @@ const FIELD_SELECTORS = {
   communityBasic: 'name description admin settings.minContribution settings.maxMembers',
   communityMedium: 'name description admin members settings totalContribution totalDistributed',
   communityList: 'name description admin settings.minContribution settings.maxMembers createdAt',
-
   // Member fields
-  memberBasic: 'name email userId position status',
-  memberMedium: 'name email userId position status penalty missedContributions',
-  memberFull: 'name email userId position status penalty missedContributions contributionPaid paymentPlan',
+  memberBasic: 'name email userId position status joinedAt',
+  memberMedium: 'name email userId position status penalty missedContributions joinedAt',
+  memberFull: 'name email userId position status penalty missedContributions contributionPaid paymentPlan joinedAt',
 
   // MidCycle fields
   midCycleBasic: 'cycleNumber isComplete nextInLine payoutDate',
@@ -70,7 +69,6 @@ const POPULATION_CONFIGS = {
       select: FIELD_SELECTORS.midCycleMedium
     }
   ],
-
   communityHistory: [
     { path: 'admin', select: FIELD_SELECTORS.userBasic },
     { path: 'members', select: FIELD_SELECTORS.memberMedium },
@@ -85,7 +83,9 @@ const POPULATION_CONFIGS = {
       match: { isComplete: false }, // Only active mid-cycles
       populate: [
         { path: 'nextInLine.userId', select: FIELD_SELECTORS.userBasic },
-        { path: 'nextInLine.memberReference', select: FIELD_SELECTORS.memberBasic }
+        { path: 'nextInLine.memberReference', select: FIELD_SELECTORS.memberBasic },
+        { path: 'contributions.user', select: FIELD_SELECTORS.userBasic },
+        { path: 'contributions.contributions', select: FIELD_SELECTORS.contributionBasic }
       ]
     }
   ],

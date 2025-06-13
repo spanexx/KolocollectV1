@@ -170,8 +170,9 @@ export class ContributionHistoryComponent implements OnInit {
           console.error('Error loading contributions:', error);
         }
       });
+      // console.log('getCommunityNmame', this.getCommunityNmame());
   }
-  
+
   loadContributionSummary(): void {
     const userId = this.authService.currentUserValue?.id;
     if (!userId) {

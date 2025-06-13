@@ -174,24 +174,28 @@ export class SidebarComponent implements OnInit {
       this.toggleCollapse.emit(true);
     }
   }
-  
-  onSidebarTabClick(event: MouseEvent): void {
-    // If we're on mobile and the sidebar is collapsed
-    if (this.isMobile && this.isCollapsed) {
-      const sidebarElement = event.currentTarget as HTMLElement;
-      
-      if (sidebarElement) {
-        const sidebarRect = sidebarElement.getBoundingClientRect();
-        const clickX = event.clientX;
-        const rightEdge = sidebarRect.right;
+    onSidebarTabClick(event: MouseEvent): void {
+    try {
+      // If we're on mobile and the sidebar is collapsed
+      if (this.isMobile && this.isCollapsed) {
+        const sidebarElement = event.currentTarget as HTMLElement;
         
-        // Check if click is on the pull tab (near the right edge of the collapsed sidebar)
-        if (clickX >= rightEdge - 30 && clickX <= rightEdge + 20) {
-          this.isCollapsed = false;
-          this.toggleCollapse.emit(false);
-          event.stopPropagation();
+        if (sidebarElement) {
+          const sidebarRect = sidebarElement.getBoundingClientRect();
+          const clickX = event.clientX;
+          const rightEdge = sidebarRect.right;
+          
+          // Check if click is on the pull tab (near the right edge of the collapsed sidebar)
+          if (clickX >= rightEdge - 30 && clickX <= rightEdge + 20) {
+            this.isCollapsed = false;
+            this.toggleCollapse.emit(false);
+            event.stopPropagation();
+          }
         }
       }
+    } catch (error) {
+      console.error('Error in sidebar click handling:', error);
+      // Prevent the error from bubbling up
     }
   }
 

@@ -33,6 +33,7 @@ kolocollect-frontend/coverage/
 kolocollect-frontend/libpeerconnection.log
 kolocollect-frontend/typings/
 kolocollect-frontend/documentation/
+MDs/
 
 # Node/Express
 kolocollect-backend/node_modules/

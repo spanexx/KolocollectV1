@@ -231,14 +231,27 @@ export class UserProfileComponent implements OnInit {
    */
   handleImageLoaded(): void {
     console.log('Profile image loaded successfully');
-  }
-
-  loadCommunityMemberships(): void {
+  }  loadCommunityMemberships(): void {
     this.loadingService.start('member-details');
     
-    // Extract community IDs from user profile
-    const communityIds = this.userProfile.communities.map((community: any) => 
-      community.id?._id || community.id);
+    // Check if user profile and communities exist
+    if (!this.userProfile || !this.userProfile.communities || !Array.isArray(this.userProfile.communities)) {
+      console.warn('No communities found in user profile');
+      this.loadingService.stop('member-details');
+      return;
+    }
+    
+    // Extract community IDs from user profile and filter out null/undefined values
+    const communityIds = this.userProfile.communities
+      .map((community: any) => community.id?._id || community.id)
+      .filter((id: string) => id && id !== null && id !== undefined);
+    
+    // If no valid community IDs found, stop loading and return
+    if (!communityIds || communityIds.length === 0) {
+      console.warn('No valid community IDs found for user');
+      this.loadingService.stop('member-details');
+      return;
+    }
     
     // Create an array of requests for each community
     const memberRequests = communityIds.map((communityId: string) => 

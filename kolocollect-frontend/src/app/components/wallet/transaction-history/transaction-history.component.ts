@@ -243,6 +243,7 @@ export class TransactionHistoryComponent implements OnInit, OnDestroy {
       )
       .subscribe({
         next: (data) => {
+          console.log('Transaction data:', data);
           this.transactions = data.transactions || [];
           this.totalTransactions = data.total || 0;
         },

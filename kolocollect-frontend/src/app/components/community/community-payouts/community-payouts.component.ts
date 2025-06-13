@@ -49,6 +49,8 @@ export class CommunityPayoutsComponent implements OnInit, OnDestroy {
   payouts: any[] = [];
   loadingPayouts: boolean = false;
   payDate: Date | null = null;
+  nextRecipientName: string = 'Not assigned yet';
+
   private destroy$ = new Subject<void>();
   constructor(
     private communityService: CommunityService,
@@ -65,8 +67,7 @@ export class CommunityPayoutsComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
-  }
-  loadCommunityData(): void {
+  }  loadCommunityData(): void {
     if (!this.communityId) return;
     
     this.loadingPayouts = true;
@@ -84,44 +85,38 @@ export class CommunityPayoutsComponent implements OnInit, OnDestroy {
       .subscribe(data => {
         this.community = data.community;
         console.log('Community data:', this.community);
-        if (this.community && this.community.payoutDetails) {
-          this.calculatePayDate();
+        
+        // Set payout date from community's nextPayout field
+        if (this.community && this.community.nextPayout) {
+          this.payDate = new Date(this.community.nextPayout);
+          console.log('Set payout date from community.nextPayout:', this.payDate);
         }
         
-        // After loading community, fetch the active midcycle details
-        if (this.community && this.community.cycles && this.community.cycles.length > 0) {
+        // Resolve next recipient name
+        this.resolveNextRecipientName();
+        
+        // Also try to get more detailed payout info from midcycle if available
+        if (this.community && this.community.midCycle && this.community.midCycle.length > 0) {
           this.loadMidcycleDetails();
         }
       });
   }
-  
-  loadMidcycleDetails(): void {
-    // Get current cycle
-    const currentCycle = this.getCurrentCycle();
-    if (!currentCycle || !currentCycle.midCycles || currentCycle.midCycles.length === 0) {
-      console.log('No current cycle or midcycles found');
-      return;
+    loadMidcycleDetails(): void {
+    // Try to get the most recent midcycle ID from the community data
+    let midcycleId: string | null = null;
+    
+    if (this.community.midCycle && this.community.midCycle.length > 0) {
+      // Get the most recent midcycle (last in array)
+      const latestMidcycle = this.community.midCycle[this.community.midCycle.length - 1];
+      midcycleId = typeof latestMidcycle === 'string' ? latestMidcycle : latestMidcycle._id || latestMidcycle;
     }
-      // Get all non-complete midcycles from the current cycle
-    const activeMidcycles = currentCycle.midCycles.filter((mc: any) => !mc.isComplete);
-    
-    if (activeMidcycles.length === 0) {
-      console.log('No active midcycles found');
-      return;
-    }
-    
-    // Sort by midCycleNumber to get the latest one
-    const latestMidcycle = activeMidcycles.sort((a: any, b: any) => 
-      (b.midCycleNumber || 0) - (a.midCycleNumber || 0)
-    )[0];
-    
-    // Extract the ID string from the midcycle object
-    const midcycleId = typeof latestMidcycle === 'string' ? latestMidcycle : latestMidcycle.id;
     
     if (!midcycleId) {
-      console.error('Failed to get a valid midcycle ID');
+      console.log('No midcycle ID found');
       return;
     }
+    
+    console.log('Loading midcycle details for ID:', midcycleId);
     
     this.midcycleService.getMidCycleById(this.communityId, midcycleId)
       .pipe(
@@ -133,10 +128,19 @@ export class CommunityPayoutsComponent implements OnInit, OnDestroy {
       )
       .subscribe({
         next: (response) => {
-          console.log('Midcycle details response:', response.data);
+          console.log('Midcycle details response:', response);
           if (response && response.data) {
-            // Update payDate from midcycle data
-            this.payDate = response.data.payoutDate;
+            
+            // Update payDate from midcycle data if it has a more accurate date
+            if (response.data.payoutDate) {
+              this.payDate = new Date(response.data.payoutDate);
+            }
+            
+            // Update payout amount if available
+            if (response.data.payoutAmount && this.community.payoutDetails) {
+              this.community.payoutDetails.payoutAmount = response.data.payoutAmount;
+              
+            }
           } else {
             console.warn('Midcycle details response has no data');
           }
@@ -152,13 +156,40 @@ export class CommunityPayoutsComponent implements OnInit, OnDestroy {
     return this.community.cycles.find((cycle: any) => !cycle.isComplete) || 
            this.community.cycles[this.community.cycles.length - 1];
   }
-
-  calculatePayDate(): void {
-    if (this.community && this.community.payoutDetails && this.community.payoutDetails.payoutDate) {
-      this.payDate = new Date(this.community.payoutDetails.payoutDate);
-    } else {
-      this.payDate = null;
+  
+  resolveNextRecipientName(): void {
+    if (!this.community || !this.community.payoutDetails || !this.community.payoutDetails.nextRecipient) {
+      this.nextRecipientName = 'Not assigned yet';
+      return;
     }
+    
+    const nextRecipientId = this.community.payoutDetails.nextRecipient;
+    
+    // Try to find the recipient in the community members
+    if (this.community.members && this.community.members.length > 0) {
+      const recipient = this.community.members.find((member: any) => 
+        member.userId === nextRecipientId || member.userId._id === nextRecipientId || 
+        member._id === nextRecipientId
+      );
+      
+      if (recipient) {
+        this.nextRecipientName = recipient.name || 'Unknown Member';
+        console.log('Resolved recipient name:', this.nextRecipientName);
+        return;
+      }
+    }
+    
+    // If not found in members, try to find in admin
+    if (this.community.admin && 
+        (this.community.admin._id === nextRecipientId || this.community.admin.userId === nextRecipientId)) {
+      this.nextRecipientName = this.community.admin.name || 'Community Admin';
+      console.log('Resolved recipient as admin:', this.nextRecipientName);
+      return;
+    }
+    
+    // If still not found, show the ID
+    this.nextRecipientName = nextRecipientId || 'Not assigned yet';
+    console.log('Could not resolve recipient name, using ID:', this.nextRecipientName);
   }
 
   formatDate(date: Date | string | null | undefined): string {

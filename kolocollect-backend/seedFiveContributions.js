@@ -78,8 +78,8 @@ const seedContributionsForAllCommunities = async () => {
           continue;
         }
 
-        // Limit to 5 members per mid-cycle
-        const limitedMembers = eligibleMembers.slice(0, 4);
+        // Limit to num(1,2,3,...) members per mid-cycle
+        const limitedMembers = eligibleMembers.slice(0, 1);
         
         console.log(`Found ${eligibleMembers.length} eligible members, processing 5 max for mid-cycle ${midCycle.cycleNumber}`);
         console.log(`Processing contributions for: ${limitedMembers.map((m) => m.userId).join(', ')}`);

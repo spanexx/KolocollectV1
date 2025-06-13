@@ -59,9 +59,116 @@ html, body {
 
 /* Fix for -ms-high-contrast deprecation warning */
 @media (forced-colors: active) {
-  /* Add forced colors mode styles here */
-  .mat-icon, .mat-badge {
+  /* Global forced colors adjustments */
+  * {
+    forced-color-adjust: auto;
+  }
+  
+  /* Preserve brand colors for important elements */
+  .mat-mdc-button.mat-primary,
+  .mat-mdc-raised-button.mat-primary,
+  .mat-mdc-fab.mat-primary,
+  .mat-mdc-mini-fab.mat-primary {
     forced-color-adjust: none;
+  }
+  
+  /* Icons and badges should preserve colors */
+  .mat-icon,
+  .mat-mdc-badge,
+  .fa-icon,
+  [class^="fa-"],
+  [class*=" fa-"] {
+    forced-color-adjust: none;
+  }
+  
+  /* Cards and surfaces */
+  .mat-mdc-card,
+  .mat-mdc-dialog-container,
+  .mat-mdc-snack-bar-container {
+    background: Canvas;
+    color: CanvasText;
+    border: 1px solid CanvasText;
+  }
+  
+  /* Form controls */
+  .mat-mdc-form-field,
+  .mat-mdc-input-element,
+  .mat-mdc-select,
+  .mat-mdc-checkbox,
+  .mat-mdc-radio-button {
+    forced-color-adjust: none;
+  }
+  
+  /* Tables */
+  .mat-mdc-table {
+    border: 1px solid CanvasText;
+    
+    .mat-mdc-header-cell,
+    .mat-mdc-cell {
+      border-bottom: 1px solid CanvasText;
+    }
+  }
+  
+  /* Navigation and menus */
+  .mat-mdc-menu-panel,
+  .mat-mdc-select-panel {
+    background: Canvas;
+    border: 1px solid CanvasText;
+  }
+  
+  /* Progress indicators */
+  .mat-mdc-progress-bar,
+  .mat-mdc-progress-spinner {
+    forced-color-adjust: none;
+  }
+  
+  /* Tooltips */
+  .mat-mdc-tooltip {
+    background: Canvas;
+    color: CanvasText;
+    border: 1px solid CanvasText;
+  }
+}
+
+/* ===========================================
+   LEGACY HIGH CONTRAST SUPPORT
+   =========================================== */
+
+/* Suppress warnings by providing fallback for legacy browsers */
+@media screen and (-ms-high-contrast: active) {
+  /* Provide basic high contrast support for legacy Edge */
+  .mat-icon,
+  .mat-mdc-badge,
+  .fa-icon {
+    -ms-high-contrast-adjust: none;
+  }
+  
+  /* Ensure text remains readable */
+  .mat-mdc-card,
+  .mat-mdc-dialog-container {
+    border: 1px solid windowText;
+  }
+}
+
+@media screen and (-ms-high-contrast: black-on-white) {
+  /* Light high contrast theme adjustments */
+  .loading-container {
+    background: white;
+  }
+  
+  .mat-mdc-progress-bar .mdc-linear-progress__bar-inner {
+    border-color: black !important;
+  }
+}
+
+@media screen and (-ms-high-contrast: white-on-black) {
+  /* Dark high contrast theme adjustments */
+  .loading-container {
+    background: black;
+  }
+  
+  .mat-mdc-progress-bar .mdc-linear-progress__bar-inner {
+    border-color: white !important;
   }
 }
 

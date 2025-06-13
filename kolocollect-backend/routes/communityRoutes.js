@@ -16,6 +16,7 @@ router.get('/all', communityController.getAllCommunities);
 router.get('/:id', communityController.getCommunityById);
 router.get('/:communityId/required-contribution', communityController.getRequiredContribution); // New route to get required contribution
 router.get('/:communityId/midcycles/:midcycleId', communityController.getMidcycleById); // New route to get midcycle by ID
+router.get('/:communityId/cycles/:cycleId', communityController.getCycleById); // New route to get cycle by ID
 router.get('/:communityId/current-midcycle', communityController.getCurrentMidCycleDetails); // Get current mid-cycle details
 router.get('/:communityId/midcycle-contributions', communityController.getMidCycleContributions); // Get mid-cycle contributions
 router.get('/:communityId/contribution-history', communityHistoryController.getCommunityContributionHistory); // Get contribution history in hierarchical format

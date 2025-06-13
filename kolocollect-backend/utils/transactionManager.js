@@ -154,6 +154,7 @@ class TransactionManager {
    */
   static async handleFundAddition(params) {
     const { userId, amount, description = 'Funds added' } = params;
+    console.log('Adding funds to wallet', { userId, amount, description });
 
     return await this.executeTransaction(async (session) => {
       const Wallet = mongoose.model('Wallet');

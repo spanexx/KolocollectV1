@@ -66,6 +66,7 @@
             <h1>{{ community.name }}</h1>
             <p class="description">{{ community.description }}</p>
             
+            
             <div class="community-stats">
               <div class="stat-item">
                 <fa-icon [icon]="faUsers" class="stat-icon"></fa-icon>
@@ -221,14 +222,14 @@
                 </div>
               </div>
             </div>
-              <!-- Next Payout section removed as it's duplicated in Current Cycle Information -->
+
             <div class="section" *ngIf="getCurrentCycle()">
               <h2>Current Cycle Information</h2>
               <div class="custom-card">
                 <div class="card-content">
                   <div class="cycle-info">
                     <div class="cycle-header">
-                      <span class="cycle-number">Cycle {{ getCurrentCycle()?.cycleNumber }}</span>
+                      <span class="cycle-number">Cycle {{ cycleDetails?.cycleNumber }}</span>
                       <div class="status-chip" [ngClass]="getCurrentCycle()?.isComplete ? 'complete-chip' : 'in-progress-chip'">
                         {{ getCurrentCycle()?.isComplete ? 'Complete' : 'In Progress' }}
                       </div>
@@ -276,7 +277,7 @@
                         <fa-icon [icon]="faCalendarDays" class="date-icon"></fa-icon>
                         <div>
                           <span class="date-label">Start Date</span>
-                          <span class="date-value">{{ formatDate(getCurrentCycle()?.startDate || undefined) }}</span>
+                          <span class="date-value">{{ formatDate(cycleDetails?.startDate || undefined) }}</span>
                         </div>
                       </div>
                       <div class="cycle-date" *ngIf="getCurrentCycle()?.isComplete">
@@ -296,7 +297,7 @@
                             {{ midCycleDetails.isComplete ? 'Complete' : midCycleDetails.isReady ? 'Ready for Payout' : 'In Progress' }}
                           </div>
                         </div>
-                          <div class="midcycle-progress vertical-progress">
+                          <!-- <div class="midcycle-progress vertical-progress">
                           <div class="progress-content">
                             <div class="progress-percentage">{{ getContributionProgressPercentage() }}%</div>
                             <div class="progress-bar-container">
@@ -304,7 +305,7 @@
                             </div>
                             <div class="progress-text">Complete</div>
                           </div>
-                        </div>
+                        </div> -->
                         
                         <div class="midcycle-details">
                           <!-- Add midcycle share/export buttons -->
@@ -349,7 +350,7 @@
                             <span class="item-value">{{ midCycleDetails.nextInLine?.name }}</span>
                           </div>                          <div class="midcycle-item">
                             <span class="item-label">Payout Amount:</span>
-                            <span class="item-value">${{ getPayoutAmountCurrency() || '0' }}</span>
+                            <span class="item-value">{{ getPayoutAmountCurrency() || '0' }}</span>
                           </div>
                           <div *ngIf="midCycleDetails.payoutDate" class="midcycle-item">
                             <span class="item-label">Payout Date:</span>
@@ -389,7 +390,8 @@
               <!-- Mid-Cycle Summary Section -->
             <div class="section" *ngIf="community">
               <h2>Mid-Cycle Summary</h2>
-              <div class="custom-card">                <div class="card-content" *ngIf="loadingMidCycleDetails">
+              <div class="custom-card">                
+                <div class="card-content" *ngIf="loadingMidCycleDetails">
                   <div class="loading-indicator">
                     <fa-icon [icon]="faCircleInfo"></fa-icon>
                     <span>Loading mid-cycle details...</span>
@@ -417,7 +419,9 @@
                         <div class="progress-percentage">{{ getContributionProgressPercentage() }}%</div>
                         <div class="progress-bar-container">
                           <div class="progress-bar vertical" [style.height.%]="getContributionProgressPercentage()"></div>
+                          
                         </div>
+                        
                         <div class="progress-info-item">
                           <fa-icon [icon]="faUsers"></fa-icon>
                           <span>{{ midCycleDetails.contributionProgress?.made || 0 }}/{{ midCycleDetails.contributionProgress?.expected || 0 }} Contributions</span>
@@ -432,6 +436,7 @@
               </div>
             </div>
           </div>
+         
         </div>
 
 
@@ -525,7 +530,7 @@
                           <div class="payout-value">{{ midCycleDetails.nextInLine.name }}</div>
                         </div>                        <div class="payout-item">
                           <div class="payout-label">Amount</div>
-                          <div class="payout-value">${{ getPayoutAmountCurrency() || '0' }}</div>
+                          <div class="payout-value">{{ getPayoutAmountCurrency() || '0' }}</div>
                         </div>
                         <div class="payout-item">
                           <div class="payout-label">Scheduled Date</div>
@@ -560,7 +565,7 @@
                           <span class="contributor-email">{{ contributor.user ? contributor.user.email : '' }}</span>
                         </div>                        <div class="contribution-amount">
                           <span class="amount-label">Amount:</span>
-                          <span class="amount-value">${{ getContributorTotalAmountCurrency(contributor) || '0' }}</span>
+                          <span class="amount-value">{{ getContributorTotalAmountCurrency(contributor) || '0' }}</span>
                         </div>
                         <div class="contribution-status">
                           <fa-icon [icon]="faCheckCircle" class="status-icon contributed"></fa-icon>
@@ -583,7 +588,7 @@
           <!-- Removed Contributions Tab --><!-- Contribution History Tab (Hierarchical) -->        <div class="tab-panel" *ngIf="activeTab === 'contributionHistory' && isMember">
           <div class="tab-content">
             <div class="section-header-with-action">
-              <h2>Community Contribution History</h2>
+              <!-- <h2>Community Contribution History</h2> -->
               <app-custom-button *ngIf="isMember && !loading" variant="primary" size="medium" 
                 [icon]="faMoneyBillTransfer" 
                 (buttonClick)="navigateToContributionPage()">

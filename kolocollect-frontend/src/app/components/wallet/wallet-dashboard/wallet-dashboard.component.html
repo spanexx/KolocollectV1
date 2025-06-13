@@ -117,8 +117,7 @@
                   <fa-icon [icon]="transaction.status === 'completed' ? faCheck : faHourglass" [fixedWidth]="true"></fa-icon>
                   {{ transaction.status || 'completed' }}
                 </div>
-              </div>
-              <div [ngClass]="isPositiveTransaction(transaction.type) ? 'transaction-amount positive' : 'transaction-amount negative'">
+              </div>              <div [ngClass]="isPositiveTransaction(transaction.type) ? 'transaction-amount positive' : 'transaction-amount negative'">
                 {{ isPositiveTransaction(transaction.type) ? '+' : '-' }}{{ formatCurrency(transaction.amount) }}
               </div>
             </div>

@@ -325,9 +325,8 @@ walletSchema.methods.addFundsInSession = async function (amount, description = '
     throw new Error('Amount must be positive');
   }
 
-  this.availableBalance += amount;
-  this.totalBalance += amount;
-
+  // Don't modify balance here since addTransactionInSession will do it
+  // Just create the transaction
   await this.addTransactionInSession(
     amount,
     'deposit',
@@ -337,7 +336,7 @@ walletSchema.methods.addFundsInSession = async function (amount, description = '
     session
   );
 
-  await this.save({ session });
+  // No need to call save again as addTransactionInSession already did it
 };
 
 // Withdraw funds within transaction session

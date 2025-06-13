@@ -189,6 +189,7 @@ export class MakeContributionComponent implements OnInit, OnDestroy {
     
     this.walletService.getWalletBalance(userId).subscribe({
       next: (response) => {
+        console.log('Wallet balance response:', response);
         this.walletBalance = response.availableBalance || 0;
       },
       error: (error) => {
@@ -296,11 +297,19 @@ export class MakeContributionComponent implements OnInit, OnDestroy {
                   });
                 }, 10);
               }
-            }, 0);
-          } else {
+            }, 0);          } else {
             console.warn('Could not find matching community in userCommunities array to update');
           }
-            this.minContributionAmount = this.selectedCommunity.settings?.minContribution || 0;
+          
+          // Extract minimum contribution amount handling MongoDB Decimal128 format
+          let minContribution = this.selectedCommunity.settings?.minContribution;
+          if (minContribution && typeof minContribution === 'object' && minContribution.$numberDecimal) {
+            this.minContributionAmount = parseFloat(minContribution.$numberDecimal);
+          } else {
+            this.minContributionAmount = parseFloat(minContribution) || 0;
+          }
+          
+          console.log('Extracted minimum contribution amount:', this.minContributionAmount);
           
           // Check if community allows installments
           this.installmentsAllowed = this.selectedCommunity.settings?.allowsInstallments || false;
@@ -322,8 +331,9 @@ export class MakeContributionComponent implements OnInit, OnDestroy {
           if (!currentAmount || currentAmount < this.minContributionAmount) {
             this.contributionForm.patchValue({ 
               amount: this.minContributionAmount 
-            });
-          }// Find the active mid-cycle
+            });          }
+          
+          // Find the active mid-cycle
           if (this.selectedCommunity.midCycle) {
             const midcycles = Array.isArray(this.selectedCommunity.midCycle) ? 
               this.selectedCommunity.midCycle : 
@@ -331,14 +341,29 @@ export class MakeContributionComponent implements OnInit, OnDestroy {
             
             // Log all midcycles for debugging
             console.log('Available midcycles:', JSON.stringify(midcycles, null, 2));
+            console.log('Type of first midcycle:', typeof midcycles[0]);
               
-            // Check each midcycle to ensure it has a valid _id property
-            const validMidcycles = midcycles.filter((mc: any) => mc && mc._id);
+            // Handle both string IDs and object midcycles
+            const validMidcycles = midcycles.map((mc: any) => {
+              // If it's a string ID, convert it to an object
+              if (typeof mc === 'string') {
+                return {
+                  _id: mc,
+                  id: mc, // For compatibility
+                  isComplete: false, // Assume not complete for string IDs
+                  cycleNumber: 1 // Default cycle number
+                };
+              }
+              // If it's already an object, ensure it has the required properties
+              return {
+                ...mc,
+                _id: mc._id || mc.id || mc,
+                isComplete: mc.isComplete || false,
+                cycleNumber: mc.cycleNumber || 1
+              };
+            }).filter((mc: any) => mc._id); // Filter out any that don't have an _id
             
-            if (validMidcycles.length !== midcycles.length) {
-              console.warn('Some midcycles are missing _id property:', 
-                midcycles.filter((mc: any) => !mc || !mc._id));
-            }
+            console.log('Processed valid midcycles:', validMidcycles);
             
             // Find active midcycle using _id (not id)
             this.activeMidCycle = validMidcycles.find((mc: any) => 
@@ -360,14 +385,6 @@ export class MakeContributionComponent implements OnInit, OnDestroy {
             if (this.activeMidCycle) {
               console.log('Selected active midcycle:', this.activeMidCycle);
               console.log('MidCycle ID to be used:', this.activeMidCycle._id);
-              
-              // Normalize the midCycle object to ensure it has the necessary structure
-              // This helps with cases where the object structure might be inconsistent
-              this.activeMidCycle = {
-                ...this.activeMidCycle,
-                _id: this.activeMidCycle._id || this.activeMidCycle.id,
-                cycleNumber: this.activeMidCycle.cycleNumber || 1
-              };
             } else {
               console.error('No valid midcycle found for contribution!');
               this.toastService.warning('No active contribution cycle found for this community');
@@ -464,17 +481,23 @@ export class MakeContributionComponent implements OnInit, OnDestroy {
         completionDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // Default to 1 week from now
       });
     }
-  }
-  /**
+  }  /**
    * Check if the user has sufficient funds for the contribution
    */
   hasSufficientFunds(): boolean {
     // Get value even if the control is disabled
-    const amount = this.isInstallment ? 
+    let amount = this.isInstallment ? 
       this.installmentForm.get('initialAmount')?.value : 
       (this.contributionForm.get('amount')?.disabled ? 
         this.contributionForm.getRawValue().amount : 
         this.contributionForm.get('amount')?.value);
+    
+    // Handle MongoDB Decimal128 format
+    if (amount && typeof amount === 'object' && amount.$numberDecimal) {
+      amount = parseFloat(amount.$numberDecimal);
+    } else {
+      amount = parseFloat(amount) || 0;
+    }
       
     return this.walletBalance >= amount;
   }
@@ -795,17 +818,23 @@ export class MakeContributionComponent implements OnInit, OnDestroy {
         }
       }
     });
-  }
-  /**
+  }  /**
    * Helper method to get the effective contribution amount after any deductions
    */
   getEffectiveContributionAmount(): number {
     // Get value even from disabled controls
-    const contributionAmount = this.isInstallment ? 
+    let contributionAmount = this.isInstallment ? 
       this.installmentForm.get('initialAmount')?.value : 
       (this.contributionForm.get('amount')?.disabled ? 
         this.contributionForm.getRawValue().amount : 
         this.contributionForm.get('amount')?.value);
+    
+    // Handle MongoDB Decimal128 format
+    if (contributionAmount && typeof contributionAmount === 'object' && contributionAmount.$numberDecimal) {
+      contributionAmount = parseFloat(contributionAmount.$numberDecimal);
+    } else {
+      contributionAmount = parseFloat(contributionAmount) || 0;
+    }
       
     if (this.hasNextInLineDue && this.nextInLineInfo?.amountToDeduct) {
       return Math.max(0, contributionAmount - this.nextInLineInfo.amountToDeduct);

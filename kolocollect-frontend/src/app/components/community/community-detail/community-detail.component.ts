@@ -31,6 +31,7 @@ import {
 } from '@fortawesome/free-brands-svg-icons';
 import { CommunityService } from '../../../services/community.service';
 import { MidcycleService } from '../../../services/midcycle.service';
+import { CycleService } from '../../../services/cycle.service';
 import { ToastService } from '../../../services/toast.service';
 import { AuthService } from '../../../services/auth.service';
 import { LoadingService } from '../../../services/loading.service';
@@ -132,6 +133,10 @@ export class CommunityDetailComponent implements OnInit, OnDestroy {  // Font Aw
   votes: any[] = [];
   loadingVotes: boolean = false;
   
+  // Cycle details storage
+  cycleDetails: Cycle | null = null;
+  loadingCycleDetails: boolean = false;
+  
   // Social media sharing links
   socialLinks: { twitter: string; facebook: string; whatsapp: string; } | null = null;
   cycleSocialLinks: { twitter: string; facebook: string; whatsapp: string; } | null = null;
@@ -171,6 +176,7 @@ export class CommunityDetailComponent implements OnInit, OnDestroy {  // Font Aw
     private router: Router,
     private communityService: CommunityService,
     private midcycleService: MidcycleService,
+    private cycleService: CycleService,
     private authService: AuthService,
     private toastService: ToastService,
     private loadingService: LoadingService,
@@ -241,10 +247,11 @@ export class CommunityDetailComponent implements OnInit, OnDestroy {  // Font Aw
         // Check if current user is the admin
         if (this.currentUserId && this.community?.admin) {
           this.isAdmin = this.community.admin?.id === this.currentUserId;
-        }
-
-        // Load active midcycle details
+        }        // Load active midcycle details
         this.loadActiveMidcycleDetails();
+        
+        // Load cycle details
+        this.loadCycleDetails();
         
         // Load votes for the community
         this.loadVotes();
@@ -257,7 +264,6 @@ export class CommunityDetailComponent implements OnInit, OnDestroy {  // Font Aw
   loadActiveMidcycleDetails(): void {
     const currentCycle = this.getCurrentCycle();
     if (!currentCycle || !currentCycle.midCycles || currentCycle.midCycles.length === 0) {
-      console.log('No current cycle or midcycles found');
       return;
     }
     
@@ -327,6 +333,53 @@ export class CommunityDetailComponent implements OnInit, OnDestroy {  // Font Aw
         }
       });
   }
+  /**
+   * Load detailed cycle information from the backend
+   */
+  loadCycleDetails(): void {
+    if (!this.community?.cycles || this.community.cycles.length === 0) {
+      console.warn('No cycles found for this community');
+      return;
+    }
+
+    // Get the current cycle ID (which should be a string in the cycles array)
+    const currentCycleRef = this.community.cycles[this.community.cycles.length - 1];
+      // Extract the ID whether it's a string or an object
+    let currentCycleId: string;
+    if (typeof currentCycleRef === 'string') {
+      currentCycleId = currentCycleRef;
+    } else if (currentCycleRef && typeof currentCycleRef === 'object' && (currentCycleRef as any).id) {
+      currentCycleId = (currentCycleRef as any).id;
+    } else if (currentCycleRef && typeof currentCycleRef === 'object' && (currentCycleRef as any)._id) {
+      currentCycleId = (currentCycleRef as any)._id;
+    } else {
+      console.warn('No valid cycle ID found');
+      return;
+    }
+
+    this.loadingCycleDetails = true;
+    
+    this.cycleService.getCycleById(this.communityId, currentCycleId)
+      .pipe(
+        takeUntil(this.destroy$),
+        catchError(error => {
+          console.error('Failed to load cycle details:', error);
+          this.toastService.error('Failed to load cycle details');
+          return throwError(() => error);
+        }),
+        finalize(() => {
+          this.loadingCycleDetails = false;
+        })
+      )
+      .subscribe(response => {
+        if (response && response.data) {
+          this.cycleDetails = response.data;
+          console.log('Loaded cycle details:', this.cycleDetails);
+
+          
+ 
+        }})}
+
 
   joinCommunity(): void {
     if (!this.currentUserId || !this.currentUser) {
@@ -462,6 +515,7 @@ export class CommunityDetailComponent implements OnInit, OnDestroy {  // Font Aw
 
   getCurrentCycle(): Cycle | null {
     if (!this.community?.cycles || this.community.cycles.length === 0) {
+      console.warn('No cycles found for this community');
       return null;
     }
     

@@ -99,6 +99,7 @@ export class CommunityMembersComponent implements OnInit, OnDestroy {
           this.loading = false;
         })
       )      .subscribe(data => {
+        console.log('Community data loaded:', data);
         this.community = data.community;
         if (this.community && this.community.members) {
           this.members = this.community.members;
@@ -207,7 +208,6 @@ export class CommunityMembersComponent implements OnInit, OnDestroy {
       if (response && response.user && response.user.profilePicture && response.user.profilePicture.fileId) {
         this.loadProfilePictureFromFileId(userId, response.user.profilePicture.fileId);
       } else {
-        console.log(`No profile picture found for user ${userId}`);
         this.profilePictureLoading.set(userId, false);
       }
     });

@@ -1841,3 +1841,86 @@ exports.payNextInLine = async (req, res) => {
     return createErrorResponse(res, 500, 'PAY_NEXT_IN_LINE_ERROR', 'Error calculating payment for next in line: ' + err.message);
   }
 };
+
+// Get cycle by ID for a specific community
+exports.getCycleById = async (req, res) => {
+  try {
+    const { communityId, cycleId } = req.params;
+    
+    if (!communityId || !cycleId) {
+      return res.status(400).json({
+        status: 'error',
+        error: {
+          code: 'MISSING_PARAMETERS',
+          message: 'Community ID and Cycle ID are required'
+        }
+      });
+    }
+
+    // Validate that the cycle belongs to the community
+    const community = await Community.findById(communityId).select('cycles');
+    if (!community) {
+      return res.status(404).json({
+        status: 'error',
+        error: {
+          code: 'COMMUNITY_NOT_FOUND',
+          message: 'Community not found'
+        }
+      });
+    }
+
+    // Check if cycle belongs to this community
+    if (!community.cycles.includes(cycleId)) {
+      return res.status(404).json({
+        status: 'error',
+        error: {
+          code: 'CYCLE_NOT_FOUND',
+          message: 'Cycle not found in this community'
+        }
+      });
+    }
+
+    // Get the cycle with populated midCycles and their details
+    const cycle = await Cycle.findById(cycleId)
+      .populate({
+        path: 'midCycles',
+        populate: [
+          {
+            path: 'nextInLine.userId',
+            select: 'name email'
+          },
+          {
+            path: 'contributions.user',
+            select: 'name email'
+          }
+        ]
+      })
+      .lean();
+
+    if (!cycle) {
+      return res.status(404).json({
+        status: 'error',
+        error: {
+          code: 'CYCLE_NOT_FOUND',
+          message: 'Cycle not found'
+        }
+      });
+    }
+
+    res.status(200).json({
+      status: 'success',
+      message: 'Cycle retrieved successfully',
+      data: cycle
+    });
+
+  } catch (err) {
+    console.error('Error fetching cycle by ID:', err);
+    return res.status(500).json({
+      status: 'error',
+      error: {
+        code: 'GET_CYCLE_ERROR',
+        message: 'Error retrieving cycle: ' + err.message
+      }
+    });
+  }
+};
