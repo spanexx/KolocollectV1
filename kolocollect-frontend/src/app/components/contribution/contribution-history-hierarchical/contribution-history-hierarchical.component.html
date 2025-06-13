@@ -1,5 +1,4 @@
-<div class="contribution-history-container">  <div class="section-header">    <h2 class="section-title">Community Contribution History</h2>
-    <button mat-button color="primary" class="refresh-button" (click)="loadContributionHistory()" [disabled]="isLoading"
+<div class="contribution-history-container">  <div class="section-header">    <h2 class="section-title">Community Contribution History</h2>    <button mat-button color="primary" class="refresh-button" (click)="refreshData()" [disabled]="isLoading"
            matTooltip="Refresh contribution history" aria-label="Refresh contribution history">
       <fa-icon [icon]="faSync" [spin]="isLoading"></fa-icon>
       <span>{{ isLoading ? 'Loading...' : 'Refresh' }}</span>
@@ -129,7 +128,17 @@
                   <div class="recipient-position" *ngIf="midcycle.nextInLine.position">Position: {{ midcycle.nextInLine.position }}</div>
                 </div>
               </div>              <div class="payout-amount" *ngIf="midcycle.payoutAmount">
-                <strong>Payout Amount:</strong> {{ getNumericValue(midcycle.payoutAmount) | currency }}
+                <strong>Payout Amount:</strong> 
+                <span *ngIf="!midcycle.isComplete">{{ getNumericValue(midcycle.payoutAmount) | currency }}</span>
+                <span *ngIf="midcycle.isComplete && hasActualPayout(midcycle)">
+                  {{ getNumericValue(getActualPayoutAmount(midcycle)) | currency }}
+                  <span class="expected-amount" *ngIf="getActualPayoutAmount(midcycle) !== getNumericValue(midcycle.payoutAmount)">
+                    (Expected: {{ getNumericValue(midcycle.payoutAmount) | currency }})
+                  </span>
+                </span>
+                <span *ngIf="midcycle.isComplete && !hasActualPayout(midcycle)" class="no-payout">
+                  $0.00 (Added to backup fund)
+                </span>
               </div>
             </div>
             

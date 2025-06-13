@@ -40,6 +40,7 @@ import { ToastService } from '../../../services/toast.service';
 export class ContributionHistoryHierarchicalComponent implements OnInit {
   @Input() communityId!: string;
   contributionHistory: any[] = [];
+  payoutRecords: any[] = [];
   expandedCycles: Set<string> = new Set();
   selectedMidcycle: any = null;
   selectedContribution: any = null;
@@ -67,6 +68,7 @@ export class ContributionHistoryHierarchicalComponent implements OnInit {
   
   ngOnInit(): void {
     this.loadContributionHistory();
+    this.loadPayoutRecords();
   }
   
   loadContributionHistory(): void {
@@ -108,6 +110,24 @@ export class ContributionHistoryHierarchicalComponent implements OnInit {
         error: (error) => {
           this.toastService.error('Failed to load contribution history');
           console.error('Error loading contribution history:', error);
+        }
+      });
+  }
+  
+  loadPayoutRecords(): void {
+    if (!this.communityId) {
+      return;
+    }
+
+    this.communityService.getPayoutRecords(this.communityId)
+      .subscribe({
+        next: (response: any) => {
+          this.payoutRecords = response || [];
+          console.log('Loaded payout records:', this.payoutRecords);
+        },
+        error: (error: any) => {
+          console.error('Error loading payout records:', error);
+          this.payoutRecords = [];
         }
       });
   }
@@ -243,5 +263,41 @@ export class ContributionHistoryHierarchicalComponent implements OnInit {
     }
     
     return 0;
+  }
+
+  // Get actual payout amount for a completed midcycle
+  getActualPayoutAmount(midcycle: any): number {
+    if (!midcycle.isComplete || !this.payoutRecords.length) {
+      return 0;
+    }
+
+    // Find payout record for this midcycle
+    const payoutRecord = this.payoutRecords.find((payout: any) => 
+      payout.midCycleId === midcycle._id
+    );
+
+    if (payoutRecord) {
+      return typeof payoutRecord.amount === 'number' ? 
+        payoutRecord.amount : 
+        parseFloat(payoutRecord.amount) || 0;
+    }
+
+    return 0;
+  }
+
+  // Check if midcycle has an actual payout record
+  hasActualPayout(midcycle: any): boolean {
+    if (!midcycle.isComplete || !this.payoutRecords.length) {
+      return false;
+    }
+
+    return this.payoutRecords.some((payout: any) => 
+      payout.midCycleId === midcycle._id
+    );
+  }
+
+  refreshData(): void {
+    this.loadContributionHistory();
+    this.loadPayoutRecords();
   }
 }

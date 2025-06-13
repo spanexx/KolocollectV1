@@ -257,4 +257,11 @@ export class CommunityService {
       contributionAmount
     });
   }
+
+  /**
+   * Get payout records for a community
+   */
+  getPayoutRecords(communityId: string): Observable<any> {
+    return this.api.get<any>(`/payouts/community/${communityId}`);
+  }
 }
