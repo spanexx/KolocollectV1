@@ -132,9 +132,9 @@
                 <span *ngIf="!midcycle.isComplete">{{ getNumericValue(midcycle.payoutAmount) | currency }}</span>
                 <span *ngIf="midcycle.isComplete && hasActualPayout(midcycle)">
                   {{ getNumericValue(getActualPayoutAmount(midcycle)) | currency }}
-                  <span class="expected-amount" *ngIf="getActualPayoutAmount(midcycle) !== getNumericValue(midcycle.payoutAmount)">
+                  <!-- <span class="expected-amount" *ngIf="getActualPayoutAmount(midcycle) !== getNumericValue(midcycle.payoutAmount)">
                     (Expected: {{ getNumericValue(midcycle.payoutAmount) | currency }})
-                  </span>
+                  </span> -->
                 </span>
                 <span *ngIf="midcycle.isComplete && !hasActualPayout(midcycle)" class="no-payout">
                   $0.00 (Added to backup fund)

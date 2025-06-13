@@ -64,6 +64,9 @@ export class CommunityVotesComponent implements OnInit, OnDestroy {
     { value: 'minContribution', label: 'Minimum Contribution', 
       description: 'Set the minimum contribution amount', 
       options: ['20', '30', '50', '100'] },
+    { value: 'maxMembers', label: 'Max Members',
+      description: 'Set the maximum number of members allowed in the community', 
+      options: ['10', '15', '20', '25', '30', '35', '50', '100'] },
   ];
   
   newVote = {
