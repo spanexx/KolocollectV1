@@ -693,59 +693,23 @@ CommunitySchema.methods.addNewMemberMidCycle = async function (userId, name, ema
  * - Updates mid-cycle ready status
  * - Links mid-cycle to parent cycle
  */
-CommunitySchema.methods.validateMidCycleAndContributions = async function () {
+// Import the new validation function
+const validateMidCycleReadiness = require('./validateMidCycleReadiness');
+
+// Replace the old implementation with a wrapper that calls the new function
+CommunitySchema.methods.validateMidCycleAndContributions = async function (currentContribution, session = null) {
     try {
-        const activeMidCycle = await MidCycle.findOne({
-            _id: { $in: this.midCycle },
-            isComplete: false
-        });
-        if (!activeMidCycle) throw new Error('No active mid-cycle found.');
-
-        const activeCycle = await Cycle.findOne({
-            _id: { $in: this.cycles },
-            isComplete: false
-        });
-        if (!activeCycle) throw new Error('No active cycle found.');        if (!activeCycle.midCycles.includes(activeMidCycle._id)) {
-            // Use updateOne instead of modifying and saving the document directly
-            await Cycle.updateOne(
-                { _id: activeCycle._id },
-                { $addToSet: { midCycles: activeMidCycle._id } }
-            );
-        }
-
-        const eligibleMembers = await Member.find({
-            _id: { $in: this.members },
-            status: 'active'
-        });
-
-        const allContributed = await Promise.all(eligibleMembers.map(async (member) => {
-            const hasContributed = activeMidCycle.contributions.some(c => 
-                c.user.equals(member.userId) && c.contributions.length > 0
-            );
-            return hasContributed;
-        }));        activeMidCycle.isReady = allContributed.every(contributed => contributed);
-        // Use updateOne instead of save to avoid DivergentArrayError
-        await MidCycle.updateOne(
-            { _id: activeMidCycle._id },
-            { $set: { isReady: activeMidCycle.isReady } }
-        );
-
-        if (activeMidCycle.isReady) {
-            await this.addActivityLog('mid_cycle_ready', this.admin);
-        }
-
-        // No need to modify midCycle array or call this.save() as it causes DivergentArrayError
-        // this.markModified('midCycle');
-        // await this.save();
-
+        // Call the new validation function with optional session
+        const result = await validateMidCycleReadiness(this, currentContribution, session);
+        
+        // Return the same format as before for backward compatibility
         return {
-            message: activeMidCycle.isReady
-                ? 'Mid-cycle is validated and ready for payout.'
-                : 'Mid-cycle validated. Waiting for remaining contributions.',
-            isReady: activeMidCycle.isReady,
+            message: result.message,
+            isReady: result.isReady,
+            details: result // Include the full result for advanced usage
         };
     } catch (err) {
-        console.error('Error validating mid-cycle and contributions:', err);
+        console.error('Error in validateMidCycleAndContributions wrapper:', err);
         throw err;
     }
 };
@@ -1561,7 +1525,9 @@ CommunitySchema.methods.record = async function (contribution) {
                     user: contributorId,
                     contributions: [contributionId]
                 });
-            }            // Ensure contributionsToNextInLine is a Map
+            }            
+            
+            // Ensure contributionsToNextInLine is a Map
             if (!activeMidCycle.contributionsToNextInLine) {
                 activeMidCycle.contributionsToNextInLine = new Map();
             } else if (!(activeMidCycle.contributionsToNextInLine instanceof Map)) {
@@ -1575,8 +1541,10 @@ CommunitySchema.methods.record = async function (contribution) {
             
             // Update the contribution in the Map
             const contributorKey = contributorId.toString();
-            const currentTotal = activeMidCycle.contributionsToNextInLine.get(contributorKey) || 0;
-            activeMidCycle.contributionsToNextInLine.set(contributorKey, currentTotal + amount);
+            const currentTotalStr = activeMidCycle.contributionsToNextInLine.get(contributorKey);
+            const currentTotal = currentTotalStr ? Number(currentTotalStr) : 0;
+            const numAmount = Number(amount);
+            activeMidCycle.contributionsToNextInLine.set(contributorKey, currentTotal + numAmount);
             
             // Mark as modified to ensure Mongoose saves the changes
             activeMidCycle.markModified('contributionsToNextInLine');
@@ -1591,13 +1559,58 @@ CommunitySchema.methods.record = async function (contribution) {
             this.backupFund += midCycleBackupFund;
             this.totalContribution += amount;
             activeMidCycle.payoutAmount = midCycleTotalAmount - midCycleBackupFund;
-
-            await activeMidCycle.save();
-            const validationResult = await this.validateMidCycleAndContributions();
+            
+            // Add retry mechanism for saving the midcycle
+            let saveRetries = 3;
+            let saveSuccess = false;
+            
+            while (saveRetries > 0 && !saveSuccess) {
+                try {
+                    await activeMidCycle.save({
+                        maxTimeMS: 30000 // 30 second timeout
+                    });
+                    saveSuccess = true;
+                    console.log('Successfully saved midcycle with contribution updates');
+                } catch (err) {
+                    saveRetries--;
+                    console.error(`Error saving midcycle, retries left: ${saveRetries}`, err.message);
+                    if (saveRetries > 0) {
+                        // Wait before retrying (exponential backoff)
+                        await new Promise(resolve => setTimeout(resolve, 1000 * (4 - saveRetries)));
+                    } else {
+                        throw err; // Re-throw if all retries failed
+                    }
+                }
+            }
+            
+            console.log('Calling validateMidCycleAndContributions with contributorId:', contributorId);
+            const validationResult = await this.validateMidCycleAndContributions(contributorId);
             await this.updatePayoutInfo();
 
             this.markModified('midCycle');
-            await this.save();
+            
+            // Add retry mechanism for saving the community
+            let communitySaveRetries = 3;
+            let communitySaveSuccess = false;
+            
+            while (communitySaveRetries > 0 && !communitySaveSuccess) {
+                try {
+                    await this.save({
+                        maxTimeMS: 30000 // 30 second timeout
+                    });
+                    communitySaveSuccess = true;
+                    console.log('Successfully saved community with contribution updates');
+                } catch (err) {
+                    communitySaveRetries--;
+                    console.error(`Error saving community, retries left: ${communitySaveRetries}`, err.message);
+                    if (communitySaveRetries > 0) {
+                        // Wait before retrying (exponential backoff)
+                        await new Promise(resolve => setTimeout(resolve, 1000 * (4 - communitySaveRetries)));
+                    } else {
+                        throw err; // Re-throw if all retries failed
+                    }
+                }
+            }
 
             return {
                 message: 'Contribution recorded successfully.',
@@ -1605,7 +1618,7 @@ CommunitySchema.methods.record = async function (contribution) {
                 backupFund: this.backupFund,
                 midCycleBackupFund,
                 validationMessage: validationResult.message,
-                isMidCycleReady: activeMidCycle.isReady,
+                isMidCycleReady: validationResult.isReady,
             };
         } catch (err) {
             if (err.name === 'VersionError' && retries > 0) {
@@ -1670,11 +1683,12 @@ CommunitySchema.methods.recordInSession = async function (contribution, session)
                 });
                 activeMidCycle.contributionsToNextInLine = tempMap;
             }
-            
-            // Update the contribution in the Map
+              // Update the contribution in the Map
             const contributorKey = contributorId.toString();
-            const currentTotal = activeMidCycle.contributionsToNextInLine.get(contributorKey) || 0;
-            activeMidCycle.contributionsToNextInLine.set(contributorKey, currentTotal + amount);
+            const currentTotalStr = activeMidCycle.contributionsToNextInLine.get(contributorKey);
+            const currentTotal = currentTotalStr ? Number(currentTotalStr) : 0;
+            const numAmount = Number(amount);
+            activeMidCycle.contributionsToNextInLine.set(contributorKey, currentTotal + numAmount);
             
             // Mark as modified to ensure Mongoose saves the changes
             activeMidCycle.markModified('contributionsToNextInLine');
@@ -1690,12 +1704,60 @@ CommunitySchema.methods.recordInSession = async function (contribution, session)
             this.totalContribution += amount;
             activeMidCycle.payoutAmount = midCycleTotalAmount - midCycleBackupFund;
 
-            await activeMidCycle.save({ session });
-            const validationResult = await this.validateMidCycleAndContributions();
-            await this.updatePayoutInfo();
+            // Add retry mechanism for saving the midcycle
+            let saveRetries = 3;
+            let saveSuccess = false;
+            
+            while (saveRetries > 0 && !saveSuccess) {
+                try {
+                    // Set a timeout for the save operation
+                    await activeMidCycle.save({ 
+                        session,
+                        maxTimeMS: 30000 // 30 second timeout
+                    });
+                    saveSuccess = true;
+                    console.log('Successfully saved midcycle with contribution updates');
+                } catch (err) {
+                    saveRetries--;
+                    console.error(`Error saving midcycle, retries left: ${saveRetries}`, err.message);
+                    if (saveRetries > 0) {
+                        // Wait before retrying (exponential backoff)
+                        await new Promise(resolve => setTimeout(resolve, 1000 * (4 - saveRetries)));
+                    } else {
+                        throw err; // Re-throw if all retries failed
+                    }
+                }
+            }
+              const updatedMidCycle = await MidCycle.findById(activeMidCycle._id).session(session);
 
-            this.markModified('midCycle');
-            await this.save({ session });
+            console.log('Calling validateMidCycleAndContributions with contributorId:', contributorId);
+            // Pass the session to the validation function
+            const validationResult = await this.validateMidCycleAndContributions(contributorId, session);
+            await this.updatePayoutInfo();this.markModified('midCycle');
+            
+            // Add retry mechanism for saving the community
+            let communitySaveRetries = 3;
+            let communitySaveSuccess = false;
+            
+            while (communitySaveRetries > 0 && !communitySaveSuccess) {
+                try {
+                    await this.save({ 
+                        session,
+                        maxTimeMS: 30000 // 30 second timeout
+                    });
+                    communitySaveSuccess = true;
+                    console.log('Successfully saved community with contribution updates');
+                } catch (err) {
+                    communitySaveRetries--;
+                    console.error(`Error saving community, retries left: ${communitySaveRetries}`, err.message);
+                    if (communitySaveRetries > 0) {
+                        // Wait before retrying (exponential backoff)
+                        await new Promise(resolve => setTimeout(resolve, 1000 * (4 - communitySaveRetries)));
+                    } else {
+                        throw err; // Re-throw if all retries failed
+                    }
+                }
+            }
 
             return {
                 message: 'Contribution recorded successfully.',

@@ -6,11 +6,14 @@ const { monitorMongoConnection } = require('../utils/dbMonitor');
 dotenv.config();
 
 const connectDB = async () => {
-  try {
-    await mongoose.connect(process.env.MONGO_URI, {
+  try {    await mongoose.connect(process.env.MONGO_URI, {
       maxPoolSize: 50,
       minPoolSize: 10,
-      socketTimeoutMS: 45000,
+      socketTimeoutMS: 120000,    // Increased from 45000 to 120000 (2 minutes)
+      connectTimeoutMS: 60000,    // Added explicit connection timeout (1 minute)
+      serverSelectionTimeoutMS: 90000, // Added server selection timeout (1.5 minutes)
+      heartbeatFrequencyMS: 10000,     // Added more frequent heartbeats
+      family: 4                        // Force IPv4 (can help with some connectivity issues)
     });
     console.log('MongoDB connected');
     

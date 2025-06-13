@@ -22,20 +22,20 @@ const seedDatabase = async () => {
         { name: 'Vic', email: 'vic@example.com', password: 'password123' },
         { name: 'Magda', email: 'magda@example.com', password: 'password123' },
         { name: 'Alice Green', email: 'alice@example.com', password: 'password123' },
-        { name: 'Charlie Black', email: 'charlie@example.com', password: 'password123' },
-        { name: 'Diana Blue', email: 'diana@example.com', password: 'password123' },
-        { name: 'Eve White', email: 'eve@example.com', password: 'password123' },
-        { name: 'Frank Yellow', email: 'frank@example.com', password: 'password123' },
-        { name: 'George Gray', email: 'george@example.com', password: 'password123' },
-        { name: 'Hannah Violet', email: 'hannah@example.com', password: 'password123' },
-        { name: 'Ian Orange', email: 'ian@example.com', password: 'password123' },
-        { name: 'Jack Silver', email: 'jack@example.com', password: 'password123' },
-        { name: 'Kelly Gold', email: 'kelly@example.com', password: 'password123' },
-        { name: 'Leo Pink', email: 'leo@example.com', password: 'password123' },
-        { name: 'Mila Cyan', email: 'mila@example.com', password: 'password123' },
-        { name: 'Nathan Amber', email: 'nathan@example.com', password: 'password123' },
-        { name: 'Olivia Jade', email: 'olivia@example.com', password: 'password123' },
-        { name: 'Peter Aqua', email: 'peter@example.com', password: 'password123' },
+        // { name: 'Charlie Black', email: 'charlie@example.com', password: 'password123' },
+        // { name: 'Diana Blue', email: 'diana@example.com', password: 'password123' },
+        // { name: 'Eve White', email: 'eve@example.com', password: 'password123' },
+        // { name: 'Frank Yellow', email: 'frank@example.com', password: 'password123' },
+        // { name: 'George Gray', email: 'george@example.com', password: 'password123' },
+        // { name: 'Hannah Violet', email: 'hannah@example.com', password: 'password123' },
+        // { name: 'Ian Orange', email: 'ian@example.com', password: 'password123' },
+        // { name: 'Jack Silver', email: 'jack@example.com', password: 'password123' },
+        // { name: 'Kelly Gold', email: 'kelly@example.com', password: 'password123' },
+        // { name: 'Leo Pink', email: 'leo@example.com', password: 'password123' },
+        // { name: 'Mila Cyan', email: 'mila@example.com', password: 'password123' },
+        // { name: 'Nathan Amber', email: 'nathan@example.com', password: 'password123' },
+        // { name: 'Olivia Jade', email: 'olivia@example.com', password: 'password123' },
+        // { name: 'Peter Aqua', email: 'peter@example.com', password: 'password123' },
       ];
       
 
@@ -73,21 +73,21 @@ const seedDatabase = async () => {
           firstCycleMin: 5,
         },
       },
-      ...Array.from({ length: 30 }, (_, i) => ({
-        name: `Community ${i + 2}`,
-        description: `This is community number ${i + 2}`,
-        maxMembers: 10 + i, // Increment max members for variety
-        contributionFrequency: ['Hourly', 'Daily', 'Weekly'][i % 3], // Rotate contribution frequency
-        backupFundPercentage: 3 + i, // Increment backup fund percentage
-        adminId: users[(i + 1) % users.length]._id, // Assign admins cyclically
-        settings: {
-          isPrivate: i % 2 === 0, // Alternate between public and private
-          minContribution: 50 + i * 10, // Increment min contribution
-          penalty: 10 + i * 5, // Increment penalty
-          numMissContribution: 3,
-          firstCycleMin: 5 + i, // Increment first cycle min
-        },
-      })),
+      // ...Array.from({ length: 30 }, (_, i) => ({
+      //   name: `Community ${i + 2}`,
+      //   description: `This is community number ${i + 2}`,
+      //   maxMembers: 10 + i, // Increment max members for variety
+      //   contributionFrequency: ['Hourly', 'Daily', 'Weekly'][i % 3], // Rotate contribution frequency
+      //   backupFundPercentage: 3 + i, // Increment backup fund percentage
+      //   adminId: users[(i + 1) % users.length]._id, // Assign admins cyclically
+      //   settings: {
+      //     isPrivate: i % 2 === 0, // Alternate between public and private
+      //     minContribution: 50 + i * 10, // Increment min contribution
+      //     penalty: 10 + i * 5, // Increment penalty
+      //     numMissContribution: 3,
+      //     firstCycleMin: 5 + i, // Increment first cycle min
+      //   },
+      // })),
     ];
 
     const createdCommunities = [];
