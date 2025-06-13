@@ -30,8 +30,7 @@
       </mat-card>
       
       <mat-card class="summary-card">
-        <div class="summary-card-content">
-          <div class="summary-number">{{ getTotalContributions() | currency }}</div>
+        <div class="summary-card-content">          <div class="summary-number">{{ getNumericValue(getTotalContributions()) | currency }}</div>
           <div class="summary-label">Total Contributions</div>
         </div>
         <div class="summary-icon">
@@ -82,7 +81,7 @@
         </div>
         <div class="cycle-header-right">
           <span class="midcycles-status">{{ getMidcyclesStatus(cycleData) }}</span>
-          <span class="cycle-total">Total: {{ getCycleTotal(cycleData) | currency }}</span>
+          <span class="cycle-total">Total: {{ getNumericValue(getCycleTotal(cycleData)) | currency }}</span>
         </div>
       </div>
       
@@ -104,7 +103,7 @@
             </div>
             <div class="midcycle-header-right">
               <span class="midcycle-date">{{ midcycle.payoutDate | date:'mediumDate' }}</span>
-              <span class="midcycle-total">Total: {{ getContributionTotal(midcycle) | currency }}</span>
+              <span class="midcycle-total">Total: {{ getNumericValue(getContributionTotal(midcycle)) | currency }}</span>
             </div>
           </div>
           
@@ -129,9 +128,8 @@
                   <div class="recipient-email" *ngIf="midcycle.nextInLine.email">{{ midcycle.nextInLine.email }}</div>
                   <div class="recipient-position" *ngIf="midcycle.nextInLine.position">Position: {{ midcycle.nextInLine.position }}</div>
                 </div>
-              </div>
-              <div class="payout-amount" *ngIf="midcycle.payoutAmount">
-                <strong>Payout Amount:</strong> {{ midcycle.payoutAmount | currency }}
+              </div>              <div class="payout-amount" *ngIf="midcycle.payoutAmount">
+                <strong>Payout Amount:</strong> {{ getNumericValue(midcycle.payoutAmount) | currency }}
               </div>
             </div>
             
@@ -152,9 +150,8 @@
                 
                 <!-- Amount Column -->
                 <ng-container matColumnDef="amount">
-                  <mat-header-cell *matHeaderCellDef>Amount</mat-header-cell>
-                  <mat-cell *matCellDef="let contribution">
-                    {{ contribution.totalAmount | currency }}
+                  <mat-header-cell *matHeaderCellDef>Amount</mat-header-cell>                  <mat-cell *matCellDef="let contribution">
+                    {{ getNumericValue(contribution.totalAmount) | currency }}
                   </mat-cell>
                 </ng-container>
                   <!-- Count Column -->                <ng-container matColumnDef="count">

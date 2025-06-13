@@ -1819,15 +1819,22 @@ exports.payNextInLine = async (req, res) => {
     if (!isMember) {
       return createErrorResponse(res, 404, 'MEMBER_NOT_FOUND', 'Contributor is not a member of this community');
     }
-    
-    // Find and validate mid-cycle
+      // Find and validate mid-cycle
     const midCycle = await MidCycle.findOne({
-      _id: midCycleId,
-      _id: { $in: community.midCycle }
+      _id: midCycleId
     });
     
     if (!midCycle) {
-      return createErrorResponse(res, 404, 'MIDCYCLE_NOT_FOUND', 'Mid-cycle not found in community');
+      return createErrorResponse(res, 404, 'MIDCYCLE_NOT_FOUND', 'Mid-cycle not found');
+    }
+      // Verify this mid-cycle belongs to the community
+    const belongsToCommunity = await Cycle.exists({
+      communityId: community._id,
+      midCycles: midCycleId
+    });
+    
+    if (!belongsToCommunity) {
+      return createErrorResponse(res, 404, 'MIDCYCLE_NOT_IN_COMMUNITY', 'Mid-cycle does not belong to this community');
     }
 
     // Call the payNextInLine method

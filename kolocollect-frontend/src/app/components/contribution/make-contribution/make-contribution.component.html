@@ -88,7 +88,7 @@
               {{ getErrorMessage(contributionForm, 'amount') }}
             </mat-error>
             <mat-hint *ngIf="selectedCommunity">
-              <span *ngIf="!hasNextInLineDue">Minimum contribution: ${{ selectedCommunity.settings?.minContribution || 0 }}</span>
+              <span *ngIf="!hasNextInLineDue">Minimum contribution: ${{ selectedCommunity.settings?.minContribution.$numberDecimal || 0 }}</span>
               <span *ngIf="hasNextInLineDue">Required contribution: ${{ getMinimumRequiredContribution() }} <span class="hint-detail">(Minimum: ${{ minContributionAmount }} + Owed: ${{ nextInLineInfo?.amountToDeduct }})</span></span>
             </mat-hint>
           </mat-form-field>

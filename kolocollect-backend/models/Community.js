@@ -1910,15 +1910,29 @@ CommunitySchema.methods.payNextInLine = async function(contributorId, midCycleId
         if (!midCycle) {
             throw new Error('MidCycle not found.');
         }
-        
-        // Find the cycle associated with this midCycle
+          // Find the cycle associated with this midCycle
         const cycle = await Cycle.findOne({
             midCycles: midCycleId,
             isComplete: false
         });
         
+        // If no active cycle is found, try to find any cycle (even completed ones)
+        // that contains this midCycle
         if (!cycle) {
-            throw new Error('No active cycle found for this mid-cycle.');
+            const anyCycle = await Cycle.findOne({
+                midCycles: midCycleId
+            });
+            
+            if (anyCycle) {
+                console.log(`Found a completed cycle (${anyCycle._id}) for mid-cycle ${midCycleId}`);
+                // Use the completed cycle for processing
+                return {
+                    message: 'This mid-cycle belongs to a completed cycle. No payment processing needed.',
+                    amountToDeduct: 0,
+                };
+            } else {
+                throw new Error('No cycle found for this mid-cycle. The mid-cycle may need to be reassigned to a cycle.');
+            }
         }
 
         console.log('MidCycle:', midCycle._id, "MidCycle CycleNumber:", midCycle.cycleNumber);

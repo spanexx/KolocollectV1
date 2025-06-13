@@ -131,14 +131,19 @@ export class ContributionHistoryHierarchicalComponent implements OnInit {
   viewContributionDetails(contribution: any): void {
     this.selectedContribution = contribution === this.selectedContribution ? null : contribution;
   }
-  
-  getContributionTotal(midcycle: any): number {
+    getContributionTotal(midcycle: any): number {
     if (!midcycle.contributions || !midcycle.contributions.length) {
       return 0;
     }
     
     return midcycle.contributions.reduce((total: number, contribution: any) => {
-      return total + (contribution.totalAmount || 0);
+      let contributionAmount = 0;
+      if (typeof contribution.totalAmount === 'number') {
+        contributionAmount = contribution.totalAmount;
+      } else if (typeof contribution.totalAmount === 'string') {
+        contributionAmount = parseFloat(contribution.totalAmount) || 0;
+      }
+      return total + contributionAmount;
     }, 0);
   }
     getCycleTotal(cycleData: any): number {
@@ -207,5 +212,36 @@ export class ContributionHistoryHierarchicalComponent implements OnInit {
       const completedInCycle = cycleData.midcycles.filter((m: any) => m.isComplete).length;
       return total + completedInCycle;
     }, 0);
+  }
+    // Ensure value is a number for currency pipe
+  getNumericValue(value: any): number {
+    if (value === null || value === undefined) {
+      return 0;
+    }
+    
+    if (typeof value === 'number') {
+      return value;
+    } else if (typeof value === 'string') {
+      const parsed = parseFloat(value);
+      return isNaN(parsed) ? 0 : parsed;
+    } else if (typeof value === 'object') {
+      // Try to handle common object formats that might represent money
+      if (value.amount !== undefined) {
+        return this.getNumericValue(value.amount);
+      } else if (value.value !== undefined) {
+        return this.getNumericValue(value.value);
+      } else if (value.toString && typeof value.toString === 'function') {
+        // Last resort: try to get a string representation and parse it
+        const str = value.toString();
+        if (str !== '[object Object]') {
+          return this.getNumericValue(str);
+        }
+      }
+      
+      console.warn('Unable to convert object to numeric value:', value);
+      return 0;
+    }
+    
+    return 0;
   }
 }

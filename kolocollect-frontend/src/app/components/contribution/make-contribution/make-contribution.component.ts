@@ -857,6 +857,7 @@ export class MakeContributionComponent implements OnInit, OnDestroy {
       // The user needs to contribute at least the minimum plus whatever they owe
       minimumRequired += this.nextInLineInfo.amountToDeduct;
     }
+
     
     return minimumRequired;
   }
