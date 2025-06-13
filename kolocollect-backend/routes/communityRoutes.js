@@ -22,6 +22,7 @@ router.get('/:communityId/midcycle-contributions', communityController.getMidCyc
 router.get('/:communityId/contribution-history', communityHistoryController.getCommunityContributionHistory); // Get contribution history in hierarchical format
 router.get('/:communityId/owing-members', communityController.getOwingMembers); // Get owing members who joined mid-cycle
 router.get('/:communityId/votes', communityController.getVotes); // Get all votes for a community
+router.get('/:communityId/member-contribution-status', communityController.checkMemberContributionStatus); // Check if member has already contributed
 
 // Protected routes (auth required)
 router.use(authMiddleware);

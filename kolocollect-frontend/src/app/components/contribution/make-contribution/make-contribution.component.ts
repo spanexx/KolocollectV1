@@ -108,9 +108,12 @@ export class MakeContributionComponent implements OnInit, OnDestroy {
 
   // User communities list
   userCommunities: any[] = [];
-
   // Is installment mode
   isInstallment = false;
+  
+  // Contribution status tracking
+  hasAlreadyContributed = false;
+  contributionStatusLoading = false;
   constructor(
     private fb: FormBuilder,
     private route: ActivatedRoute,
@@ -144,12 +147,14 @@ export class MakeContributionComponent implements OnInit, OnDestroy {
       this.communityId = params['communityId'] || null;
       this.cycleId = params['cycleId'] || null;
       this.midcycleId = params['midcycleId'] || null;
-      
-      if (this.communityId) {
+        if (this.communityId) {
         console.log('Received communityId from query params:', this.communityId);
         // We'll set the community ID in the form after loading user communities
         // This ensures the communities are loaded first
         this.loadCommunityDetails(this.communityId);
+        
+        // Check contribution status when loading from URL params
+        this.checkContributionStatus();
       }
     });
     
@@ -167,6 +172,9 @@ export class MakeContributionComponent implements OnInit, OnDestroy {
           this.checkNextInLinePayment();
         }
       });
+    
+    // Check contribution status on init
+    this.checkContributionStatus();
   }
   
   /**
@@ -364,16 +372,21 @@ export class MakeContributionComponent implements OnInit, OnDestroy {
             }).filter((mc: any) => mc._id); // Filter out any that don't have an _id
             
             console.log('Processed valid midcycles:', validMidcycles);
+              // Find active midcycle using _id (not id)
+            // If midcycleId is specified in route params, use that specific one
+            if (this.midcycleId) {
+              this.activeMidCycle = validMidcycles.find((mc: any) => mc._id === this.midcycleId);
+            }
             
-            // Find active midcycle using _id (not id)
-            this.activeMidCycle = validMidcycles.find((mc: any) => 
-              !mc.isComplete && (this.midcycleId ? mc._id === this.midcycleId : true)
-            );
-
-            // If no matching midcycle was found, take the most recent one that's not complete
+            // If no specific midcycle was requested or found, find the most recent active one
             if (!this.activeMidCycle) {
-              this.activeMidCycle = validMidcycles.find((mc: any) => !mc.isComplete);
-              console.log('No exact midcycle match, using first active one:', this.activeMidCycle);
+              // Sort by creation date or cycle number to get the most recent
+              const activeMidcycles = validMidcycles.filter((mc: any) => !mc.isComplete);
+              if (activeMidcycles.length > 0) {
+                // Take the last (most recent) active midcycle
+                this.activeMidCycle = activeMidcycles[activeMidcycles.length - 1];
+                console.log('Using most recent active midcycle:', this.activeMidCycle);
+              }
             }
             
             // If all are complete, just take the latest one
@@ -416,6 +429,51 @@ export class MakeContributionComponent implements OnInit, OnDestroy {
       }
     });
   }  /**
+   * Check if the user has already contributed in the current cycle
+   */
+  checkContributionStatus(): void {
+    const communityId = this.contributionForm.get('communityId')?.value;
+    const userId = this.authService.currentUserValue?.id;
+    
+    if (!communityId || !userId) {
+      this.hasAlreadyContributed = false;
+      return;
+    }
+    
+    this.contributionStatusLoading = true;
+    
+    this.communityService.checkMemberContributionStatus(communityId, userId).subscribe({
+      next: (response) => {
+        this.contributionStatusLoading = false;
+        
+        if (response && response.data) {
+          this.hasAlreadyContributed = response.data.hasContributed;
+          
+          if (this.hasAlreadyContributed) {
+            this.toastService.warning('You have already contributed to this cycle');
+            // Disable the form if user has already contributed
+            this.contributionForm.disable();
+            this.installmentForm.disable();
+          } else {
+            // Enable the form if user hasn't contributed yet
+            this.contributionForm.enable();
+            this.installmentForm.enable();
+            // Keep payment method disabled as it's always wallet
+            this.contributionForm.get('paymentMethod')?.disable();
+          }
+        }
+      },
+      error: (error) => {
+        this.contributionStatusLoading = false;
+        console.error('Error checking contribution status:', error);
+        // Don't show error to user as it's not critical
+        // Allow them to proceed with contribution
+        this.hasAlreadyContributed = false;
+      }
+    });
+  }
+
+  /**
    * Handle community selection change
    */  onCommunityChange(): void {
     const communityId = this.contributionForm.get('communityId')?.value;
@@ -447,17 +505,23 @@ export class MakeContributionComponent implements OnInit, OnDestroy {
         };
         
         this.loadCommunityDetails(apiCommunityId);
+        
+        // Check if user has already contributed
+        this.checkContributionStatus();
       } else {
         // If we can't find the community, try using the ID directly
         console.log('Community not found in list, using ID directly:', communityId);
         this.loadCommunityDetails(communityId);
-      }
-    } else {
+        
+        // Check if user has already contributed
+        this.checkContributionStatus();
+      }    } else {
       this.selectedCommunity = null;
       this.minContributionAmount = 0;
       this.activeMidCycle = null;
       this.nextInLineInfo = null;
       this.hasNextInLineDue = false;
+      this.hasAlreadyContributed = false;
     }
   }
 
@@ -504,8 +568,13 @@ export class MakeContributionComponent implements OnInit, OnDestroy {
 
   /**
    * Submit the contribution
-   */
-  submitContribution(): void {
+   */  submitContribution(): void {
+    // Check if user has already contributed
+    if (this.hasAlreadyContributed) {
+      this.toastService.error('You have already contributed to this cycle');
+      return;
+    }
+    
     if (this.isInstallment && !this.installmentForm.valid) {
       this.toastService.error('Please complete all installment fields correctly.');
       this.installmentForm.markAllAsTouched();

@@ -608,8 +608,8 @@ exports.getMidCycleContributions = async (req, res) => {
 // Get community by ID
 exports.getCommunityById = async (req, res) => {
   try {
-    // Use optimized query with selective population
-    const community = await QueryOptimizer.getCommunityById(req.params.id, 'withMembers');
+    // Use optimized query with selective population including members and midCycle data
+    const community = await QueryOptimizer.getCommunityById(req.params.id, 'withMembersAndMidCycles');
       
     if (!community) {
       return res.status(404).json({ error: 'Community not found' });
@@ -1925,6 +1925,97 @@ exports.getCycleById = async (req, res) => {
       error: {
         code: 'GET_CYCLE_ERROR',
         message: 'Error retrieving cycle: ' + err.message
+      }
+    });
+  }
+};
+
+// Check if a member has already contributed (is in paidMembers and midcycle.contributions)
+exports.checkMemberContributionStatus = async (req, res) => {
+  try {
+    const { communityId } = req.params;
+    const { userId } = req.query;
+    
+    if (!communityId || !userId) {
+      return res.status(400).json({
+        status: 'error',
+        error: {
+          code: 'MISSING_PARAMETERS',
+          message: 'Community ID and User ID are required'
+        }
+      });
+    }
+
+    // Validate that the community exists
+    const community = await Community.findById(communityId);
+    if (!community) {
+      return res.status(404).json({
+        status: 'error',
+        error: {
+          code: 'COMMUNITY_NOT_FOUND',
+          message: 'Community not found'
+        }
+      });
+    }
+
+    // Get the active cycle
+    const activeCycle = await getActiveCycle(communityId);
+    if (!activeCycle) {
+      return res.status(200).json({
+        status: 'success',
+        message: 'No active cycle found',
+        data: {
+          hasContributed: false,
+          reason: 'No active cycle'
+        }
+      });
+    }
+
+    // Get the active midcycle
+    const activeMidCycle = await getActiveMidCycle(communityId);
+    if (!activeMidCycle) {
+      return res.status(200).json({
+        status: 'success',
+        message: 'No active midcycle found',
+        data: {
+          hasContributed: false,
+          reason: 'No active midcycle'
+        }
+      });
+    }
+
+    // Check if user is in cycle.paidMembers
+    const isInPaidMembers = activeCycle.paidMembers.some(memberId => 
+      memberId.toString() === userId.toString()
+    );
+
+    // Check if user has made contributions in the current midcycle
+    const hasContributionInMidCycle = activeMidCycle.contributions.some(contribution => 
+      contribution.user.toString() === userId.toString()
+    );
+
+    // User has contributed if they are in both paidMembers and have contributions in midcycle
+    const hasContributed = isInPaidMembers && hasContributionInMidCycle;
+
+    res.status(200).json({
+      status: 'success',
+      message: 'Member contribution status retrieved successfully',
+      data: {
+        hasContributed,
+        isInPaidMembers,
+        hasContributionInMidCycle,
+        cycleId: activeCycle._id,
+        midCycleId: activeMidCycle._id
+      }
+    });
+
+  } catch (err) {
+    console.error('Error checking member contribution status:', err);
+    return res.status(500).json({
+      status: 'error',
+      error: {
+        code: 'CHECK_CONTRIBUTION_STATUS_ERROR',
+        message: 'Error checking contribution status: ' + err.message
       }
     });
   }

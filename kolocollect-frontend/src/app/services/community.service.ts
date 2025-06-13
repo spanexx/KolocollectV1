@@ -259,6 +259,16 @@ export class CommunityService {
   }
 
   /**
+   * Check if a member has already contributed in the current cycle
+   * @param communityId The ID of the community
+   * @param userId The ID of the user to check
+   * @returns Observable with contribution status
+   */
+  checkMemberContributionStatus(communityId: string, userId: string): Observable<any> {
+    return this.api.get<any>(`/communities/${communityId}/member-contribution-status`, { userId });
+  }
+
+  /**
    * Get payout records for a community
    */
   getPayoutRecords(communityId: string): Observable<any> {

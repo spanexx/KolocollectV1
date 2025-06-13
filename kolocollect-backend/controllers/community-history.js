@@ -251,6 +251,7 @@ exports.getCommunityContributionHistory = async (req, res) => {
       });
     }
     
+    console.log('contributionHistory:', contributionHistory);
     // Convert to array for easier frontend processing
     const contributionHistory = Object.values(cyclesWithMidcycles);
       res.status(200).json({

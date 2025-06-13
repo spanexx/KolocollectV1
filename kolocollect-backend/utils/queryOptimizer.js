@@ -50,10 +50,22 @@ const POPULATION_CONFIGS = {
   // Community populations
   communityBasic: [
     { path: 'admin', select: FIELD_SELECTORS.userBasic }
-  ],
-  communityWithMembers: [
+  ],  communityWithMembers: [
     { path: 'admin', select: FIELD_SELECTORS.userBasic },
     { path: 'members', select: FIELD_SELECTORS.memberBasic }
+  ],
+
+  communityWithMembersAndMidCycles: [
+    { path: 'admin', select: FIELD_SELECTORS.userBasic },
+    { path: 'members', select: FIELD_SELECTORS.memberBasic },
+    { 
+      path: 'midCycle', 
+      select: FIELD_SELECTORS.midCycleMedium,
+      populate: [
+        { path: 'nextInLine.userId', select: FIELD_SELECTORS.userBasic },
+        { path: 'nextInLine.memberReference', select: FIELD_SELECTORS.memberBasic }
+      ]
+    }
   ],
 
   communityMedium: [

@@ -67,16 +67,31 @@
               <div class="info-item">
                 <span class="info-label">Backup Fund:</span>
                 <span class="info-value">{{ selectedCommunity.settings?.backupFundPercentage || 0 }}%</span>
+              </div>            </div>
+          </div>
+          
+          <!-- Already Contributed Alert -->
+          <div class="contribution-status-alert" *ngIf="hasAlreadyContributed">
+            <div class="info-alert already-contributed-alert">
+              <fa-icon [icon]="faCheck" class="check-icon"></fa-icon>
+              <div class="alert-content">
+                <h4>
+                  <fa-icon [icon]="faLock" class="lock-icon-small"></fa-icon>
+                  Already Contributed
+                </h4>
+                <p>You have already made your contribution for this cycle. You cannot contribute again until the next cycle begins.</p>
               </div>
             </div>
           </div>
+            <mat-divider class="section-divider" *ngIf="!hasAlreadyContributed"></mat-divider>
           
-          <mat-divider class="section-divider"></mat-divider>
-          
-          <!-- Contribution Amount -->          <h2 class="form-section-title">
-            <fa-icon [icon]="faMoneyBillWave" class="section-icon"></fa-icon>
-            Contribution Details
-          </h2>          <mat-form-field appearance="outline" class="full-width" [ngClass]="{'locked-amount-field': amountInputDisabled}">
+          <!-- Contribution Form Content - Only show if user hasn't already contributed -->
+          <div *ngIf="!hasAlreadyContributed">
+            <!-- Contribution Amount -->
+            <h2 class="form-section-title">
+              <fa-icon [icon]="faMoneyBillWave" class="section-icon"></fa-icon>
+              Contribution Details
+            </h2><mat-form-field appearance="outline" class="full-width" [ngClass]="{'locked-amount-field': amountInputDisabled}">
             <mat-label>Amount</mat-label>            <input matInput formControlName="amount" type="number" [min]="getMinimumRequiredContribution()" 
               [placeholder]="'Min: $' + getMinimumRequiredContribution()"
               [matTooltip]="amountInputDisabled ? 'This field is locked because you owe money to the next-in-line member.' : ''">
@@ -217,13 +232,13 @@
             </button>
             <a mat-button routerLink="/contributions">Cancel</a>
           </div>
-          
-          <!-- Insufficient funds warning -->
+            <!-- Insufficient funds warning -->
           <div class="insufficient-funds-warning" *ngIf="!hasSufficientFunds()">
             <fa-icon [icon]="faInfoCircle" class="warning-icon"></fa-icon>
             <span>Your wallet balance is insufficient for this contribution.</span>
             <a mat-button color="accent" routerLink="/wallet/add-funds">Add Funds</a>
           </div>
+          </div> <!-- End of contribution form content -->
           
         </form>
       </mat-card-content>

@@ -476,6 +476,47 @@ $text-secondary: #6B7280;
       }
     }
   }
+  
+  // Already contributed alert styling
+  .contribution-status-alert {
+    margin: 1rem 0;
+    
+    .already-contributed-alert {
+      background: linear-gradient(135deg, rgba($secondary-color, 0.1), rgba($secondary-color, 0.05));
+      border: 2px solid $secondary-color;
+      border-radius: 8px;
+      padding: 1.5rem;
+      
+      .check-icon {
+        color: $secondary-color;
+        font-size: 1.5rem;
+        margin-right: 1rem;
+      }
+      
+      .alert-content {
+        h4 {
+          color: $secondary-color;
+          margin: 0 0 0.5rem 0;
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          
+          .lock-icon-small {
+            font-size: 1rem;
+          }
+        }
+        
+        p {
+          margin: 0;
+          color: $text-primary;
+          font-weight: 500;
+        }
+      }
+      
+      display: flex;
+      align-items: flex-start;
+    }
+  }
 
 // Responsive adjustments
 @media (max-width: 768px) {
