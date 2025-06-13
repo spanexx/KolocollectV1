@@ -7,8 +7,7 @@
       </app-custom-button>
     </div>
   </div>
-  
-  <!-- Create Vote Form (Admins Only) -->
+    <!-- Create Vote Form (Admins Only) -->
   <div class="custom-card vote-create-section">
     <h3>Create a New Vote</h3>
     <div class="vote-form">
@@ -64,10 +63,9 @@
       </div>
     </div>
   </div>
-
   <!-- Votes List -->
-  <div class="votes-list" *ngIf="votes.length > 0">
-    <div class="vote-item custom-card" *ngFor="let vote of votes">
+  <div class="votes-list" *ngIf="getSortedVotes().length > 0">
+    <div class="vote-item custom-card" *ngFor="let vote of getSortedVotes()">
       <div class="vote-header">
         <h3>{{ getTopicDisplayLabel(vote.topic) }}</h3>
         <span class="vote-status" [class.resolved]="vote.resolved">
@@ -75,7 +73,21 @@
         </span>
       </div>
       
-      <div class="vote-options">
+      <!-- Compact view for resolved votes -->
+      <div class="resolved-vote-summary" *ngIf="vote.resolved && vote.applied">
+        <div class="resolution-info">
+          <span class="resolution-label">Resolution:</span>
+          <span class="resolution-value">{{ vote.resolution }}</span>
+        </div>
+        <div class="vote-meta">
+          <span>Total Votes: {{ vote.votes?.length || 0 }}</span>
+          <span>Created: {{ formatDate(vote.createdAt) }}</span>
+          <span class="applied-badge">Applied</span>
+        </div>
+      </div>
+      
+      <!-- Full view for active votes or pending resolved votes -->
+      <div class="vote-options" *ngIf="!vote.resolved || !vote.applied">
         <div class="option-item" *ngFor="let option of vote.options">
           <div class="option-details">
             <div class="option-text">{{ option }}</div>
@@ -102,18 +114,15 @@
           <span>Total Votes: {{ vote.votes?.length || 0 }}</span>
           <span>Created: {{ formatDate(vote.createdAt) }}</span>
         </div>
-        <div class="vote-actions" *ngIf="vote.resolved">
+        <div class="vote-actions" *ngIf="vote.resolved && !vote.applied">
           <span class="resolution">Resolution: {{ vote.resolution }}</span>
-          <span class="applied-status" [class.applied]="vote.applied">
-            {{ vote.applied ? 'Applied' : 'Pending Application' }}
-          </span>
+          <span class="applied-status pending">Pending Application</span>
         </div>
       </div>
     </div>
   </div>
-  
-  <!-- Empty State -->
-  <div class="empty-state" *ngIf="!loadingVotes && votes.length === 0">
+    <!-- Empty State -->
+  <div class="empty-state" *ngIf="!loadingVotes && getSortedVotes().length === 0">
     <fa-icon [icon]="faBallotCheck" class="empty-icon"></fa-icon>
     <h3>No Votes Yet</h3>
     <p>There are no votes in this community yet.</p>

@@ -617,14 +617,14 @@
             <app-owing-members [communityId]="communityId" [isAdmin]="isAdmin"></app-owing-members>
           </div>
         </div>
-        
-        <!-- Votes Tab -->
+          <!-- Votes Tab -->
         <div class="tab-panel" *ngIf="activeTab === 'votes' && isMember">
           <!-- Using the standalone community-votes component here -->
           <app-community-votes 
             [communityId]="communityId" 
             [isAdmin]="isAdmin" 
-            [isMember]="isMember">
+            [isMember]="isMember"
+            [communityData]="community">
           </app-community-votes>
           
         </div>

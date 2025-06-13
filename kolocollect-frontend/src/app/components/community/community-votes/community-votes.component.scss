@@ -541,3 +541,74 @@ $neutral-900: #111827;
     font-size: 1rem;
   }
 }
+
+// Resolved vote summary styles
+.resolved-vote-summary {
+  padding: 1rem;
+  background: $neutral-100;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  
+  .resolution-info {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+    
+    .resolution-label {
+      font-weight: 600;
+      color: $neutral-700;
+      font-size: 0.9rem;
+    }
+    
+    .resolution-value {
+      font-weight: 700;
+      color: $primary-color;
+      font-size: 1rem;
+      padding: 0.25rem 0.75rem;
+      background: $primary-light;
+      border-radius: 20px;
+      border: 1px solid rgba(109, 40, 217, 0.2);
+    }
+  }
+  
+  .vote-meta {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+    
+    span {
+      font-size: 0.85rem;
+      color: $neutral-600;
+      
+      &.applied-badge {
+        background: $secondary-color;
+        color: white;
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.8rem;
+      }
+    }
+    
+    @media (max-width: 480px) {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 0.5rem;
+    }
+  }
+}
+
+// Update applied status styles
+.applied-status {
+  &.pending {
+    color: $accent-color;
+    font-weight: 600;
+  }
+  
+  &.applied {
+    color: $secondary-color;
+    font-weight: 600;
+  }
+}

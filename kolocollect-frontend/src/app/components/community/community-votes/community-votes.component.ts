@@ -30,10 +30,10 @@ import { CustomButtonComponent } from '../../../shared/components/custom-button/
   templateUrl: './community-votes.component.html',
   styleUrl: './community-votes.component.scss'
 })
-export class CommunityVotesComponent implements OnInit, OnDestroy {
-  @Input() communityId: string = '';
+export class CommunityVotesComponent implements OnInit, OnDestroy {  @Input() communityId: string = '';
   @Input() isAdmin: boolean = false;
   @Input() isMember: boolean = false;
+  @Input() communityData: any = null; // Add community data input
 
   // Icons
   faBallotCheck = faBallotCheck;
@@ -46,7 +46,6 @@ export class CommunityVotesComponent implements OnInit, OnDestroy {
   votes: any[] = [];
   loadingVotes: boolean = false;
   currentUserId: string | undefined;
-
   // Predefined vote topics
   voteTopics = [
     { value: 'positioningMode', label: 'Positioning Mode', 
@@ -62,11 +61,11 @@ export class CommunityVotesComponent implements OnInit, OnDestroy {
       description: 'Change the percentage of contributions that go to backup fund', 
       options: ['5', '10', '15', '20', '25'] },
     { value: 'minContribution', label: 'Minimum Contribution', 
-      description: 'Set the minimum contribution amount', 
-      options: ['20', '30', '50', '100'] },
+      description: 'Set the minimum contribution amount (smart options based on current value)', 
+      options: [] }, // Will be populated dynamically
     { value: 'maxMembers', label: 'Max Members',
-      description: 'Set the maximum number of members allowed in the community', 
-      options: ['10', '15', '20', '25', '30', '35', '50', '100'] },
+      description: 'Set the maximum number of members allowed in the community (smart options based on current value)', 
+      options: [] }, // Will be populated dynamically
   ];
   
   newVote = {
@@ -82,12 +81,15 @@ export class CommunityVotesComponent implements OnInit, OnDestroy {
     private toastService: ToastService,
     private loadingService: LoadingService
   ) {}
-
   ngOnInit(): void {
     this.currentUserId = this.authService.currentUserValue?.id;
     
     if (this.communityId) {
       this.loadVotes();
+      // Load community data if not provided
+      if (!this.communityData) {
+        this.loadCommunityData();
+      }
     }
   }
 
@@ -118,6 +120,24 @@ export class CommunityVotesComponent implements OnInit, OnDestroy {
   }
 
   /**
+   * Load community data to get current settings for smart options
+   */
+  loadCommunityData(): void {
+    this.communityService.getCommunityById(this.communityId)
+      .pipe(
+        takeUntil(this.destroy$),
+        catchError(error => {
+          console.error('Error loading community data:', error);
+          // Don't show error to user as it's not critical for voting functionality
+          return throwError(() => error);
+        })
+      )
+      .subscribe(response => {
+        this.communityData = response.community || response;
+      });
+  }
+
+  /**
    * Creates a new vote in the community
    */
   createNewVote(): void {
@@ -129,16 +149,18 @@ export class CommunityVotesComponent implements OnInit, OnDestroy {
     if (!this.newVote.topic) {
       this.toastService.error('Please select a vote topic');
       return;
-    }
-
-    // Get the selected topic's predefined options if using a predefined topic
+    }    // Get the selected topic's predefined options if using a predefined topic
     const selectedTopic = this.voteTopics.find(topic => topic.value === this.newVote.topic);
     
     let cleanedOptions: string[];
     
-    // If using a predefined topic, use its options
+    // If using a predefined topic, use its options (or smart options for special topics)
     if (selectedTopic) {
-      cleanedOptions = selectedTopic.options;
+      if (this.newVote.topic === 'maxMembers' || this.newVote.topic === 'minContribution') {
+        cleanedOptions = this.getSmartOptionsForTopic(this.newVote.topic);
+      } else {
+        cleanedOptions = selectedTopic.options;
+      }
     } else {
       // If custom topic, validate user-entered options
       if (this.newVote.options.some(option => !option.trim())) {
@@ -213,13 +235,59 @@ export class CommunityVotesComponent implements OnInit, OnDestroy {
       this.toastService.error('A minimum of 2 options is required');
     }
   }
-  
-  /**
-   * Gets the options for the currently selected vote topic
+    /**
+   * Get smart options for maxMembers based on current value
    */
-  getOptionsForSelectedTopic(): string[] {
-    const selectedTopic = this.voteTopics.find(topic => topic.value === this.newVote.topic);
-    return selectedTopic ? selectedTopic.options : this.newVote.options;
+  getSmartMaxMembersOptions(): string[] {
+    if (!this.communityData?.settings?.maxMembers) {
+      return ['10', '15', '20', '25', '30', '35', '50', '100']; // Default options
+    }
+    
+    const currentMax = this.communityData.settings.maxMembers;
+    return [
+      (currentMax + 5).toString(),
+      (currentMax + 10).toString(), 
+      (currentMax + 15).toString()
+    ];
+  }
+
+  /**
+   * Get smart options for minContribution based on current value
+   */
+  getSmartMinContributionOptions(): string[] {
+    if (!this.communityData?.settings?.minContribution) {
+      return ['20', '30', '50', '100']; // Default options
+    }
+    
+    const currentMin = this.communityData.settings.minContribution;
+    
+    // Generate smart options: current + 10, current + 20, current - 10 (if > 10), current + 30
+    const options = [];
+    
+    if (currentMin > 10) {
+      options.push((currentMin - 10).toString());
+    }
+    options.push((currentMin + 10).toString());
+    options.push((currentMin + 20).toString());
+    options.push((currentMin + 30).toString());
+    
+    return options;
+  }
+
+  /**
+   * Get smart options for the specified topic
+   */
+  getSmartOptionsForTopic(topicValue: string): string[] {
+    switch (topicValue) {
+      case 'maxMembers':
+        return this.getSmartMaxMembersOptions();
+      case 'minContribution':
+        return this.getSmartMinContributionOptions();
+      default:
+        // For other topics, use the predefined options
+        const topic = this.voteTopics.find(t => t.value === topicValue);
+        return topic ? topic.options : [];
+    }
   }
   
   /**
@@ -232,6 +300,34 @@ export class CommunityVotesComponent implements OnInit, OnDestroy {
       // For predefined topics, we don't need custom options
       this.newVote.options = ['', ''];  // Keep the structure but don't use these values
     }
+  }
+
+  /**
+   * Gets the options for the currently selected vote topic
+   */
+  getOptionsForSelectedTopic(): string[] {
+    if (this.newVote.topic === 'maxMembers' || this.newVote.topic === 'minContribution') {
+      return this.getSmartOptionsForTopic(this.newVote.topic);
+    }
+    
+    const selectedTopic = this.voteTopics.find(topic => topic.value === this.newVote.topic);
+    return selectedTopic ? selectedTopic.options : this.newVote.options;
+  }
+
+  /**
+   * Get sorted votes (active votes first, then completed votes)
+   */
+  getSortedVotes(): any[] {
+    if (!this.votes || this.votes.length === 0) return [];
+    
+    return [...this.votes].sort((a, b) => {
+      // Active votes come first
+      if (!a.resolved && b.resolved) return -1;
+      if (a.resolved && !b.resolved) return 1;
+      
+      // Within the same status, sort by creation date (newest first)
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
   }
 
   /**
