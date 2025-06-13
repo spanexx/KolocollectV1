@@ -511,12 +511,61 @@ $text-secondary: #6B7280;
           color: $text-primary;
           font-weight: 500;
         }
+      }      
+      display: flex;
+      align-items: flex-start;
+    }
+    
+    // Member owing alert styling
+    .owing-alert {
+      background: linear-gradient(135deg, rgba($warning-color, 0.1), rgba($warning-color, 0.05));
+      border: 2px solid $warning-color;
+      border-radius: 8px;
+      padding: 1.5rem;
+      
+      .warning-icon {
+        color: $warning-color;
+        font-size: 1.5rem;
+        margin-right: 1rem;
+      }
+      
+      .alert-content {
+        h4 {
+          color: $warning-color;
+          margin: 0 0 0.5rem 0;
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          
+          .warning-icon-small {
+            font-size: 1rem;
+          }
+        }
+        
+        p {
+          margin: 0 0 1rem 0;
+          color: $text-primary;
+          font-weight: 500;
+        }
+        
+        .alert-actions {
+          display: flex;
+          gap: 0.75rem;
+          
+          button {
+            font-weight: 600;
+            
+            mat-spinner {
+              margin-right: 0.5rem;
+            }
+          }
+        }
       }
       
       display: flex;
       align-items: flex-start;
     }
-  }
+}
 
 // Responsive adjustments
 @media (max-width: 768px) {

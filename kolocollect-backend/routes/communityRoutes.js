@@ -65,6 +65,9 @@ router.post('/:communityId/members/:userId/payPenaltyAndMissedContribution', com
 // Route to skip contribution and mark mid-cycle as ready
 router.post('/:communityId/midCycles/:midCycleId/skipContributionAndMarkReady', communityController.skipContributionAndMarkReady);
 
+// Route to check if a member is owing
+router.get('/:communityId/members/:memberId/is-owing', communityController.checkIfMemberIsOwing);
+
 
 // Route to pay second installment
 router.post('/:communityId/members/:userId/paySecondInstallment', communityController.paySecondInstallment);

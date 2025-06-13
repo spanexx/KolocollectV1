@@ -33,16 +33,13 @@ module.exports = async function paySecondInstallment(userId) {
                 `Second installment payment for community ${this.name}`,
                 null,
                 this._id
-            );
-
-            // Update the owingMember record
+            );            // Update the owingMember record
             owingMember.remainingAmount = 0;
 
             // Update the member's payment plan in the Member model
             await this.memberUpdate(userId, remainingAmount);
 
-            // Remove the user from owingMembers array
-            this.owingMembers = this.owingMembers.filter(m => !m.userId.equals(userId));
+            // Keep the user in owingMembers array but with remainingAmount = 0 for tracking purposes
             
             // Update the community backup fund
             const backupFund = (this.settings.backupFundPercentage / 100) * remainingAmount;

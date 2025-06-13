@@ -1236,6 +1236,26 @@ CommunitySchema.methods.calculateTotalOwed = function (userId) {
     }
 };
 
+
+
+/**
+ * Checks if a member is owing in the community.
+ * @param {ObjectId} userId - ID of the member to check.
+ * @returns {boolean} True if the member is found in owingMembers and their remainingAmount is not 0, otherwise false.
+ */
+CommunitySchema.methods.checkIfMemberIsOwingInCommunity = function(userId) {
+    // Find the member in the owingMembers array
+    const member = this.owingMembers.find(member => member.userId.equals(userId));
+
+    // If the member is found, check if their remainingAmount is not equal to 0
+    if (member) {
+        return member.remainingAmount !== 0;
+    }
+
+    // If the member is not found, return false
+    return false;
+};
+
 /**
  * Checks if a member has outstanding payments
  * @param {ObjectId} userId - ID of member to check

@@ -114,6 +114,10 @@ export class MakeContributionComponent implements OnInit, OnDestroy {
   // Contribution status tracking
   hasAlreadyContributed = false;
   contributionStatusLoading = false;
+  
+  // Member owing status tracking
+  isMemberOwing = false;
+  memberOwingLoading = false;
   constructor(
     private fb: FormBuilder,
     private route: ActivatedRoute,
@@ -150,11 +154,13 @@ export class MakeContributionComponent implements OnInit, OnDestroy {
         if (this.communityId) {
         console.log('Received communityId from query params:', this.communityId);
         // We'll set the community ID in the form after loading user communities
-        // This ensures the communities are loaded first
-        this.loadCommunityDetails(this.communityId);
+        // This ensures the communities are loaded first        this.loadCommunityDetails(this.communityId);
         
         // Check contribution status when loading from URL params
         this.checkContributionStatus();
+        
+        // Check if member is owing money
+        this.checkMemberOwingStatus();
       }
     });
     
@@ -172,9 +178,11 @@ export class MakeContributionComponent implements OnInit, OnDestroy {
           this.checkNextInLinePayment();
         }
       });
-    
-    // Check contribution status on init
+      // Check contribution status on init
     this.checkContributionStatus();
+    
+    // Check owing status on init
+    this.checkMemberOwingStatus();
   }
   
   /**
@@ -503,18 +511,22 @@ export class MakeContributionComponent implements OnInit, OnDestroy {
           ...selectedCommunity, 
           name: selectedCommunity.displayName || selectedCommunity.name 
         };
-        
-        this.loadCommunityDetails(apiCommunityId);
+          this.loadCommunityDetails(apiCommunityId);
         
         // Check if user has already contributed
         this.checkContributionStatus();
+        
+        // Check if member is owing money
+        this.checkMemberOwingStatus();
       } else {
         // If we can't find the community, try using the ID directly
-        console.log('Community not found in list, using ID directly:', communityId);
-        this.loadCommunityDetails(communityId);
+        console.log('Community not found in list, using ID directly:', communityId);        this.loadCommunityDetails(communityId);
         
         // Check if user has already contributed
         this.checkContributionStatus();
+        
+        // Check if member is owing money
+        this.checkMemberOwingStatus();
       }    } else {
       this.selectedCommunity = null;
       this.minContributionAmount = 0;
@@ -522,6 +534,7 @@ export class MakeContributionComponent implements OnInit, OnDestroy {
       this.nextInLineInfo = null;
       this.hasNextInLineDue = false;
       this.hasAlreadyContributed = false;
+      this.isMemberOwing = false;
     }
   }
 
@@ -626,8 +639,7 @@ export class MakeContributionComponent implements OnInit, OnDestroy {
             
             if (this.activeMidCycle && this.activeMidCycle._id) {
               // Now we have a valid midCycle, proceed with contribution
-              this.processContribution(userId);
-            } else {
+              this.processContribution(userId);            } else {
               this.toastService.error('Could not find an active cycle for contribution');
               this.isLoading = false;
               this.loadingService.stop('submit-contribution');
@@ -888,6 +900,78 @@ export class MakeContributionComponent implements OnInit, OnDestroy {
       }
     });
   }  /**
+   * Check if the current member is owing money in the selected community
+   */
+  checkMemberOwingStatus(): void {
+    const communityId = this.contributionForm.get('communityId')?.value;
+    const userId = this.authService.currentUserValue?.id;
+    
+    if (!communityId || !userId) {
+      this.isMemberOwing = false;
+      return;
+    }
+    
+    this.memberOwingLoading = true;
+    
+    this.communityService.isMemberOwing(communityId, userId).subscribe({
+      next: (response) => {
+        console.log('Member owing status response:', response);
+        this.isMemberOwing = response.isOwing;
+        
+        // If member is owing, disable the contribution form
+        if (this.isMemberOwing) {
+          this.contributionForm.get('amount')?.disable();
+          this.amountInputDisabled = true;
+        } else {
+          this.contributionForm.get('amount')?.enable();
+          this.amountInputDisabled = false;
+        }
+        
+        this.memberOwingLoading = false;
+      },
+      error: (error) => {
+        console.error('Error checking member owing status:', error);
+        this.isMemberOwing = false;
+        this.memberOwingLoading = false;
+      }
+    });
+  }
+  /**
+   * Pay the second installment for the current community
+   */
+  paySecondInstallment(): void {
+    const communityId = this.contributionForm.get('communityId')?.value;
+    const userId = this.authService.currentUserValue?.id;
+    
+    if (!communityId || !userId) {
+      this.toastService.error('Missing required information to process payment');
+      return;
+    }
+    
+    this.isLoading = true;
+    this.error = '';
+    
+    this.communityService.paySecondInstallment(communityId, userId).subscribe({
+      next: (response) => {
+        console.log('Second installment payment response:', response);
+        this.toastService.success('Second installment paid successfully!');
+        
+        // Refresh the owing status and contribution status
+        this.checkMemberOwingStatus();
+        this.checkContributionStatus();
+        this.loadWalletBalance();
+        
+        this.isLoading = false;
+      },
+      error: (error) => {
+        console.error('Error paying second installment:', error);
+        this.error = error.error?.message || 'Failed to process second installment payment';
+        this.toastService.error(this.error);
+        this.isLoading = false;
+      }
+    });
+  }
+  /**
    * Helper method to get the effective contribution amount after any deductions
    */
   getEffectiveContributionAmount(): number {

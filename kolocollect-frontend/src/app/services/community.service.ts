@@ -274,4 +274,15 @@ export class CommunityService {
   getPayoutRecords(communityId: string): Observable<any> {
     return this.api.get<any>(`/payouts/community/${communityId}`);
   }
+
+  
+  /**
+   * Check if a member is currently owing in a community.
+   * @param communityId The ID of the community.
+   * @param memberId The ID of the member (User ID).
+   * @returns An Observable<{ isOwing: boolean }>.
+   */
+  isMemberOwing(communityId: string, memberId: string): Observable<{ isOwing: boolean }> {
+    return this.api.get<{ isOwing: boolean }>(`/communities/${communityId}/members/${memberId}/is-owing`);
+  }
 }

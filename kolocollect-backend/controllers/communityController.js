@@ -2020,3 +2020,34 @@ exports.checkMemberContributionStatus = async (req, res) => {
     });
   }
 };
+
+
+// Check if a member is owing in a community
+exports.checkIfMemberIsOwing = async (req, res) => {
+  const { communityId, memberId } = req.params;
+
+  // Validate ObjectIds
+  if (!mongoose.Types.ObjectId.isValid(communityId)) {
+    return res.status(400).json({ message: 'Invalid community ID format.' });
+  }
+  if (!mongoose.Types.ObjectId.isValid(memberId)) {
+    return res.status(400).json({ message: 'Invalid member ID format.' });
+  }
+
+  try {
+    // Fetch the community
+    const community = await Community.findById(communityId);
+    if (!community) {
+      return res.status(404).json({ message: 'Community not found' });
+    }
+
+    // Call the method from the Community model
+    const isOwing = community.checkIfMemberIsOwingInCommunity(memberId);
+
+    // Return the result
+    res.status(200).json({ isOwing });
+  } catch (err) {
+    console.error('Error in checkIfMemberIsOwing:', err);
+    res.status(500).json({ message: 'Error checking if member is owing.', error: err.message });
+  }
+};

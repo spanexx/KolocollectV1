@@ -69,8 +69,7 @@
                 <span class="info-value">{{ selectedCommunity.settings?.backupFundPercentage || 0 }}%</span>
               </div>            </div>
           </div>
-          
-          <!-- Already Contributed Alert -->
+            <!-- Already Contributed Alert -->
           <div class="contribution-status-alert" *ngIf="hasAlreadyContributed">
             <div class="info-alert already-contributed-alert">
               <fa-icon [icon]="faCheck" class="check-icon"></fa-icon>
@@ -83,10 +82,30 @@
               </div>
             </div>
           </div>
-            <mat-divider class="section-divider" *ngIf="!hasAlreadyContributed"></mat-divider>
           
-          <!-- Contribution Form Content - Only show if user hasn't already contributed -->
-          <div *ngIf="!hasAlreadyContributed">
+          <!-- Member Owing Alert -->
+          <div class="contribution-status-alert" *ngIf="isMemberOwing && !memberOwingLoading">
+            <div class="warning-alert owing-alert">
+              <fa-icon [icon]="faMoneyBillWave" class="warning-icon"></fa-icon>
+              <div class="alert-content">
+                <h4>
+                  <fa-icon [icon]="faHandHoldingDollar" class="warning-icon-small"></fa-icon>
+                  Outstanding Payment Due
+                </h4>
+                <p>You have an outstanding second installment payment due for this community. Please complete your payment before making new contributions.</p>
+                <div class="alert-actions">
+                  <button mat-raised-button color="warn" (click)="paySecondInstallment()" [disabled]="isLoading">
+                    <fa-icon [icon]="faHandHoldingDollar" *ngIf="!isLoading"></fa-icon>
+                    <mat-spinner diameter="20" *ngIf="isLoading"></mat-spinner>
+                    Pay Outstanding Amount
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>            <mat-divider class="section-divider" *ngIf="!hasAlreadyContributed && !isMemberOwing"></mat-divider>
+          
+          <!-- Contribution Form Content - Only show if user hasn't already contributed and is not owing -->
+          <div *ngIf="!hasAlreadyContributed && !isMemberOwing">
             <!-- Contribution Amount -->
             <h2 class="form-section-title">
               <fa-icon [icon]="faMoneyBillWave" class="section-icon"></fa-icon>
@@ -221,10 +240,9 @@
             {{ error }}
           </div>
           
-          <!-- Submit Button -->
-          <div class="form-actions">
+          <!-- Submit Button -->          <div class="form-actions">
             <button mat-raised-button color="primary" type="submit" 
-              [disabled]="isLoading || (contributionForm.invalid && !isInstallment) || 
+              [disabled]="isLoading || isMemberOwing || (contributionForm.invalid && !isInstallment) || 
               (isInstallment && installmentForm.invalid) || !hasSufficientFunds()">
               <fa-icon [icon]="faHandHoldingDollar" *ngIf="!isLoading"></fa-icon>
               <mat-spinner diameter="24" *ngIf="isLoading"></mat-spinner>
