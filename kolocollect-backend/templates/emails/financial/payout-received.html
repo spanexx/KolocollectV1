@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payout Received - Kolocollect</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            background-color: #4CAF50;
+            color: white;
+            padding: 20px;
+            border-radius: 10px 10px 0 0;
+            margin: -30px -30px 30px -30px;
+        }
+        .amount {
+            font-size: 24px;
+            font-weight: bold;
+            color: #4CAF50;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .details {
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            color: #666;
+            font-size: 12px;
+        }
+        .success-icon {
+            font-size: 48px;
+            color: #4CAF50;
+            text-align: center;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎉 Payout Received!</h1>
+        </div>
+        
+        <div class="success-icon">✅</div>
+        
+        <p>Hello {{memberName}},</p>
+        
+        <p>Great news! You've received a payout from your Kolocollect community.</p>
+        
+        <div class="amount">
+            ₦{{payoutAmount}}
+        </div>
+        
+        <div class="details">
+            <h3>Payout Details:</h3>
+            <p><strong>Community:</strong> {{communityName}}</p>
+            <p><strong>Cycle:</strong> {{cycleNumber}}</p>
+            <p><strong>Payment Date:</strong> {{paymentDate}}</p>
+            <p><strong>Transaction ID:</strong> {{transactionId}}</p>
+            <p><strong>Recipient Position:</strong> {{recipientPosition}}</p>
+        </div>
+        
+        <p>The funds have been credited to your registered account. Please check your bank account or mobile money wallet for the transaction.</p>
+        
+        <p>If you have any questions about this payout, please contact our support team.</p>
+        
+        <p>Thank you for being part of the Kolocollect community!</p>
+        
+        <p>Best regards,<br>
+        The Kolocollect Team</p>
+        
+        <div class="footer">
+            <p>This is an automated message from Kolocollect. Please do not reply to this email.</p>
+            <p>If you need assistance, contact us at support@kolocollect.com</p>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Missed Contribution Alert - Kolocollect</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            background-color: #f44336;
+            color: white;
+            padding: 20px;
+            border-radius: 10px 10px 0 0;
+            margin: -30px -30px 30px -30px;
+        }
+        .alert {
+            background-color: #ffebee;
+            padding: 20px;
+            border-radius: 5px;
+            text-align: center;
+            margin: 20px 0;
+            border-left: 4px solid #f44336;
+        }
+        .penalty-info {
+            background-color: #fff3e0;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            border-left: 4px solid #ff9800;
+        }
+        .details {
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .action-buttons {
+            text-align: center;
+            margin: 30px 0;
+        }
+        .btn {
+            display: inline-block;
+            padding: 12px 24px;
+            margin: 5px;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+        .btn-primary {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .btn-secondary {
+            background-color: #2196F3;
+            color: white;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            color: #666;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚨 Missed Contribution Alert</h1>
+        </div>
+        
+        <p>Hello {{memberName}},</p>
+        
+        <div class="alert">
+            <h3>⚠️ CONTRIBUTION OVERDUE</h3>
+            <p>Your contribution deadline has passed</p>
+        </div>
+        
+        <p>We noticed that your contribution for this cycle has not been received. This may affect your standing in the community and could result in penalties.</p>
+        
+        <div class="details">
+            <h3>Missed Contribution Details:</h3>
+            <p><strong>Community:</strong> {{communityName}}</p>
+            <p><strong>Amount:</strong> ₦{{contributionAmount}}</p>
+            <p><strong>Original Due Date:</strong> {{originalDueDate}}</p>
+            <p><strong>Days Overdue:</strong> {{daysOverdue}}</p>
+            <p><strong>Cycle:</strong> {{cycleNumber}}</p>
+        </div>
+        
+        <div class="penalty-info">
+            <h3>⚠️ Penalty Information:</h3>
+            <p><strong>Late Fee:</strong> ₦{{lateFee}}</p>
+            <p><strong>Grace Period:</strong> {{gracePeriodDays}} days remaining</p>
+            <p><strong>Total Amount Due:</strong> ₦{{totalAmountDue}}</p>
+            <p>If payment is not received within the grace period, additional penalties may apply.</p>
+        </div>
+        
+        <div class="action-buttons">
+            <a href="{{paymentLink}}" class="btn btn-primary">Pay Now</a>
+            <a href="{{contactSupportLink}}" class="btn btn-secondary">Contact Support</a>
+        </div>
+        
+        <p><strong>What happens next?</strong></p>
+        <ul>
+            <li>Make your payment as soon as possible to avoid additional penalties</li>
+            <li>Your payment will be verified within 24 hours</li>
+            <li>Late payments may affect your payout position</li>
+            <li>Continued non-payment may result in removal from the community</li>
+        </ul>
+        
+        <p><strong>Payment Methods:</strong></p>
+        <ul>
+            <li>Bank Transfer: {{communityAccountDetails}}</li>
+            <li>Mobile Money: {{mobileMoneyDetails}}</li>
+            <li>Online Payment: Use the "Pay Now" button above</li>
+        </ul>
+        <p><strong>Reference:</strong> {{paymentReference}}</p>
+        
+        <p>We understand that financial situations can be challenging. If you're experiencing difficulties, please contact our support team to discuss possible solutions.</p>
+        
+        <p>Best regards,<br>
+        The Kolocollect Team</p>
+        
+        <div class="footer">
+            <p>This is an automated alert from Kolocollect. Please do not reply to this email.</p>
+            <p>If you need assistance, contact us at support@kolocollect.com</p>
+        </div>
+    </div>
+</body>
+</html>

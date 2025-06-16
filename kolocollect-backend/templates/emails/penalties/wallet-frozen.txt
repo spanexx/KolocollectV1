@@ -1,0 +1,58 @@
+WALLET FROZEN - KOLOCOLLECT
+===========================
+
+Hello {{memberName}},
+
+🔒 ACCOUNT FROZEN
+Your wallet has been temporarily frozen
+
+We regret to inform you that your wallet has been frozen due to {{freezeReason}}. This action has been taken to protect the integrity of the community.
+
+⚠️ IMMEDIATE ATTENTION REQUIRED ⚠️
+
+FREEZE DETAILS:
+- Community: {{communityName}}
+- Freeze Date: {{freezeDate}}
+- Reason: {{freezeReason}}
+- Outstanding Amount: ₦{{outstandingAmount}}
+- Missed Contributions: {{missedContributions}}
+- Account Status: {{accountStatus}}
+
+CURRENT RESTRICTIONS:
+- Cannot receive payouts
+- Cannot make new contributions
+- Cannot participate in community activities
+- Limited access to account features
+- May be removed from payout rotation
+
+HOW TO UNFREEZE YOUR ACCOUNT:
+1. Pay Outstanding Balance: ₦{{outstandingAmount}}
+2. Contact Support: Provide payment proof
+3. Account Review: Wait for verification (24-48 hours)
+4. Commitment: Agree to payment schedule
+
+PAYMENT METHODS:
+- Bank Transfer: {{communityAccountDetails}}
+- Mobile Money: {{mobileMoneyDetails}}
+- Reference: {{paymentReference}}
+
+IMPORTANT DEADLINES:
+- Payment Deadline: {{paymentDeadline}}
+- Final Notice: {{finalNoticeDate}}
+- Removal Date: {{removalDate}}
+
+We understand this situation may be challenging. Our support team is available to help you create a payment plan or address any concerns you may have.
+
+CONTACT SUPPORT IMMEDIATELY:
+- Email: support@kolocollect.com
+- Phone: {{supportPhone}}
+- Priority: HIGH
+
+Time is critical. Please take action immediately to resolve this situation and restore your account.
+
+Best regards,
+The Kolocollect Team
+
+---
+This is an automated notification from Kolocollect. Please do not reply to this email.
+For urgent assistance, contact us at support@kolocollect.com

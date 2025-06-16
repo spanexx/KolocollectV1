@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contribution Reminder - Kolocollect</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            background-color: #ff9800;
+            color: white;
+            padding: 20px;
+            border-radius: 10px 10px 0 0;
+            margin: -30px -30px 30px -30px;
+        }
+        .urgent {
+            background-color: #ffecb3;
+            padding: 15px;
+            border-radius: 5px;
+            text-align: center;
+            margin: 20px 0;
+            border-left: 4px solid #ff9800;
+        }
+        .details {
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .payment-methods {
+            background-color: #e8f5e8;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .deadline {
+            font-size: 24px;
+            font-weight: bold;
+            color: #ff9800;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            color: #666;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>⏰ Contribution Reminder</h1>
+        </div>
+        
+        <p>Hello {{memberName}},</p>
+        
+        <p>This is a friendly reminder that your contribution is due soon.</p>
+        
+        <div class="urgent">
+            <h3>📋 Contribution Due</h3>
+            <p>Don't miss your contribution deadline!</p>
+        </div>
+        
+        <div class="deadline">
+            Due: {{dueDate}}
+        </div>
+        
+        <div class="details">
+            <h3>Contribution Details:</h3>
+            <p><strong>Community:</strong> {{communityName}}</p>
+            <p><strong>Amount:</strong> ₦{{contributionAmount}}</p>
+            <p><strong>Cycle:</strong> {{cycleNumber}}</p>
+            <p><strong>Days Remaining:</strong> {{daysRemaining}}</p>
+            <p><strong>Your Position:</strong> {{memberPosition}}</p>
+        </div>
+        
+        <div class="payment-methods">
+            <h3>💳 How to Contribute:</h3>
+            <ul>
+                <li>Bank Transfer: {{communityAccountDetails}}</li>
+                <li>Mobile Money: {{mobileMoneyDetails}}</li>
+                <li>Online Payment: <a href="{{paymentLink}}">Pay Now</a></li>
+            </ul>
+            <p><strong>Reference:</strong> {{paymentReference}}</p>
+        </div>
+        
+        <p><strong>Important:</strong> Late contributions may result in penalties. Please ensure your payment is made before the deadline.</p>
+        
+        <p>After making your contribution, it will be verified within 24 hours. You'll receive a confirmation email once verified.</p>
+        
+        <p>If you've already made your contribution, please disregard this reminder.</p>
+        
+        <p>Need help or have questions? Contact our support team.</p>
+        
+        <p>Best regards,<br>
+        The Kolocollect Team</p>
+        
+        <div class="footer">
+            <p>This is an automated reminder from Kolocollect. Please do not reply to this email.</p>
+            <p>If you need assistance, contact us at support@kolocollect.com</p>
+        </div>
+    </div>
+</body>
+</html>

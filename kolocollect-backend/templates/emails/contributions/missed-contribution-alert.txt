@@ -1,0 +1,47 @@
+MISSED CONTRIBUTION ALERT - KOLOCOLLECT
+======================================
+
+Hello {{memberName}},
+
+🚨 CONTRIBUTION OVERDUE
+Your contribution deadline has passed
+
+We noticed that your contribution for this cycle has not been received. This may affect your standing in the community and could result in penalties.
+
+MISSED CONTRIBUTION DETAILS:
+- Community: {{communityName}}
+- Amount: ₦{{contributionAmount}}
+- Original Due Date: {{originalDueDate}}
+- Days Overdue: {{daysOverdue}}
+- Cycle: {{cycleNumber}}
+
+PENALTY INFORMATION:
+- Late Fee: ₦{{lateFee}}
+- Grace Period: {{gracePeriodDays}} days remaining
+- Total Amount Due: ₦{{totalAmountDue}}
+
+If payment is not received within the grace period, additional penalties may apply.
+
+WHAT HAPPENS NEXT:
+- Make your payment as soon as possible to avoid additional penalties
+- Your payment will be verified within 24 hours
+- Late payments may affect your payout position
+- Continued non-payment may result in removal from the community
+
+PAYMENT METHODS:
+- Bank Transfer: {{communityAccountDetails}}
+- Mobile Money: {{mobileMoneyDetails}}
+- Online Payment: {{paymentLink}}
+
+Reference: {{paymentReference}}
+
+We understand that financial situations can be challenging. If you're experiencing difficulties, please contact our support team to discuss possible solutions.
+
+Contact Support: {{contactSupportLink}}
+
+Best regards,
+The Kolocollect Team
+
+---
+This is an automated alert from Kolocollect. Please do not reply to this email.
+If you need assistance, contact us at support@kolocollect.com

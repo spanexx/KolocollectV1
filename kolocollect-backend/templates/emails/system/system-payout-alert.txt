@@ -1,0 +1,84 @@
+SYSTEM PAYOUT ALERT - KOLOCOLLECT ADMIN
+=======================================
+
+Admin Team,
+
+🔔 SYSTEM PAYOUT ALERT
+📊 System-wide payout processing summary
+
+This is an automated system alert providing a summary of payout processing activities across all communities for {{reportPeriod}}.
+
+PAYOUT STATISTICS:
+- Total Payouts: {{totalPayouts}}
+- Successful: {{successfulPayouts}}
+- Failed: {{failedPayouts}}
+- Pending: {{pendingPayouts}}
+
+FINANCIAL SUMMARY:
+- Total Amount Processed: ₦{{totalAmountProcessed}}
+- Successful Payments: ₦{{successfulAmount}}
+- Failed Payments: ₦{{failedAmount}}
+- Processing Fees: ₦{{processingFees}}
+- Success Rate: {{successRate}}%
+
+SYSTEM PERFORMANCE:
+- Active Communities: {{activeCommunities}}
+- Communities with Payouts: {{communitiesWithPayouts}}
+- Average Processing Time: {{averageProcessingTime}} minutes
+- Peak Processing Hour: {{peakProcessingHour}}
+- System Uptime: {{systemUptime}}%
+- API Response Time: {{apiResponseTime}}ms
+
+{{#if hasIssues}}
+ISSUES REQUIRING ATTENTION:
+- Failed Payouts: {{failedPayouts}} ({{failedPayoutPercentage}}%)
+- Timeout Errors: {{timeoutErrors}}
+- Insufficient Funds: {{insufficientFunds}}
+- Invalid Account Details: {{invalidAccounts}}
+- Network Issues: {{networkIssues}}
+- System Errors: {{systemErrors}}
+
+CRITICAL ISSUES:
+{{#each criticalIssues}}
+🚨 {{this.description}} - {{this.count}} occurrences
+{{/each}}
+{{else}}
+✅ ALL CLEAR! No critical issues detected in payout processing.
+{{/if}}
+
+TOP PERFORMING COMMUNITIES:
+{{#each topCommunities}}
+- {{this.name}}: {{this.payouts}} payouts, ₦{{this.amount}}
+{{/each}}
+
+PAYMENT PROVIDER SUMMARY:
+{{#each paymentProviders}}
+- {{this.name}}: {{this.payouts}} payouts, {{this.successRate}}% success rate
+{{/each}}
+
+RECOMMENDED ACTIONS:
+- Review failed payouts and retry where appropriate
+- Contact members with invalid account details
+- Monitor system performance during peak hours
+- Update payment provider configurations if needed
+- Investigate any recurring error patterns
+
+NEXT SCHEDULED PAYOUTS:
+{{#each upcomingPayouts}}
+- {{this.date}}: {{this.communities}} communities, ₦{{this.estimatedAmount}}
+{{/each}}
+
+This automated report helps maintain oversight of payout operations. Please review any flagged issues and take appropriate action.
+
+QUICK ACTIONS:
+- Payout Dashboard: {{payoutDashboardLink}}
+- Error Logs: {{errorLogLink}}
+- System Monitor: {{systemMonitorLink}}
+- Admin Panel: {{adminPanelLink}}
+
+Report generated: {{reportTimestamp}}
+Next report: {{nextReportTime}}
+
+---
+This is an automated system report from Kolocollect.
+Category: System Monitoring | Priority: {{reportPriority}}

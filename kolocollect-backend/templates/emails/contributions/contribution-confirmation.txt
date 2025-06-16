@@ -1,0 +1,40 @@
+CONTRIBUTION CONFIRMED - KOLOCOLLECT
+===================================
+
+Hello {{memberName}},
+
+✅ PAYMENT VERIFIED SUCCESSFULLY!
+
+Great news! Your contribution has been received and verified. Thank you for your timely payment.
+
+CONTRIBUTION DETAILS:
+- Community: {{communityName}}
+- Amount: ₦{{contributionAmount}}
+- Payment Date: {{paymentDate}}
+- Verification Date: {{verificationDate}}
+- Cycle: {{cycleNumber}}
+- Transaction ID: {{transactionId}}
+- Payment Method: {{paymentMethod}}
+
+WHAT'S NEXT:
+- Your contribution is now part of the community pool
+- Continue making timely contributions to maintain good standing
+- Your next contribution is due on {{nextContributionDate}}
+- You'll receive payout notifications when it's your turn
+
+COMMUNITY STATUS:
+- Total Members: {{totalMembers}}
+- Your Position: {{memberPosition}}
+- Contributions This Cycle: {{contributionsThisCycle}}/{{totalMembers}}
+- Next Payout Recipient: {{nextPayoutRecipient}}
+
+Keep up the great work! Your consistent contributions help keep the community running smoothly.
+
+If you have any questions about your contribution or the community, please don't hesitate to contact us.
+
+Best regards,
+The Kolocollect Team
+
+---
+This is an automated confirmation from Kolocollect. Please do not reply to this email.
+If you need assistance, contact us at support@kolocollect.com

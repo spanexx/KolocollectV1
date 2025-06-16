@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Member Joined - Kolocollect Admin</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            background-color: #4CAF50;
+            color: white;
+            padding: 20px;
+            border-radius: 10px 10px 0 0;
+            margin: -30px -30px 30px -30px;
+        }
+        .welcome-badge {
+            background-color: #e8f5e8;
+            padding: 20px;
+            border-radius: 5px;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .member-info {
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .community-stats {
+            background-color: #e3f2fd;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            border-left: 4px solid #2196F3;
+        }
+        .actions-needed {
+            background-color: #fff3e0;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            border-left: 4px solid #ff9800;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            color: #666;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>👋 New Member Alert</h1>
+        </div>
+        
+        <div class="welcome-badge">
+            <h3>🎉 New Member Joined!</h3>
+            <p>A new member has successfully joined a community</p>
+        </div>
+        
+        <p>Admin Team,</p>
+        
+        <p>We're excited to inform you that a new member has joined one of our communities.</p>
+        
+        <div class="member-info">
+            <h3>👤 New Member Details:</h3>
+            <p><strong>Name:</strong> {{memberName}}</p>
+            <p><strong>Email:</strong> {{memberEmail}}</p>
+            <p><strong>Phone:</strong> {{memberPhone}}</p>
+            <p><strong>User ID:</strong> {{userId}}</p>
+            <p><strong>Join Date:</strong> {{joinDate}}</p>
+            <p><strong>Registration Method:</strong> {{registrationMethod}}</p>
+            <p><strong>Referral Source:</strong> {{referralSource}}</p>
+        </div>
+        
+        <div class="community-stats">
+            <h3>🏘️ Community Information:</h3>
+            <p><strong>Community:</strong> {{communityName}}</p>
+            <p><strong>Community ID:</strong> {{communityId}}</p>
+            <p><strong>Admin:</strong> {{communityAdmin}}</p>
+            <p><strong>Member Position:</strong> {{memberPosition}}</p>
+            <p><strong>Total Members:</strong> {{totalMembers}}/{{maxMembers}}</p>
+            <p><strong>Community Status:</strong> {{communityStatus}}</p>
+            <p><strong>Contribution Amount:</strong> ₦{{contributionAmount}}</p>
+        </div>
+        
+        <div class="actions-needed">
+            <h3>📋 Recommended Actions:</h3>
+            <ul>
+                <li>✅ Verify member's identity and contact information</li>
+                <li>📧 Send welcome email with community guidelines</li>
+                <li>💳 Confirm payment method setup</li>
+                <li>📱 Ensure member has access to communication channels</li>
+                <li>🔍 Monitor first contribution for compliance</li>
+                <li>📊 Update community statistics and reports</li>
+            </ul>
+        </div>
+        
+        <p><strong>Community Milestone Alerts:</strong></p>
+        {{#if isNearCapacity}}
+        <p>⚠️ <strong>Capacity Alert:</strong> This community is nearing its maximum capacity ({{totalMembers}}/{{maxMembers}} members).</p>
+        {{/if}}
+        
+        {{#if isFullCapacity}}
+        <p>🎯 <strong>Full Capacity:</strong> This community has reached maximum capacity and can now begin its first cycle!</p>
+        {{/if}}
+        
+        <p><strong>Member Verification Status:</strong></p>
+        <ul>
+            <li>Email Verified: {{emailVerified}}</li>
+            <li>Phone Verified: {{phoneVerified}}</li>
+            <li>Payment Method: {{paymentMethodSetup}}</li>
+            <li>Profile Complete: {{profileComplete}}</li>
+        </ul>
+        
+        <p>Please welcome our new member and ensure they have all the support needed for a successful start in their community.</p>
+        
+        <p><strong>Quick Actions:</strong></p>
+        <ul>
+            <li><a href="{{memberProfileLink}}">View Member Profile</a></li>
+            <li><a href="{{communityDashboardLink}}">Community Dashboard</a></li>
+            <li><a href="{{adminPanelLink}}">Admin Panel</a></li>
+        </ul>
+        
+        <p>System timestamp: {{timestamp}}</p>
+        
+        <div class="footer">
+            <p>This is an automated notification from Kolocollect Admin System.</p>
+            <p>Category: Member Management | Priority: NORMAL</p>
+        </div>
+    </div>
+</body>
+</html>

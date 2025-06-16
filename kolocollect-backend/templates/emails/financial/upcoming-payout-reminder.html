@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upcoming Payout Reminder - Kolocollect</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            background-color: #2196F3;
+            color: white;
+            padding: 20px;
+            border-radius: 10px 10px 0 0;
+            margin: -30px -30px 30px -30px;
+        }
+        .countdown {
+            background-color: #e3f2fd;
+            padding: 20px;
+            border-radius: 5px;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .days-left {
+            font-size: 36px;
+            font-weight: bold;
+            color: #2196F3;
+        }
+        .details {
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .checklist {
+            background-color: #fff3e0;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            border-left: 4px solid #ff9800;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            color: #666;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📅 Payout Reminder</h1>
+        </div>
+        
+        <p>Hello {{memberName}},</p>
+        
+        <p>This is a friendly reminder that your payout is coming up soon!</p>
+        
+        <div class="countdown">
+            <div class="days-left">{{daysLeft}}</div>
+            <p>days until your payout</p>
+        </div>
+        
+        <div class="details">
+            <h3>Payout Details:</h3>
+            <p><strong>Community:</strong> {{communityName}}</p>
+            <p><strong>Your Position:</strong> {{memberPosition}}</p>
+            <p><strong>Expected Amount:</strong> ₦{{expectedAmount}}</p>
+            <p><strong>Payout Date:</strong> {{payoutDate}}</p>
+            <p><strong>Cycle:</strong> {{cycleNumber}}</p>
+        </div>
+        
+        <div class="checklist">
+            <h3>📋 Before Your Payout:</h3>
+            <ul>
+                <li>✅ Ensure your account details are up to date</li>
+                <li>✅ Verify your phone number is active</li>
+                <li>✅ Check that all contributions are current</li>
+                <li>✅ Confirm your preferred payment method</li>
+            </ul>
+            <p><strong>Need to update your details?</strong> <a href="{{profileUpdateLink}}">Click here</a></p>
+        </div>
+        
+        <p>Your payout will be processed automatically on the scheduled date. You'll receive a confirmation email once the payment is completed.</p>
+        
+        <p>If you have any questions or concerns, please don't hesitate to contact our support team.</p>
+        
+        <p>Best regards,<br>
+        The Kolocollect Team</p>
+        
+        <div class="footer">
+            <p>This is an automated reminder from Kolocollect. Please do not reply to this email.</p>
+            <p>If you need assistance, contact us at support@kolocollect.com</p>
+        </div>
+    </div>
+</body>
+</html>

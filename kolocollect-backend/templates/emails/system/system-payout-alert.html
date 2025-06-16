@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Payout Alert - Kolocollect Admin</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            background-color: #3f51b5;
+            color: white;
+            padding: 20px;
+            border-radius: 10px 10px 0 0;
+            margin: -30px -30px 30px -30px;
+        }
+        .alert-info {
+            background-color: #e8eaf6;
+            padding: 20px;
+            border-radius: 5px;
+            text-align: center;
+            margin: 20px 0;
+            border-left: 4px solid #3f51b5;
+        }
+        .system-stats {
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .payout-summary {
+            background-color: #e8f5e8;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            border-left: 4px solid #4CAF50;
+        }
+        .issues-alerts {
+            background-color: #ffebee;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            border-left: 4px solid #f44336;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin: 15px 0;
+        }
+        .stat-box {
+            text-align: center;
+            padding: 10px;
+            background-color: #f5f5f5;
+            border-radius: 5px;
+        }
+        .stat-number {
+            font-size: 20px;
+            font-weight: bold;
+            color: #3f51b5;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            color: #666;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔔 System Payout Alert</h1>
+        </div>
+        
+        <div class="alert-info">
+            <h3>📊 Automated Payout Report</h3>
+            <p>System-wide payout processing summary</p>
+        </div>
+        
+        <p>Admin Team,</p>
+        
+        <p>This is an automated system alert providing a summary of payout processing activities across all communities for {{reportPeriod}}.</p>
+        
+        <div class="stats-grid">
+            <div class="stat-box">
+                <div class="stat-number">{{totalPayouts}}</div>
+                <div>Total Payouts</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-number">{{successfulPayouts}}</div>
+                <div>Successful</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-number">{{failedPayouts}}</div>
+                <div>Failed</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-number">{{pendingPayouts}}</div>
+                <div>Pending</div>
+            </div>
+        </div>
+        
+        <div class="payout-summary">
+            <h3>💰 Financial Summary:</h3>
+            <p><strong>Total Amount Processed:</strong> ₦{{totalAmountProcessed}}</p>
+            <p><strong>Successful Payments:</strong> ₦{{successfulAmount}}</p>
+            <p><strong>Failed Payments:</strong> ₦{{failedAmount}}</p>
+            <p><strong>Processing Fees:</strong> ₦{{processingFees}}</p>
+            <p><strong>Success Rate:</strong> {{successRate}}%</p>
+        </div>
+        
+        <div class="system-stats">
+            <h3>📈 System Performance:</h3>
+            <ul>
+                <li><strong>Active Communities:</strong> {{activeCommunities}}</li>
+                <li><strong>Communities with Payouts:</strong> {{communitiesWithPayouts}}</li>
+                <li><strong>Average Processing Time:</strong> {{averageProcessingTime}} minutes</li>
+                <li><strong>Peak Processing Hour:</strong> {{peakProcessingHour}}</li>
+                <li><strong>System Uptime:</strong> {{systemUptime}}%</li>
+                <li><strong>API Response Time:</strong> {{apiResponseTime}}ms</li>
+            </ul>
+        </div>
+        
+        {{#if hasIssues}}
+        <div class="issues-alerts">
+            <h3>⚠️ Issues Requiring Attention:</h3>
+            <ul>
+                <li><strong>Failed Payouts:</strong> {{failedPayouts}} ({{failedPayoutPercentage}}%)</li>
+                <li><strong>Timeout Errors:</strong> {{timeoutErrors}}</li>
+                <li><strong>Insufficient Funds:</strong> {{insufficientFunds}}</li>
+                <li><strong>Invalid Account Details:</strong> {{invalidAccounts}}</li>
+                <li><strong>Network Issues:</strong> {{networkIssues}}</li>
+                <li><strong>System Errors:</strong> {{systemErrors}}</li>
+            </ul>
+            
+            <p><strong>Critical Issues:</strong></p>
+            {{#each criticalIssues}}
+            <p>🚨 {{this.description}} - {{this.count}} occurrences</p>
+            {{/each}}
+        </div>
+        {{else}}
+        <div style="background-color: #e8f5e8; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #4CAF50;">
+            <p>✅ <strong>All Clear!</strong> No critical issues detected in payout processing.</p>
+        </div>
+        {{/if}}
+        
+        <p><strong>Top Performing Communities:</strong></p>
+        <ul>
+            {{#each topCommunities}}
+            <li>{{this.name}}: {{this.payouts}} payouts, ₦{{this.amount}}</li>
+            {{/each}}
+        </ul>
+        
+        <p><strong>Payment Provider Summary:</strong></p>
+        <ul>
+            {{#each paymentProviders}}
+            <li><strong>{{this.name}}:</strong> {{this.payouts}} payouts, {{this.successRate}}% success rate</li>
+            {{/each}}
+        </ul>
+        
+        <p><strong>Recommended Actions:</strong></p>
+        <ul>
+            <li>Review failed payouts and retry where appropriate</li>
+            <li>Contact members with invalid account details</li>
+            <li>Monitor system performance during peak hours</li>
+            <li>Update payment provider configurations if needed</li>
+            <li>Investigate any recurring error patterns</li>
+        </ul>
+        
+        <p><strong>Next Scheduled Payouts:</strong></p>
+        <ul>
+            {{#each upcomingPayouts}}
+            <li>{{this.date}}: {{this.communities}} communities, ₦{{this.estimatedAmount}}</li>
+            {{/each}}
+        </ul>
+        
+        <p>This automated report helps maintain oversight of payout operations. Please review any flagged issues and take appropriate action.</p>
+        
+        <p><strong>Quick Actions:</strong></p>
+        <ul>
+            <li><a href="{{payoutDashboardLink}}">Payout Dashboard</a></li>
+            <li><a href="{{errorLogLink}}">Error Logs</a></li>
+            <li><a href="{{systemMonitorLink}}">System Monitor</a></li>
+            <li><a href="{{adminPanelLink}}">Admin Panel</a></li>
+        </ul>
+        
+        <p>Report generated: {{reportTimestamp}}</p>
+        <p>Next report: {{nextReportTime}}</p>
+        
+        <div class="footer">
+            <p>This is an automated system report from Kolocollect.</p>
+            <p>Category: System Monitoring | Priority: {{reportPriority}}</p>
+        </div>
+    </div>
+</body>
+</html>

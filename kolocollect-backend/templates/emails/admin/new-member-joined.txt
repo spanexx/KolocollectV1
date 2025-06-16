@@ -1,0 +1,63 @@
+NEW MEMBER JOINED - KOLOCOLLECT ADMIN
+====================================
+
+Admin Team,
+
+👋 NEW MEMBER ALERT
+🎉 A new member has successfully joined a community
+
+We're excited to inform you that a new member has joined one of our communities.
+
+NEW MEMBER DETAILS:
+- Name: {{memberName}}
+- Email: {{memberEmail}}
+- Phone: {{memberPhone}}
+- User ID: {{userId}}
+- Join Date: {{joinDate}}
+- Registration Method: {{registrationMethod}}
+- Referral Source: {{referralSource}}
+
+COMMUNITY INFORMATION:
+- Community: {{communityName}}
+- Community ID: {{communityId}}
+- Admin: {{communityAdmin}}
+- Member Position: {{memberPosition}}
+- Total Members: {{totalMembers}}/{{maxMembers}}
+- Community Status: {{communityStatus}}
+- Contribution Amount: ₦{{contributionAmount}}
+
+RECOMMENDED ACTIONS:
+- ✅ Verify member's identity and contact information
+- 📧 Send welcome email with community guidelines
+- 💳 Confirm payment method setup
+- 📱 Ensure member has access to communication channels
+- 🔍 Monitor first contribution for compliance
+- 📊 Update community statistics and reports
+
+COMMUNITY MILESTONE ALERTS:
+{{#if isNearCapacity}}
+⚠️ Capacity Alert: This community is nearing its maximum capacity ({{totalMembers}}/{{maxMembers}} members).
+{{/if}}
+
+{{#if isFullCapacity}}
+🎯 Full Capacity: This community has reached maximum capacity and can now begin its first cycle!
+{{/if}}
+
+MEMBER VERIFICATION STATUS:
+- Email Verified: {{emailVerified}}
+- Phone Verified: {{phoneVerified}}
+- Payment Method: {{paymentMethodSetup}}
+- Profile Complete: {{profileComplete}}
+
+Please welcome our new member and ensure they have all the support needed for a successful start in their community.
+
+QUICK ACTIONS:
+- Member Profile: {{memberProfileLink}}
+- Community Dashboard: {{communityDashboardLink}}
+- Admin Panel: {{adminPanelLink}}
+
+System timestamp: {{timestamp}}
+
+---
+This is an automated notification from Kolocollect Admin System.
+Category: Member Management | Priority: NORMAL

@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payout Failure Alert - Kolocollect Admin</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            background-color: #f44336;
+            color: white;
+            padding: 20px;
+            border-radius: 10px 10px 0 0;
+            margin: -30px -30px 30px -30px;
+        }
+        .alert-icon {
+            font-size: 48px;
+            color: #f44336;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .details {
+            background-color: #fff5f5;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            border-left: 4px solid #f44336;
+        }
+        .action-required {
+            background-color: #ffeb3b;
+            color: #333;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            font-weight: bold;
+            text-align: center;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            color: #666;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚨 Payout Failure Alert</h1>
+        </div>
+        
+        <div class="alert-icon">⚠️</div>
+        
+        <p>Admin Team,</p>
+        
+        <p>A payout has failed and requires immediate attention.</p>
+        
+        <div class="details">
+            <h3>Failure Details:</h3>
+            <p><strong>Community:</strong> {{communityName}} (ID: {{communityId}})</p>
+            <p><strong>Member:</strong> {{memberName}} ({{memberEmail}})</p>
+            <p><strong>Amount:</strong> ₦{{payoutAmount}}</p>
+            <p><strong>Cycle:</strong> {{cycleNumber}}</p>
+            <p><strong>Failure Time:</strong> {{failureTime}}</p>
+            <p><strong>Error Code:</strong> {{errorCode}}</p>
+            <p><strong>Error Message:</strong> {{errorMessage}}</p>
+            <p><strong>Account Details:</strong> {{accountDetails}}</p>
+            <p><strong>Retry Attempts:</strong> {{retryAttempts}}/{{maxRetries}}</p>
+        </div>
+        
+        <div class="action-required">
+            ⚡ IMMEDIATE ACTION REQUIRED
+        </div>
+        
+        <p><strong>Possible Actions:</strong></p>
+        <ul>
+            <li>Verify recipient account details</li>
+            <li>Check payment provider status</li>
+            <li>Contact member for updated payment information</li>
+            <li>Process manual payout if needed</li>
+            <li>Investigate system issues</li>
+        </ul>
+        
+        <p><strong>Impact:</strong> This failure affects the member's expected payout and may impact community trust.</p>
+        
+        <p>Please resolve this issue as soon as possible and update the payout status in the admin panel.</p>
+        
+        <p>System timestamp: {{timestamp}}</p>
+        
+        <div class="footer">
+            <p>This is an automated alert from Kolocollect Admin System.</p>
+            <p>Priority: HIGH | Category: Payment Processing</p>
+        </div>
+    </div>
+</body>
+</html>

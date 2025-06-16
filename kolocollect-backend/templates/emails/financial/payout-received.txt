@@ -1,0 +1,28 @@
+PAYOUT RECEIVED - KOLOCOLLECT
+==================================
+
+Hello {{memberName}},
+
+Great news! You've received a payout from your Kolocollect community.
+
+PAYOUT AMOUNT: ₦{{payoutAmount}}
+
+PAYOUT DETAILS:
+- Community: {{communityName}}
+- Cycle: {{cycleNumber}}
+- Payment Date: {{paymentDate}}
+- Transaction ID: {{transactionId}}
+- Recipient Position: {{recipientPosition}}
+
+The funds have been credited to your registered account. Please check your bank account or mobile money wallet for the transaction.
+
+If you have any questions about this payout, please contact our support team.
+
+Thank you for being part of the Kolocollect community!
+
+Best regards,
+The Kolocollect Team
+
+---
+This is an automated message from Kolocollect. Please do not reply to this email.
+If you need assistance, contact us at support@kolocollect.com

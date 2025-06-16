@@ -1,0 +1,34 @@
+UPCOMING PAYOUT REMINDER - KOLOCOLLECT
+=====================================
+
+Hello {{memberName}},
+
+This is a friendly reminder that your payout is coming up soon!
+
+{{daysLeft}} DAYS UNTIL YOUR PAYOUT
+
+PAYOUT DETAILS:
+- Community: {{communityName}}
+- Your Position: {{memberPosition}}
+- Expected Amount: ₦{{expectedAmount}}
+- Payout Date: {{payoutDate}}
+- Cycle: {{cycleNumber}}
+
+BEFORE YOUR PAYOUT - CHECKLIST:
+✅ Ensure your account details are up to date
+✅ Verify your phone number is active
+✅ Check that all contributions are current
+✅ Confirm your preferred payment method
+
+Need to update your details? Visit: {{profileUpdateLink}}
+
+Your payout will be processed automatically on the scheduled date. You'll receive a confirmation email once the payment is completed.
+
+If you have any questions or concerns, please don't hesitate to contact our support team.
+
+Best regards,
+The Kolocollect Team
+
+---
+This is an automated reminder from Kolocollect. Please do not reply to this email.
+If you need assistance, contact us at support@kolocollect.com

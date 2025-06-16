@@ -1,0 +1,58 @@
+SECOND INSTALLMENT REMINDER - KOLOCOLLECT
+========================================
+
+Hello {{memberName}},
+
+📋 SECOND INSTALLMENT DUE
+💰 Your second installment is now due
+
+This is a friendly reminder that your second installment payment is now due for your Kolocollect community.
+
+AMOUNT DUE: ₦{{installmentAmount}}
+
+PAYMENT DETAILS:
+- Community: {{communityName}}
+- Installment: 2 of {{totalInstallments}}
+- Due Date: {{dueDate}}
+- Amount: ₦{{installmentAmount}}
+- Previous Payment: ₦{{firstInstallmentAmount}} ({{firstInstallmentDate}})
+- Remaining Balance: ₦{{remainingBalance}}
+
+PAYMENT TIMELINE:
+✅ First Installment: ₦{{firstInstallmentAmount}} - Paid on {{firstInstallmentDate}}
+🔄 Second Installment: ₦{{installmentAmount}} - Due {{dueDate}}
+{{#if hasThirdInstallment}}
+⏳ Third Installment: ₦{{thirdInstallmentAmount}} - Due {{thirdInstallmentDue}}
+{{/if}}
+
+PAYMENT METHODS:
+- Bank Transfer: {{communityAccountDetails}}
+- Mobile Money: {{mobileMoneyDetails}}
+- Online Payment: {{paymentLink}}
+
+Payment Reference: {{paymentReference}}
+
+IMPORTANT NOTES:
+- Late payments may incur penalty fees
+- Your payout position depends on timely payments
+- Payment will be verified within 24 hours
+- Contact support if you're experiencing difficulties
+
+BENEFITS OF TIMELY PAYMENT:
+- Maintain good standing in the community
+- Avoid late payment penalties
+- Stay on track for your scheduled payout
+- Support community trust and reliability
+
+If you've already made this payment, please disregard this reminder. Your payment will be reflected in your account once verified.
+
+If you need assistance or have questions about your payment, please don't hesitate to contact our support team.
+
+Thank you for your continued participation in the Kolocollect community!
+
+Best regards,
+The Kolocollect Team
+
+---
+This is an automated reminder from Kolocollect. Please do not reply to this email.
+If you need assistance, contact us at support@kolocollect.com

@@ -1,0 +1,36 @@
+PAYOUT FAILURE ALERT - KOLOCOLLECT ADMIN
+========================================
+
+Admin Team,
+
+A payout has failed and requires immediate attention.
+
+FAILURE DETAILS:
+- Community: {{communityName}} (ID: {{communityId}})
+- Member: {{memberName}} ({{memberEmail}})
+- Amount: ₦{{payoutAmount}}
+- Cycle: {{cycleNumber}}
+- Failure Time: {{failureTime}}
+- Error Code: {{errorCode}}
+- Error Message: {{errorMessage}}
+- Account Details: {{accountDetails}}
+- Retry Attempts: {{retryAttempts}}/{{maxRetries}}
+
+⚡ IMMEDIATE ACTION REQUIRED ⚡
+
+POSSIBLE ACTIONS:
+- Verify recipient account details
+- Check payment provider status
+- Contact member for updated payment information
+- Process manual payout if needed
+- Investigate system issues
+
+IMPACT: This failure affects the member's expected payout and may impact community trust.
+
+Please resolve this issue as soon as possible and update the payout status in the admin panel.
+
+System timestamp: {{timestamp}}
+
+---
+This is an automated alert from Kolocollect Admin System.
+Priority: HIGH | Category: Payment Processing

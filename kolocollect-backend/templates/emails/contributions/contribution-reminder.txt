@@ -1,0 +1,40 @@
+CONTRIBUTION REMINDER - KOLOCOLLECT
+===================================
+
+Hello {{memberName}},
+
+This is a friendly reminder that your contribution is due soon.
+
+📋 CONTRIBUTION DUE
+Don't miss your contribution deadline!
+
+DUE DATE: {{dueDate}}
+
+CONTRIBUTION DETAILS:
+- Community: {{communityName}}
+- Amount: ₦{{contributionAmount}}
+- Cycle: {{cycleNumber}}
+- Days Remaining: {{daysRemaining}}
+- Your Position: {{memberPosition}}
+
+HOW TO CONTRIBUTE:
+- Bank Transfer: {{communityAccountDetails}}
+- Mobile Money: {{mobileMoneyDetails}}
+- Online Payment: {{paymentLink}}
+
+Reference: {{paymentReference}}
+
+IMPORTANT: Late contributions may result in penalties. Please ensure your payment is made before the deadline.
+
+After making your contribution, it will be verified within 24 hours. You'll receive a confirmation email once verified.
+
+If you've already made your contribution, please disregard this reminder.
+
+Need help or have questions? Contact our support team.
+
+Best regards,
+The Kolocollect Team
+
+---
+This is an automated reminder from Kolocollect. Please do not reply to this email.
+If you need assistance, contact us at support@kolocollect.com

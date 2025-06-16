@@ -1,0 +1,89 @@
+CRITICAL SYSTEM ALERT - KOLOCOLLECT
+===================================
+
+Admin Team,
+
+🚨 CRITICAL SYSTEM ALERT 🚨
+SEVERITY: {{alertSeverity}}
+{{alertTitle}}
+Immediate attention required
+
+URGENT: A critical system issue has been detected that requires immediate attention. This alert was triggered automatically by our monitoring systems.
+
+ERROR DETAILS:
+- Alert Type: {{alertType}}
+- Component: {{affectedComponent}}
+- Error Code: {{errorCode}}
+- Timestamp: {{errorTimestamp}}
+- Server: {{serverInstance}}
+- Environment: {{environment}}
+
+Error Message:
+{{errorMessage}}
+
+Stack Trace:
+{{stackTrace}}
+
+IMPACT ASSESSMENT:
+- Affected Services: {{affectedServices}}
+- User Impact: {{userImpact}}
+- Communities Affected: {{affectedCommunities}}
+- Financial Impact: {{financialImpact}}
+- Estimated Downtime: {{estimatedDowntime}}
+- Data Integrity: {{dataIntegrityStatus}}
+
+🚀 IMMEDIATE ACTIONS REQUIRED:
+1. Acknowledge Alert: Confirm receipt of this alert
+2. Assess Severity: Determine full scope of impact
+3. Activate Response Team: {{recommendedTeam}}
+4. Implement Workaround: {{suggestedWorkaround}}
+5. Monitor Systems: Continuously track system health
+6. Communicate Status: Update stakeholders as needed
+
+CURRENT SYSTEM STATUS:
+- Overall Health: {{systemHealthStatus}}
+- Database Status: {{databaseStatus}}
+- API Status: {{apiStatus}}
+- Payment Systems: {{paymentSystemStatus}}
+- Email Service: {{emailServiceStatus}}
+- File Storage: {{fileStorageStatus}}
+- Background Jobs: {{backgroundJobStatus}}
+
+ESCALATION PATH:
+- Level 1: {{level1Contact}} ({{level1Phone}})
+- Level 2: {{level2Contact}} ({{level2Phone}})
+- Level 3: {{level3Contact}} ({{level3Phone}})
+
+RELATED ALERTS:
+{{#if hasRelatedAlerts}}
+{{#each relatedAlerts}}
+- {{this.timestamp}} - {{this.type}} - {{this.message}}
+{{/each}}
+{{else}}
+No related alerts in the past {{alertTimeWindow}} minutes.
+{{/if}}
+
+MONITORING LINKS:
+- System Dashboard: {{systemDashboardLink}}
+- Error Logs: {{errorLogLink}}
+- Performance Monitor: {{performanceMonitorLink}}
+- Alert Manager: {{alertManagerLink}}
+
+HISTORICAL CONTEXT:
+- Similar alerts in past 24h: {{similarAlertsCount}}
+- Last similar incident: {{lastSimilarIncident}}
+- Average resolution time: {{averageResolutionTime}}
+
+⏰ ACTION REQUIRED WITHIN: {{responseTimeRequirement}}
+
+This is a critical system alert that requires immediate investigation and resolution. Please acknowledge receipt and begin troubleshooting procedures immediately.
+
+Alert ID: {{alertId}}
+Generated: {{alertGenerationTime}}
+Severity: {{alertSeverity}}
+Auto-retry: {{autoRetryStatus}}
+
+---
+This is an automated critical alert from Kolocollect System Monitoring.
+DO NOT IGNORE - IMMEDIATE ACTION REQUIRED
+Priority: CRITICAL | Category: System Health

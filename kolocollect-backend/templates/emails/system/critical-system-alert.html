@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Critical System Alert - Kolocollect</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            background-color: #d32f2f;
+            color: white;
+            padding: 20px;
+            border-radius: 10px 10px 0 0;
+            margin: -30px -30px 30px -30px;
+        }
+        .critical-alert {
+            background-color: #ffebee;
+            padding: 20px;
+            border-radius: 5px;
+            text-align: center;
+            margin: 20px 0;
+            border: 2px solid #f44336;
+        }
+        .alert-icon {
+            font-size: 48px;
+            color: #d32f2f;
+            margin-bottom: 10px;
+        }
+        .severity-high {
+            background-color: #ffcdd2;
+            color: #d32f2f;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-weight: bold;
+            display: inline-block;
+        }
+        .error-details {
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            font-family: 'Courier New', monospace;
+        }
+        .impact-assessment {
+            background-color: #fff3e0;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            border-left: 4px solid #ff9800;
+        }
+        .immediate-actions {
+            background-color: #ffebee;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            border-left: 4px solid #f44336;
+        }
+        .system-status {
+            background-color: #e3f2fd;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            border-left: 4px solid #2196F3;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            color: #666;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚨 CRITICAL SYSTEM ALERT</h1>
+        </div>
+        
+        <div class="critical-alert">
+            <div class="alert-icon">⚠️</div>
+            <div class="severity-high">SEVERITY: {{alertSeverity}}</div>
+            <h3>{{alertTitle}}</h3>
+            <p>Immediate attention required</p>
+        </div>
+        
+        <p>Admin Team,</p>
+        
+        <p><strong>URGENT:</strong> A critical system issue has been detected that requires immediate attention. This alert was triggered automatically by our monitoring systems.</p>
+        
+        <div class="error-details">
+            <h3>🔍 Error Details:</h3>
+            <p><strong>Alert Type:</strong> {{alertType}}</p>
+            <p><strong>Component:</strong> {{affectedComponent}}</p>
+            <p><strong>Error Code:</strong> {{errorCode}}</p>
+            <p><strong>Timestamp:</strong> {{errorTimestamp}}</p>
+            <p><strong>Server:</strong> {{serverInstance}}</p>
+            <p><strong>Environment:</strong> {{environment}}</p>
+            
+            <h4>Error Message:</h4>
+            <pre>{{errorMessage}}</pre>
+            
+            <h4>Stack Trace:</h4>
+            <pre>{{stackTrace}}</pre>
+        </div>
+        
+        <div class="impact-assessment">
+            <h3>💥 Impact Assessment:</h3>
+            <ul>
+                <li><strong>Affected Services:</strong> {{affectedServices}}</li>
+                <li><strong>User Impact:</strong> {{userImpact}}</li>
+                <li><strong>Communities Affected:</strong> {{affectedCommunities}}</li>
+                <li><strong>Financial Impact:</strong> {{financialImpact}}</li>
+                <li><strong>Estimated Downtime:</strong> {{estimatedDowntime}}</li>
+                <li><strong>Data Integrity:</strong> {{dataIntegrityStatus}}</li>
+            </ul>
+        </div>
+        
+        <div class="immediate-actions">
+            <h3>🚀 IMMEDIATE ACTIONS REQUIRED:</h3>
+            <ol>
+                <li><strong>Acknowledge Alert:</strong> Confirm receipt of this alert</li>
+                <li><strong>Assess Severity:</strong> Determine full scope of impact</li>
+                <li><strong>Activate Response Team:</strong> {{recommendedTeam}}</li>
+                <li><strong>Implement Workaround:</strong> {{suggestedWorkaround}}</li>
+                <li><strong>Monitor Systems:</strong> Continuously track system health</li>
+                <li><strong>Communicate Status:</strong> Update stakeholders as needed</li>
+            </ol>
+        </div>
+        
+        <div class="system-status">
+            <h3>📊 Current System Status:</h3>
+            <ul>
+                <li><strong>Overall Health:</strong> {{systemHealthStatus}}</li>
+                <li><strong>Database Status:</strong> {{databaseStatus}}</li>
+                <li><strong>API Status:</strong> {{apiStatus}}</li>
+                <li><strong>Payment Systems:</strong> {{paymentSystemStatus}}</li>
+                <li><strong>Email Service:</strong> {{emailServiceStatus}}</li>
+                <li><strong>File Storage:</strong> {{fileStorageStatus}}</li>
+                <li><strong>Background Jobs:</strong> {{backgroundJobStatus}}</li>
+            </ul>
+        </div>
+        
+        <p><strong>Escalation Path:</strong></p>
+        <ul>
+            <li><strong>Level 1:</strong> {{level1Contact}} ({{level1Phone}})</li>
+            <li><strong>Level 2:</strong> {{level2Contact}} ({{level2Phone}})</li>
+            <li><strong>Level 3:</strong> {{level3Contact}} ({{level3Phone}})</li>
+        </ul>
+        
+        <p><strong>Related Alerts:</strong></p>
+        {{#if hasRelatedAlerts}}
+        <ul>
+            {{#each relatedAlerts}}
+            <li>{{this.timestamp}} - {{this.type}} - {{this.message}}</li>
+            {{/each}}
+        </ul>
+        {{else}}
+        <p>No related alerts in the past {{alertTimeWindow}} minutes.</p>
+        {{/if}}
+        
+        <p><strong>Monitoring Links:</strong></p>
+        <ul>
+            <li><a href="{{systemDashboardLink}}">System Dashboard</a></li>
+            <li><a href="{{errorLogLink}}">Error Logs</a></li>
+            <li><a href="{{performanceMonitorLink}}">Performance Monitor</a></li>
+            <li><a href="{{alertManagerLink}}">Alert Manager</a></li>
+        </ul>
+        
+        <p><strong>Historical Context:</strong></p>
+        <ul>
+            <li>Similar alerts in past 24h: {{similarAlertsCount}}</li>
+            <li>Last similar incident: {{lastSimilarIncident}}</li>
+            <li>Average resolution time: {{averageResolutionTime}}</li>
+        </ul>
+        
+        <p><strong>⏰ ACTION REQUIRED WITHIN: {{responseTimeRequirement}}</strong></p>
+        
+        <p>This is a critical system alert that requires immediate investigation and resolution. Please acknowledge receipt and begin troubleshooting procedures immediately.</p>
+        
+        <p>Alert ID: {{alertId}}<br>
+        Generated: {{alertGenerationTime}}<br>
+        Severity: {{alertSeverity}}<br>
+        Auto-retry: {{autoRetryStatus}}</p>
+        
+        <div class="footer">
+            <p>This is an automated critical alert from Kolocollect System Monitoring.</p>
+            <p>DO NOT IGNORE - IMMEDIATE ACTION REQUIRED</p>
+            <p>Priority: CRITICAL | Category: System Health</p>
+        </div>
+    </div>
+</body>
+</html>

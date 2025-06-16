@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Back Payment Received - Kolocollect</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            background-color: #009688;
+            color: white;
+            padding: 20px;
+            border-radius: 10px 10px 0 0;
+            margin: -30px -30px 30px -30px;
+        }
+        .success-alert {
+            background-color: #e0f2f1;
+            padding: 20px;
+            border-radius: 5px;
+            text-align: center;
+            margin: 20px 0;
+            border-left: 4px solid #009688;
+        }
+        .amount-received {
+            font-size: 28px;
+            font-weight: bold;
+            color: #009688;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .details {
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .account-status {
+            background-color: #e8f5e8;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            border-left: 4px solid #4CAF50;
+        }
+        .next-steps {
+            background-color: #e3f2fd;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            border-left: 4px solid #2196F3;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            color: #666;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>✅ Back Payment Received</h1>
+        </div>
+        
+        <div class="success-alert">
+            <h3>🎉 Payment Successfully Processed!</h3>
+            <p>Your back payment has been received and verified</p>
+        </div>
+        
+        <p>Hello {{memberName}},</p>
+        
+        <p>Great news! We've successfully received and processed your back payment. Thank you for bringing your account up to date.</p>
+        
+        <div class="amount-received">
+            ₦{{backPaymentAmount}}
+        </div>
+        
+        <div class="details">
+            <h3>Payment Details:</h3>
+            <p><strong>Community:</strong> {{communityName}}</p>
+            <p><strong>Payment Amount:</strong> ₦{{backPaymentAmount}}</p>
+            <p><strong>Payment Date:</strong> {{paymentDate}}</p>
+            <p><strong>Processing Date:</strong> {{processingDate}}</p>
+            <p><strong>Transaction ID:</strong> {{transactionId}}</p>
+            <p><strong>Payment Method:</strong> {{paymentMethod}}</p>
+            <p><strong>Outstanding Before:</strong> ₦{{previousOutstanding}}</p>
+            <p><strong>Outstanding After:</strong> ₦{{currentOutstanding}}</p>
+        </div>
+        
+        <div class="account-status">
+            <h3>📊 Account Status Update:</h3>
+            <ul>
+                <li><strong>Account Status:</strong> {{accountStatus}}</li>
+                <li><strong>Payment Status:</strong> {{paymentStatus}}</li>
+                <li><strong>Community Standing:</strong> {{communityStanding}}</li>
+                <li><strong>Penalty Status:</strong> {{penaltyStatus}}</li>
+                {{#if accountReactivated}}
+                <li><strong>Account Reactivated:</strong> ✅ Yes</li>
+                {{/if}}
+                {{#if walletUnfrozen}}
+                <li><strong>Wallet Status:</strong> ✅ Unfrozen</li>
+                {{/if}}
+            </ul>
+        </div>
+        
+        {{#if hasPenaltyReduction}}
+        <div style="background-color: #fff3e0; padding: 15px; border-radius: 5px; margin: 20px 0; border-left: 4px solid #ff9800;">
+            <h3>💰 Penalty Adjustment:</h3>
+            <p><strong>Previous Penalties:</strong> ₦{{previousPenalties}}</p>
+            <p><strong>Penalty Reduction:</strong> ₦{{penaltyReduction}}</p>
+            <p><strong>Current Penalties:</strong> ₦{{currentPenalties}}</p>
+            <p>Your prompt payment has earned you a penalty reduction!</p>
+        </div>
+        {{/if}}
+        
+        <div class="next-steps">
+            <h3>📋 What's Next:</h3>
+            <ul>
+                <li>✅ Your account is now up to date</li>
+                <li>📅 Resume regular contribution schedule</li>
+                <li>💰 You're back in the payout rotation</li>
+                <li>🎯 Maintain good standing with timely payments</li>
+                <li>📧 Watch for upcoming contribution reminders</li>
+            </ul>
+        </div>
+        
+        <p><strong>Important Reminders:</strong></p>
+        <ul>
+            <li>Continue making contributions on time to avoid future penalties</li>
+            <li>Your next contribution is due on {{nextContributionDate}}</li>
+            <li>Keep your payment information updated</li>
+            <li>Contact support if you anticipate any payment difficulties</li>
+        </ul>
+        
+        <p><strong>Community Information:</strong></p>
+        <ul>
+            <li>Community Size: {{communitySize}} members</li>
+            <li>Your Position: {{memberPosition}}</li>
+            <li>Next Payout Date: {{nextPayoutDate}}</li>
+            <li>Cycle Status: {{cycleStatus}}</li>
+        </ul>
+        
+        <p>We appreciate your commitment to the community and your prompt action in resolving your outstanding balance. This kind of responsibility helps maintain trust and reliability within the community.</p>
+        
+        <p>If you have any questions about your payment or account status, please don't hesitate to contact our support team.</p>
+        
+        <p>Thank you for being a valued member of the Kolocollect community!</p>
+        
+        <p>Best regards,<br>
+        The Kolocollect Team</p>
+        
+        <div class="footer">
+            <p>This is an automated confirmation from Kolocollect. Please do not reply to this email.</p>
+            <p>If you need assistance, contact us at support@kolocollect.com</p>
+        </div>
+    </div>
+</body>
+</html>

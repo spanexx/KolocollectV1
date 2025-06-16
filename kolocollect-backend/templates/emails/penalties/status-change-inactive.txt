@@ -1,0 +1,65 @@
+ACCOUNT STATUS CHANGED - KOLOCOLLECT
+===================================
+
+Hello {{memberName}},
+
+📊 ACCOUNT STATUS UPDATED
+Your membership status has been changed
+
+We're writing to inform you that your account status has been updated due to {{statusChangeReason}}.
+
+STATUS CHANGE:
+{{previousStatusDisplay}} → {{newStatusDisplay}}
+
+CHANGE DETAILS:
+- Community: {{communityName}}
+- Previous Status: {{previousStatusDisplay}}
+- New Status: {{newStatusDisplay}}
+- Change Date: {{statusChangeDate}}
+- Reason: {{statusChangeReason}}
+- Effective Immediately: Yes
+
+WHAT THIS MEANS:
+- {{statusImplication1}}
+- {{statusImplication2}}
+- {{statusImplication3}}
+- {{statusImplication4}}
+
+{{#if isInactive}}
+HOW TO REACTIVATE:
+1. Settle Outstanding Balance: ₦{{outstandingAmount}}
+2. Contact Support: Request reactivation
+3. Provide Payment Proof: Submit transaction details
+4. Account Review: Wait for verification (24-48 hours)
+5. Resume Contributions: Get back on track
+
+Reactivation Deadline: {{reactivationDeadline}}
+After this date, you may be permanently removed from the community.
+{{/if}}
+
+IMPORTANT INFORMATION:
+- This status change is effective immediately
+- Your community privileges have been adjusted accordingly
+- Any scheduled payouts may be affected
+- Future contributions must align with your new status
+
+PAYMENT INFORMATION (if applicable):
+- Bank Transfer: {{communityAccountDetails}}
+- Mobile Money: {{mobileMoneyDetails}}
+- Reference: {{paymentReference}}
+
+If you have questions about this status change or need assistance with reactivation, please contact our support team as soon as possible.
+
+CONTACT INFORMATION:
+- Email: support@kolocollect.com
+- Phone: {{supportPhone}}
+- Priority: {{supportPriority}}
+
+We value your participation in the Kolocollect community and hope to restore your active status soon.
+
+Best regards,
+The Kolocollect Team
+
+---
+This is an automated notification from Kolocollect. Please do not reply to this email.
+If you need assistance, contact us at support@kolocollect.com

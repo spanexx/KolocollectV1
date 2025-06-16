@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Account Status Changed - Kolocollect</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            background-color: #795548;
+            color: white;
+            padding: 20px;
+            border-radius: 10px 10px 0 0;
+            margin: -30px -30px 30px -30px;
+        }
+        .status-change {
+            background-color: #efebe9;
+            padding: 20px;
+            border-radius: 5px;
+            text-align: center;
+            margin: 20px 0;
+            border-left: 4px solid #795548;
+        }
+        .status-from-to {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #f5f5f5;
+            border-radius: 5px;
+        }
+        .status-box {
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-weight: bold;
+            text-align: center;
+        }
+        .status-active {
+            background-color: #4CAF50;
+            color: white;
+        }
+        .status-inactive {
+            background-color: #f44336;
+            color: white;
+        }
+        .arrow {
+            font-size: 24px;
+            color: #795548;
+        }
+        .details {
+            background-color: #f9f9f9;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .implications {
+            background-color: #fff3e0;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            border-left: 4px solid #ff9800;
+        }
+        .reactivation {
+            background-color: #e8f5e8;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            border-left: 4px solid #4CAF50;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+            color: #666;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 Status Change Notice</h1>
+        </div>
+        
+        <div class="status-change">
+            <h3>Account Status Updated</h3>
+            <p>Your membership status has been changed</p>
+        </div>
+        
+        <p>Hello {{memberName}},</p>
+        
+        <p>We're writing to inform you that your account status has been updated due to {{statusChangeReason}}.</p>
+        
+        <div class="status-from-to">
+            <div class="status-box status-{{previousStatus}}">
+                {{previousStatusDisplay}}
+            </div>
+            <div class="arrow">→</div>
+            <div class="status-box status-{{newStatus}}">
+                {{newStatusDisplay}}
+            </div>
+        </div>
+        
+        <div class="details">
+            <h3>Change Details:</h3>
+            <p><strong>Community:</strong> {{communityName}}</p>
+            <p><strong>Previous Status:</strong> {{previousStatusDisplay}}</p>
+            <p><strong>New Status:</strong> {{newStatusDisplay}}</p>
+            <p><strong>Change Date:</strong> {{statusChangeDate}}</p>
+            <p><strong>Reason:</strong> {{statusChangeReason}}</p>
+            <p><strong>Effective Immediately:</strong> Yes</p>
+        </div>
+        
+        <div class="implications">
+            <h3>⚠️ What This Means:</h3>
+            <ul>
+                <li>{{statusImplication1}}</li>
+                <li>{{statusImplication2}}</li>
+                <li>{{statusImplication3}}</li>
+                <li>{{statusImplication4}}</li>
+            </ul>
+        </div>
+        
+        {{#if isInactive}}
+        <div class="reactivation">
+            <h3>🔄 How to Reactivate:</h3>
+            <ol>
+                <li><strong>Settle Outstanding Balance:</strong> ₦{{outstandingAmount}}</li>
+                <li><strong>Contact Support:</strong> Request reactivation</li>
+                <li><strong>Provide Payment Proof:</strong> Submit transaction details</li>
+                <li><strong>Account Review:</strong> Wait for verification (24-48 hours)</li>
+                <li><strong>Resume Contributions:</strong> Get back on track</li>
+            </ol>
+            
+            <p><strong>Reactivation Deadline:</strong> {{reactivationDeadline}}</p>
+            <p>After this date, you may be permanently removed from the community.</p>
+        </div>
+        {{/if}}
+        
+        <p><strong>Important Information:</strong></p>
+        <ul>
+            <li>This status change is effective immediately</li>
+            <li>Your community privileges have been adjusted accordingly</li>
+            <li>Any scheduled payouts may be affected</li>
+            <li>Future contributions must align with your new status</li>
+        </ul>
+        
+        <p><strong>Payment Information (if applicable):</strong></p>
+        <ul>
+            <li>Bank Transfer: {{communityAccountDetails}}</li>
+            <li>Mobile Money: {{mobileMoneyDetails}}</li>
+            <li>Reference: {{paymentReference}}</li>
+        </ul>
+        
+        <p>If you have questions about this status change or need assistance with reactivation, please contact our support team as soon as possible.</p>
+        
+        <p><strong>Contact Information:</strong></p>
+        <ul>
+            <li>Email: support@kolocollect.com</li>
+            <li>Phone: {{supportPhone}}</li>
+            <li>Priority: {{supportPriority}}</li>
+        </ul>
+        
+        <p>We value your participation in the Kolocollect community and hope to restore your active status soon.</p>
+        
+        <p>Best regards,<br>
+        The Kolocollect Team</p>
+        
+        <div class="footer">
+            <p>This is an automated notification from Kolocollect. Please do not reply to this email.</p>
+            <p>If you need assistance, contact us at support@kolocollect.com</p>
+        </div>
+    </div>
+</body>
+</html>

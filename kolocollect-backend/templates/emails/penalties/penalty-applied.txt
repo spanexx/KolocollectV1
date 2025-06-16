@@ -1,0 +1,50 @@
+PENALTY APPLIED - KOLOCOLLECT
+=============================
+
+Hello {{memberName}},
+
+⚠️ PENALTY NOTICE
+A penalty has been applied to your account
+
+We're writing to inform you that a penalty has been applied to your account due to {{penaltyReason}}.
+
+PENALTY AMOUNT: ₦{{penaltyAmount}}
+
+PENALTY DETAILS:
+- Community: {{communityName}}
+- Penalty Type: {{penaltyType}}
+- Reason: {{penaltyReason}}
+- Amount: ₦{{penaltyAmount}}
+- Applied Date: {{penaltyDate}}
+- Cycle: {{cycleNumber}}
+- Outstanding Balance: ₦{{outstandingBalance}}
+
+⚠️ IMPORTANT INFORMATION:
+- This penalty will be deducted from your next payout
+- If you don't have a payout scheduled, payment is required
+- Additional penalties may apply for continued non-compliance
+- Your account status may be affected
+
+NEXT STEPS:
+- Review the penalty details carefully
+- Contact support if you believe this is an error
+- Make future contributions on time to avoid penalties
+- Keep your account information updated
+
+PAYMENT INFORMATION:
+If immediate payment is required, you can pay using:
+- Bank Transfer: {{communityAccountDetails}}
+- Mobile Money: {{mobileMoneyDetails}}
+- Reference: {{paymentReference}}
+
+APPEAL PROCESS:
+If you believe this penalty was applied in error, you can appeal within {{appealPeriodDays}} days by contacting our support team with relevant documentation.
+
+We understand that circumstances can be challenging. If you need assistance or have questions about this penalty, please don't hesitate to contact our support team.
+
+Best regards,
+The Kolocollect Team
+
+---
+This is an automated notification from Kolocollect. Please do not reply to this email.
+If you need assistance, contact us at support@kolocollect.com

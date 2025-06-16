@@ -1,0 +1,73 @@
+BACK PAYMENT RECEIVED - KOLOCOLLECT
+===================================
+
+Hello {{memberName}},
+
+✅ PAYMENT SUCCESSFULLY PROCESSED!
+🎉 Your back payment has been received and verified
+
+Great news! We've successfully received and processed your back payment. Thank you for bringing your account up to date.
+
+AMOUNT RECEIVED: ₦{{backPaymentAmount}}
+
+PAYMENT DETAILS:
+- Community: {{communityName}}
+- Payment Amount: ₦{{backPaymentAmount}}
+- Payment Date: {{paymentDate}}
+- Processing Date: {{processingDate}}
+- Transaction ID: {{transactionId}}
+- Payment Method: {{paymentMethod}}
+- Outstanding Before: ₦{{previousOutstanding}}
+- Outstanding After: ₦{{currentOutstanding}}
+
+ACCOUNT STATUS UPDATE:
+- Account Status: {{accountStatus}}
+- Payment Status: {{paymentStatus}}
+- Community Standing: {{communityStanding}}
+- Penalty Status: {{penaltyStatus}}
+{{#if accountReactivated}}
+- Account Reactivated: ✅ Yes
+{{/if}}
+{{#if walletUnfrozen}}
+- Wallet Status: ✅ Unfrozen
+{{/if}}
+
+{{#if hasPenaltyReduction}}
+PENALTY ADJUSTMENT:
+- Previous Penalties: ₦{{previousPenalties}}
+- Penalty Reduction: ₦{{penaltyReduction}}
+- Current Penalties: ₦{{currentPenalties}}
+Your prompt payment has earned you a penalty reduction!
+{{/if}}
+
+WHAT'S NEXT:
+- ✅ Your account is now up to date
+- 📅 Resume regular contribution schedule
+- 💰 You're back in the payout rotation
+- 🎯 Maintain good standing with timely payments
+- 📧 Watch for upcoming contribution reminders
+
+IMPORTANT REMINDERS:
+- Continue making contributions on time to avoid future penalties
+- Your next contribution is due on {{nextContributionDate}}
+- Keep your payment information updated
+- Contact support if you anticipate any payment difficulties
+
+COMMUNITY INFORMATION:
+- Community Size: {{communitySize}} members
+- Your Position: {{memberPosition}}
+- Next Payout Date: {{nextPayoutDate}}
+- Cycle Status: {{cycleStatus}}
+
+We appreciate your commitment to the community and your prompt action in resolving your outstanding balance. This kind of responsibility helps maintain trust and reliability within the community.
+
+If you have any questions about your payment or account status, please don't hesitate to contact our support team.
+
+Thank you for being a valued member of the Kolocollect community!
+
+Best regards,
+The Kolocollect Team
+
+---
+This is an automated confirmation from Kolocollect. Please do not reply to this email.
+If you need assistance, contact us at support@kolocollect.com

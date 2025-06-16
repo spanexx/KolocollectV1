@@ -1,0 +1,82 @@
+MEMBER LEFT COMMUNITY - KOLOCOLLECT ADMIN
+=======================================
+
+Admin Team,
+
+👋 MEMBER DEPARTURE ALERT
+📤 A member has left or been removed from a community
+
+We're notifying you that a member has left one of our communities. This requires immediate attention to assess impact and take necessary actions.
+
+DEPARTED MEMBER DETAILS:
+- Name: {{memberName}}
+- Email: {{memberEmail}}
+- Phone: {{memberPhone}}
+- User ID: {{userId}}
+- Departure Date: {{departureDate}}
+- Departure Type: {{departureType}}
+- Reason: {{departureReason}}
+- Member Since: {{memberSince}}
+- Total Tenure: {{membershipDuration}}
+
+COMMUNITY IMPACT:
+- Community: {{communityName}} (ID: {{communityId}})
+- Previous Position: {{memberPosition}}
+- Remaining Members: {{remainingMembers}}
+- Community Status: {{communityStatus}}
+- Cycle Status: {{cycleStatus}}
+- Next Payout Affected: {{nextPayoutAffected}}
+
+FINANCIAL SUMMARY:
+- Total Contributions Made: ₦{{totalContributions}}
+- Outstanding Balance: ₦{{outstandingBalance}}
+- Payouts Received: ₦{{payoutsReceived}}
+- Penalties Applied: ₦{{penaltiesApplied}}
+- Final Settlement: ₦{{finalSettlement}}
+- Refund Due: {{refundStatus}}
+
+REQUIRED ACTIONS:
+- 🔍 Review departure circumstances
+- 💰 Process final financial settlement
+- 📊 Update community member count
+- 🔄 Adjust payout rotation if necessary
+- 📧 Notify remaining community members
+- 📈 Assess need for replacement member
+- 🏥 Check community health metrics
+
+DEPARTURE ANALYSIS:
+- Voluntary Departure: {{isVoluntary}}
+- Performance Issues: {{hadPerformanceIssues}}
+- Payment Problems: {{hadPaymentProblems}}
+- Community Conflicts: {{hadCommunityConflicts}}
+- Exit Survey Completed: {{exitSurveyCompleted}}
+
+COMMUNITY HEALTH CHECK:
+- Minimum Members Met: {{minMembersMet}}
+- Can Continue Operations: {{canContinueOperations}}
+- Requires Intervention: {{requiresIntervention}}
+- Suggested Action: {{suggestedAction}}
+
+REPLACEMENT MEMBER:
+{{#if needsReplacement}}
+⚠️ This community needs a replacement member to maintain optimal operations. Consider:
+- Activating waiting list members
+- Running targeted recruitment
+- Offering incentives for quick joining
+{{else}}
+✅ Community can continue operations with current member count.
+{{/if}}
+
+Please review this departure and take appropriate actions to maintain community health and member satisfaction.
+
+QUICK ACTIONS:
+- Member Profile: {{memberProfileLink}}
+- Community Dashboard: {{communityDashboardLink}}
+- Financial Report: {{financialReportLink}}
+- Admin Panel: {{adminPanelLink}}
+
+System timestamp: {{timestamp}}
+
+---
+This is an automated notification from Kolocollect Admin System.
+Category: Member Management | Priority: HIGH
