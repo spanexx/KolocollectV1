@@ -3,7 +3,19 @@ const authMiddleware = require('../middlewares/authMiddleware');
 const router = express.Router();
 const communityController = require('../controllers/communityController');
 const communityHistoryController = require('../controllers/community-history');
-
+const invitationController = require('../controllers/invitationController');
+const {
+  validateInvitationCreation,
+  validateCommunityId,
+  validateInvitationQuery,
+  sanitizeInvitationData,
+  validateInvitationPermissions
+} = require('../middlewares/invitationMiddleware');
+const {
+  invitationCreationLimiter,
+  invitationListingLimiter,
+  generalInvitationLimiter
+} = require('../middlewares/rateLimitMiddleware');
 
 // Route to search communities
 router.get('/search', communityController.searchCommunity);  // GET for search with query params
@@ -92,5 +104,41 @@ router.delete('/:communityId/leave/:userId', communityController.leaveCommunity)
 
 // Route to start a new cycle
 router.post('/:communityId/startNewCycle', communityController.startNewCycle);
+
+// ============================================
+// INVITATION ROUTES FOR COMMUNITIES
+// ============================================
+
+// Create invitation for a community (admin only)
+router.post('/:id/invitations',
+  generalInvitationLimiter,
+  invitationCreationLimiter,
+  authMiddleware,
+  validateCommunityId,
+  validateInvitationPermissions,
+  sanitizeInvitationData,
+  validateInvitationCreation,
+  invitationController.createInvitation
+);
+
+// Get all invitations for a community (admin only)
+router.get('/:id/invitations',
+  generalInvitationLimiter,
+  invitationListingLimiter,
+  authMiddleware,
+  validateCommunityId,
+  validateInvitationPermissions,
+  validateInvitationQuery,
+  invitationController.getCommunityInvitations
+);
+
+// Get invitation statistics for a community (admin only)
+router.get('/:id/invitations/stats',
+  generalInvitationLimiter,
+  authMiddleware,
+  validateCommunityId,
+  validateInvitationPermissions,
+  invitationController.getInvitationStats
+);
 
 module.exports = router;

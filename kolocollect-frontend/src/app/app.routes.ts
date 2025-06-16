@@ -6,12 +6,17 @@ import { ErrorPageComponent } from './pages/error-page/error-page.component';
 export const routes: Routes = [
   // Default redirect to home
   { path: '', redirectTo: '/dashboard', pathMatch: 'full' },
-
   // Authentication routes (no layout)
   { path: 'login', loadComponent: () => import('./auth/login/login.component').then(m => m.LoginComponent) },
   { path: 'register', loadComponent: () => import('./auth/register/register.component').then(m => m.RegisterComponent) },
   { path: 'forgot-password', loadComponent: () => import('./auth/forgot-password/forgot-password.component').then(m => m.ForgotPasswordComponent) },
   { path: 'reset-password', loadComponent: () => import('./auth/reset-password/reset-password.component').then(m => m.ResetPasswordComponent) },
+
+  // Public invitation acceptance route (no authentication required)
+  { 
+    path: 'invite/:inviteCode', 
+    loadComponent: () => import('./components/community/invitation-accept/invitation-accept.component').then(m => m.InvitationAcceptComponent)
+  },
 
   // Error page route
   { path: 'error', component: ErrorPageComponent },

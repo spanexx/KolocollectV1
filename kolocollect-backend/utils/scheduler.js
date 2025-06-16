@@ -3,6 +3,9 @@ const Community = require('../models/Community');
 const MidCycle = require('../models/Midcycle');
 const mongoose = require('mongoose');
 
+// Import invitation service for cleanup
+const invitationService = require('../services/invitationService');
+
 /**
  * Utility function to retry failed operations with exponential backoff
  * @param {Function} operation - Async function to retry
@@ -363,6 +366,22 @@ const schedulePayouts = async () => {
       console.error('Error in payout scheduler:', err);
     }
   });
+  
+  // ============================================
+  // INVITATION CLEANUP SCHEDULER
+  // ============================================
+  
+  // Schedule invitation cleanup to run daily at 2:00 AM
+  cron.schedule('0 2 * * *', async () => {
+    console.log('Starting invitation cleanup...');
+    try {
+      const cleanedCount = await invitationService.cleanupExpiredInvitations();
+      console.log(`Successfully cleaned up ${cleanedCount} expired invitations`);
+    } catch (error) {
+      console.error('Error during invitation cleanup:', error);
+    }
+  });
+  
   /**
    * Helper function to notify admins about payout failures
    * @param {Object} community - The community with failed payout

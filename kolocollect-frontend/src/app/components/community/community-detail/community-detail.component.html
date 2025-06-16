@@ -675,8 +675,24 @@
               Log in to Join
             </app-custom-button>
           </div>
-        </div>
-      </div>
+        </div>      </div>
     </div>
+  </div>
+  
+  <!-- Invite Member Modal -->
+  <app-invite-member-modal
+    [isOpen]="isInviteModalOpen"
+    [communityId]="communityId"
+    [communityName]="community.name || ''"
+    (closeModal)="closeInviteModal()"
+    (invitationSent)="onInvitationSent($event)">
+  </app-invite-member-modal>
+  
+  <!-- Invitation Management Component (shown conditionally) -->
+  <div class="invitation-management-section" *ngIf="showInvitationManagement">
+    <app-invitation-management
+      [communityId]="communityId"
+      [isAdmin]="isAdmin">
+    </app-invitation-management>
   </div>
 </div>

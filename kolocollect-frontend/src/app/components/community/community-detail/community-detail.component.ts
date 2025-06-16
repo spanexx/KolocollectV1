@@ -48,6 +48,8 @@ import { User } from '../../../models/user.model';
 import { DecimalUtilService } from '../../../services/decimal-util.service';
 import { CustomButtonComponent } from '../../../shared/components/custom-button/custom-button.component';
 import { CommunityVotesComponent } from '../community-votes/community-votes.component';
+import { InviteMemberModalComponent } from '../invite-member-modal/invite-member-modal.component';
+import { InvitationManagementComponent } from '../invitation-management/invitation-management.component';
 import { CommunityPayoutsComponent } from '../community-payouts/community-payouts.component';
 import { CommunityMembersComponent } from '../community-members/community-members.component';
 import { CommunityMidcycleComponent } from '../community-midcycle/community-midcycle.component';
@@ -71,6 +73,8 @@ import { CommunityFrontendFilterComponent } from '../community-frontend-filter/c
     MatMenuModule,    FontAwesomeModule,    CustomButtonComponent,    ContributionHistoryHierarchicalComponent,    OwingMembersComponent,    CommunityVotesComponent, // Used in template
     CommunityPayoutsComponent, // Used in template
     CommunityMembersComponent, // Used in template
+    InviteMemberModalComponent, // Used for member invitations
+    InvitationManagementComponent, // Used for invitation management
     // Removed CommunityFrontendFilterComponent as it's not used in this template
     FormsModule,
     ReactiveFormsModule,
@@ -140,10 +144,13 @@ export class CommunityDetailComponent implements OnInit, OnDestroy {  // Font Aw
   // Social media sharing links
   socialLinks: { twitter: string; facebook: string; whatsapp: string; } | null = null;
   cycleSocialLinks: { twitter: string; facebook: string; whatsapp: string; } | null = null;
-  midCycleSocialLinks: { twitter: string; facebook: string; whatsapp: string; } | null = null;
-  // Properties for member searching and filtering
+  midCycleSocialLinks: { twitter: string; facebook: string; whatsapp: string; } | null = null;  // Properties for member searching and filtering
   allMembers: Member[] = [];
   filteredMembers: Member[] = [];
+  
+  // Invitation modal properties
+  isInviteModalOpen: boolean = false;
+  showInvitationManagement: boolean = false;
   memberSearchLoading: boolean = false;
   
   // Predefined vote topics
@@ -683,7 +690,6 @@ export class CommunityDetailComponent implements OnInit, OnDestroy {  // Font Aw
       }
     });
   }
-
   /**
    * Navigate to the invite page for this community
    * Used by the CTA button in the owing members tab
@@ -694,12 +700,35 @@ export class CommunityDetailComponent implements OnInit, OnDestroy {  // Font Aw
       return;
     }
 
-    // Navigate to invite page with community ID
-    this.router.navigate(['/communities/invite'], { 
-      queryParams: { 
-        communityId: this.communityId
-      }
-    });
+    // Open invite modal instead of navigating to a separate page
+    this.isInviteModalOpen = true;
+  }
+
+  /**
+   * Close the invite member modal
+   */
+  closeInviteModal(): void {
+    this.isInviteModalOpen = false;
+  }
+
+  /**
+   * Handle successful invitation sent
+   */
+  onInvitationSent(invitation: any): void {
+    this.toastService.success('Invitation sent successfully!');
+    // Optionally refresh community data or member count
+    this.loadCommunityDetails();
+  }
+
+  /**
+   * Toggle invitation management view
+   */
+  toggleInvitationManagement(): void {
+    if (!this.isAdmin) {
+      this.toastService.error('You must be an admin to manage invitations');
+      return;
+    }
+    this.showInvitationManagement = !this.showInvitationManagement;
   }
 
   setActiveTab(tab: string): void {

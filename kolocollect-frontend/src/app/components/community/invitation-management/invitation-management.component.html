@@ -1,0 +1,282 @@
+<!-- Invitation Management Container -->
+<div class="invitation-management" *ngIf="isAdmin">
+  
+  <!-- Statistics Cards -->
+  <div class="stats-container" *ngIf="invitationStats">
+    <div class="stats-grid">
+      <div class="stat-card total">
+        <div class="stat-icon">
+          <i class="fas fa-envelope"></i>
+        </div>
+        <div class="stat-content">
+          <div class="stat-number">{{ invitationStats.total }}</div>
+          <div class="stat-label">Total Invitations</div>
+        </div>
+      </div>
+      
+      <div class="stat-card pending">
+        <div class="stat-icon">
+          <i class="fas fa-clock"></i>
+        </div>
+        <div class="stat-content">
+          <div class="stat-number">{{ invitationStats.pending }}</div>
+          <div class="stat-label">Pending</div>
+        </div>
+      </div>
+      
+      <div class="stat-card accepted">
+        <div class="stat-icon">
+          <i class="fas fa-check-circle"></i>
+        </div>
+        <div class="stat-content">
+          <div class="stat-number">{{ invitationStats.accepted }}</div>
+          <div class="stat-label">Accepted</div>
+        </div>
+      </div>
+      
+      <div class="stat-card expired">
+        <div class="stat-icon">
+          <i class="fas fa-x-circle"></i>
+        </div>
+        <div class="stat-content">
+          <div class="stat-number">{{ invitationStats.expired }}</div>
+          <div class="stat-label">Expired</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Controls Section -->
+  <div class="controls-section">
+    <div class="controls-header">
+      <h3 class="section-title">
+        <i class="fas fa-users"></i>
+        Manage Invitations
+      </h3>
+      <button class="refresh-btn" (click)="refresh()" [disabled]="isLoading">
+        <i class="fas fa-sync-alt" [class.spinning]="isLoading"></i>
+        Refresh
+      </button>
+    </div>
+    
+    <!-- Search and Filter -->
+    <div class="search-filter-row">
+      <div class="search-container">        <i class="fas fa-search"></i>
+        <input 
+          type="text" 
+          placeholder="Search by email, name, or message..."
+          #searchInput
+          [value]="searchTerm"
+          (input)="onSearchChange(searchInput.value)"
+          class="search-input">
+      </div>
+      
+      <div class="filter-container">        <select 
+          class="status-filter"
+          #statusSelect
+          [value]="statusFilter"
+          (change)="onStatusFilterChange(statusSelect.value)">>
+          <option *ngFor="let option of statusOptions" [value]="option.value">
+            {{ option.label }}
+          </option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div class="loading-container" *ngIf="isLoading && !hasInvitations">
+    <div class="loading-spinner">
+      <i class="fas fa-spinner fa-spin"></i>
+      <p>Loading invitations...</p>
+    </div>
+  </div>
+
+  <!-- No Invitations State -->
+  <div class="empty-state" *ngIf="!isLoading && !hasInvitations">
+    <div class="empty-icon">
+      <i class="fas fa-envelope-open"></i>
+    </div>
+    <h3>No Invitations Yet</h3>
+    <p>Invitations sent to this community will appear here.</p>
+  </div>
+
+  <!-- No Search Results -->
+  <div class="empty-state" *ngIf="!isLoading && hasInvitations && !hasFilteredInvitations">
+    <div class="empty-icon">
+      <i class="fas fa-search"></i>
+    </div>
+    <h3>No Results Found</h3>
+    <p>Try adjusting your search or filter criteria.</p>
+  </div>
+
+  <!-- Invitations Table -->
+  <div class="invitations-container" *ngIf="hasFilteredInvitations">
+    <div class="table-responsive">
+      <table class="invitations-table">
+        <thead>
+          <tr>
+            <th>Recipient</th>
+            <th>Status</th>
+            <th>Sent By</th>
+            <th>Sent Date</th>
+            <th>Expires</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let invitation of filteredInvitations" class="invitation-row">
+            <!-- Recipient -->
+            <td class="recipient-cell">
+              <div class="recipient-info">
+                <div class="recipient-email">
+                  {{ invitation.inviteeEmail || 'Link Invitation' }}
+                </div>
+                <div class="invitation-type" [class]="invitation.inviteType">
+                  <i class="fas" [class]="invitation.inviteType === 'email' ? 'fa-envelope' : 'fa-link'"></i>
+                  {{ invitation.inviteType | titlecase }}
+                </div>
+                <div class="custom-message" *ngIf="invitation.customMessage">
+                  <i class="fas fa-quote-left"></i>
+                  {{ invitation.customMessage }}
+                </div>
+              </div>
+            </td>
+
+            <!-- Status -->
+            <td class="status-cell">
+              <span class="status-badge" [class]="'status-' + invitation.status">
+                <i class="fas" [class]="'fa-' + getStatusIcon(invitation.status)"></i>
+                {{ invitation.status | titlecase }}
+              </span>
+            </td>
+
+            <!-- Sent By -->
+            <td class="sender-cell">
+              <div class="sender-info">
+                <div class="sender-name">{{ invitation.inviter?.name }}</div>
+                <div class="sender-email">{{ invitation.inviter?.email }}</div>
+              </div>
+            </td>            <!-- Sent Date -->
+            <td class="date-cell">
+              {{ formatDate(invitation.createdAt.toString()) }}
+            </td>
+
+            <!-- Expires -->
+            <td class="expiry-cell">
+              <div class="expiry-info" [class.expired]="isInvitationExpired(invitation.expiresAt.toString())">
+                {{ formatExpiryDate(invitation.expiresAt.toString()) }}
+              </div>
+            </td>
+
+            <!-- Actions -->
+            <td class="actions-cell">
+              <div class="action-buttons">
+                <!-- Copy Link -->
+                <button 
+                  class="action-btn copy-btn"
+                  (click)="copyInvitationLink(invitation)"
+                  title="Copy invitation link">
+                  <i class="fas fa-copy"></i>
+                </button>
+
+                <!-- Resend (Email only, Pending only) -->
+                <button 
+                  class="action-btn resend-btn"
+                  *ngIf="invitation.inviteType === 'email' && invitation.status === 'pending'"
+                  (click)="resendInvitation(invitation)"
+                  [disabled]="isActionLoading('resending', invitation.id)"
+                  title="Resend invitation">
+                  <i class="fas fa-paper-plane" *ngIf="!isActionLoading('resending', invitation.id)"></i>
+                  <i class="fas fa-spinner fa-spin" *ngIf="isActionLoading('resending', invitation.id)"></i>
+                </button>
+
+                <!-- Share Menu -->
+                <div class="dropdown" *ngIf="invitation.status === 'pending'">
+                  <button class="action-btn share-btn dropdown-toggle" title="Share invitation">
+                    <i class="fas fa-share-alt"></i>
+                  </button>
+                  <div class="dropdown-menu">
+                    <button 
+                      class="dropdown-item"
+                      (click)="shareInvitation(invitation, 'email')">
+                      <i class="fas fa-envelope"></i> Email
+                    </button>
+                    <button 
+                      class="dropdown-item"
+                      (click)="shareInvitation(invitation, 'whatsapp')">
+                      <i class="fab fa-whatsapp"></i> WhatsApp
+                    </button>
+                    <button 
+                      class="dropdown-item"
+                      (click)="shareInvitation(invitation, 'twitter')">
+                      <i class="fab fa-twitter"></i> Twitter
+                    </button>
+                    <button 
+                      class="dropdown-item"
+                      (click)="shareInvitation(invitation, 'facebook')">
+                      <i class="fab fa-facebook"></i> Facebook
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Cancel -->
+                <button 
+                  class="action-btn cancel-btn"
+                  *ngIf="invitation.status === 'pending'"
+                  (click)="cancelInvitation(invitation)"
+                  [disabled]="isActionLoading('cancelling', invitation.id)"
+                  title="Cancel invitation">
+                  <i class="fas fa-ban" *ngIf="!isActionLoading('cancelling', invitation.id)"></i>
+                  <i class="fas fa-spinner fa-spin" *ngIf="isActionLoading('cancelling', invitation.id)"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    <div class="pagination-container" *ngIf="totalPages > 1">      <div class="pagination-info">
+        Showing {{ ((currentPage - 1) * itemsPerPage) + 1 }} - 
+        {{ currentPage * itemsPerPage > totalCount ? totalCount : currentPage * itemsPerPage }} of {{ totalCount }} invitations
+      </div>
+      
+      <div class="pagination">
+        <button 
+          class="page-btn prev-btn"
+          [disabled]="currentPage === 1"
+          (click)="onPageChange(currentPage - 1)">
+          <i class="fas fa-chevron-left"></i>
+          Previous
+        </button>
+        
+        <button 
+          *ngFor="let page of paginationPages"
+          class="page-btn"
+          [class.active]="page === currentPage"
+          (click)="onPageChange(page)">
+          {{ page }}
+        </button>
+        
+        <button 
+          class="page-btn next-btn"
+          [disabled]="currentPage === totalPages"
+          (click)="onPageChange(currentPage + 1)">
+          Next
+          <i class="fas fa-chevron-right"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Non-Admin Message -->
+<div class="non-admin-message" *ngIf="!isAdmin">
+  <div class="message-content">
+    <i class="fas fa-lock"></i>
+    <h3>Admin Access Required</h3>
+    <p>Only community administrators can manage invitations.</p>
+  </div>
+</div>

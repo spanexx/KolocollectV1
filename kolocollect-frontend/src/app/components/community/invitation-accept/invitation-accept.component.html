@@ -1,0 +1,230 @@
+<div class="invitation-accept">
+  <!-- Loading State -->
+  <div class="invitation-accept__loading" *ngIf="currentStep === 'loading'">
+    <div class="loading-container">
+      <div class="loading-spinner"></div>
+      <h2>Loading invitation...</h2>
+      <p>Please wait while we verify your invitation.</p>
+    </div>
+  </div>
+
+  <!-- Invalid/Expired States -->
+  <div class="invitation-accept__error" *ngIf="currentStep === 'invalid' || currentStep === 'expired'">
+    <div class="error-container">
+      <div class="error-icon">
+        <i class="fas fa-exclamation-triangle" *ngIf="currentStep === 'invalid'"></i>
+        <i class="fas fa-clock" *ngIf="currentStep === 'expired'"></i>
+      </div>
+      
+      <h2 *ngIf="currentStep === 'invalid'">Invalid Invitation</h2>
+      <h2 *ngIf="currentStep === 'expired'">Invitation Expired</h2>
+      
+      <p *ngIf="currentStep === 'invalid'">
+        {{ error || 'This invitation link is not valid or has been cancelled.' }}
+      </p>
+      <p *ngIf="currentStep === 'expired'">
+        This invitation has expired and can no longer be used.
+      </p>
+      
+      <div class="error-actions">
+        <button 
+          type="button" 
+          class="btn btn-primary" 
+          (click)="goHome()">
+          Go to Homepage
+        </button>
+        <button 
+          type="button" 
+          class="btn btn-secondary" 
+          (click)="goToCommunity()" 
+          *ngIf="invitationDetails?.community">
+          View Community
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Login Required State -->
+  <div class="invitation-accept__login-required" *ngIf="currentStep === 'login-required'">
+    <div class="login-container">
+      <div class="community-info" *ngIf="invitationDetails">
+        <div class="community-avatar">
+          <i class="fas fa-users"></i>
+        </div>
+        <h2>You're invited to join</h2>
+        <h3>{{ invitationDetails.community?.name }}</h3>
+        <p class="community-description">{{ invitationDetails.community?.description }}</p>
+        
+        <div class="community-stats" *ngIf="invitationDetails.community">
+          <div class="stat">
+            <span class="stat-number">{{ invitationDetails.community.memberCount }}</span>
+            <span class="stat-label">Members</span>
+          </div>
+          <div class="stat" *ngIf="invitationDetails.community.maxMembers">
+            <span class="stat-number">{{ invitationDetails.community.maxMembers }}</span>
+            <span class="stat-label">Max Members</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="invitation-details" *ngIf="invitationDetails">
+        <div class="inviter-info" *ngIf="invitationDetails.inviter">
+          <p><strong>{{ invitationDetails.inviter.name }}</strong> invited you to join this community.</p>
+        </div>
+        
+        <div class="custom-message" *ngIf="invitationDetails.customMessage">
+          <div class="message-box">
+            <i class="fas fa-quote-left"></i>
+            <p>{{ invitationDetails.customMessage }}</p>
+          </div>
+        </div>
+        
+        <div class="expiry-info">
+          <p class="expiry-text">
+            <i class="fas fa-clock"></i>
+            This invitation expires on {{ formatDate(invitationDetails.expiresAt.toString()) }}
+          </p>
+        </div>
+      </div>
+
+      <div class="auth-actions">
+        <h4>To accept this invitation, please:</h4>
+        <div class="auth-buttons">
+          <button 
+            type="button" 
+            class="btn btn-primary" 
+            (click)="navigateToLogin()">
+            <i class="fas fa-sign-in-alt"></i>
+            Sign In
+          </button>
+          <button 
+            type="button" 
+            class="btn btn-secondary" 
+            (click)="navigateToRegister()">
+            <i class="fas fa-user-plus"></i>
+            Create Account
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Accept Invitation State -->
+  <div class="invitation-accept__form" *ngIf="currentStep === 'accept'">
+    <div class="accept-container">
+      <div class="community-info" *ngIf="invitationDetails">
+        <div class="community-avatar">
+          <i class="fas fa-users"></i>
+        </div>
+        <h2>You're invited to join</h2>
+        <h3>{{ invitationDetails.community?.name }}</h3>
+        <p class="community-description">{{ invitationDetails.community?.description }}</p>
+        
+        <div class="community-stats" *ngIf="invitationDetails.community">
+          <div class="stat">
+            <span class="stat-number">{{ invitationDetails.community.memberCount }}</span>
+            <span class="stat-label">Members</span>
+          </div>
+          <div class="stat" *ngIf="invitationDetails.community.maxMembers">
+            <span class="stat-number">{{ invitationDetails.community.maxMembers }}</span>
+            <span class="stat-label">Max Members</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="invitation-details" *ngIf="invitationDetails">
+        <div class="inviter-info" *ngIf="invitationDetails.inviter">
+          <p><strong>{{ invitationDetails.inviter.name }}</strong> invited you to join this community.</p>
+        </div>
+        
+        <div class="custom-message" *ngIf="invitationDetails.customMessage">
+          <div class="message-box">
+            <i class="fas fa-quote-left"></i>
+            <p>{{ invitationDetails.customMessage }}</p>
+          </div>
+        </div>
+        
+        <div class="expiry-info">
+          <p class="expiry-text">
+            <i class="fas fa-clock"></i>
+            This invitation expires on {{ formatDate(invitationDetails.expiresAt.toString()) }}
+          </p>
+        </div>
+      </div>
+
+      <form [formGroup]="acceptForm" (ngSubmit)="acceptInvitation()" class="accept-form">
+        <div class="form-group">
+          <label for="joinReason">Why do you want to join? (Optional)</label>
+          <textarea
+            id="joinReason"
+            formControlName="joinReason"
+            class="form-control"
+            [class.is-invalid]="isFieldInvalid('joinReason')"
+            rows="3"
+            placeholder="Share why you're excited to join this community...">
+          </textarea>
+          <div class="invalid-feedback" *ngIf="isFieldInvalid('joinReason')">
+            {{ getFieldError('joinReason') }}
+          </div>
+        </div>
+
+        <div class="form-group">
+          <div class="form-check">
+            <input
+              type="checkbox"
+              id="acceptTerms"
+              formControlName="acceptTerms"
+              class="form-check-input"
+              [class.is-invalid]="isFieldInvalid('acceptTerms')">
+            <label for="acceptTerms" class="form-check-label">
+              I agree to the community guidelines and terms of service
+            </label>
+          </div>
+          <div class="invalid-feedback" *ngIf="isFieldInvalid('acceptTerms')">
+            {{ getFieldError('acceptTerms') }}
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button
+            type="submit"
+            class="btn btn-primary btn-lg"
+            [disabled]="acceptForm.invalid || isSubmitting">
+            <i class="fas fa-check" *ngIf="!isSubmitting"></i>
+            <i class="fas fa-spinner fa-spin" *ngIf="isSubmitting"></i>
+            {{ isSubmitting ? 'Joining...' : 'Accept Invitation' }}
+          </button>
+          <button
+            type="button"
+            class="btn btn-secondary"
+            (click)="goHome()"
+            [disabled]="isSubmitting">
+            Maybe Later
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Success State -->
+  <div class="invitation-accept__success" *ngIf="currentStep === 'success'">
+    <div class="success-container">
+      <div class="success-icon">
+        <i class="fas fa-check-circle"></i>
+      </div>
+      
+      <h2>Welcome to the community!</h2>
+      <p>You have successfully joined <strong>{{ invitationDetails?.community?.name }}</strong>.</p>
+      
+      <div class="success-actions">
+        <p>You will be redirected to the community page shortly...</p>
+        <button 
+          type="button" 
+          class="btn btn-primary" 
+          (click)="goToCommunity()">
+          Go to Community Now
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

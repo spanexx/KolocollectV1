@@ -22,6 +22,7 @@ const queueRoutes = require('./routes/queueRoutes');
 const metricsRoutes = require('./routes/metricsRoutes');
 const cacheRoutes = require('./routes/cacheRoutes');
 const cacheDebugRoutes = require('./routes/cacheDebugRoutes');
+const invitationRoutes = require('./routes/invitations');
 const webhookMiddleware = require('./middlewares/webhookMiddleware');
 
 // Import performance monitoring middleware
@@ -119,6 +120,7 @@ app.use('/api/queues', queueRoutes);
 app.use('/api/metrics', metricsRoutes);
 app.use('/api/cache', cacheRoutes);
 app.use('/api/cache-debug', cacheDebugRoutes);
+app.use('/api/invitations', invitationRoutes);
 
 app.use(
   '/webhook',

@@ -1,0 +1,188 @@
+<!-- Modal Overlay -->
+<div class="modal-overlay" [class.show]="isOpen" (click)="close()" *ngIf="isOpen">
+  <div class="modal-container" (click)="$event.stopPropagation()">
+    <!-- Modal Header -->
+    <div class="modal-header">
+      <h2 class="modal-title">
+        <i class="fas fa-user-plus"></i>
+        Invite Members to {{ communityName }}
+      </h2>
+      <button class="close-btn" (click)="close()" type="button">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+
+    <!-- Modal Body -->
+    <div class="modal-body">
+      <!-- Invitation Type Tabs -->
+      <div class="tabs-container">
+        <button 
+          class="tab-btn" 
+          [class.active]="activeTab === 'email'"
+          (click)="switchTab('email')"
+          type="button">
+          <i class="fas fa-envelope"></i>
+          Email Invitation
+        </button>
+        <button 
+          class="tab-btn" 
+          [class.active]="activeTab === 'link'"
+          (click)="switchTab('link')"
+          type="button">
+          <i class="fas fa-link"></i>
+          Share Link
+        </button>
+      </div>
+
+      <!-- Invitation Form -->
+      <form [formGroup]="inviteForm" (ngSubmit)="onSubmit()" class="invite-form">
+        
+        <!-- Email Tab Content -->
+        <div class="tab-content" *ngIf="activeTab === 'email'">
+          <div class="form-group">
+            <label for="inviteeEmail" class="form-label">
+              <i class="fas fa-envelope"></i>
+              Email Address *
+            </label>
+            <input 
+              id="inviteeEmail"
+              type="email" 
+              formControlName="inviteeEmail"
+              class="form-input"
+              [class.error]="isFieldInvalid('inviteeEmail')"
+              placeholder="Enter email address">
+            <div class="error-message" *ngIf="isFieldInvalid('inviteeEmail')">
+              {{ getFieldError('inviteeEmail') }}
+            </div>
+          </div>
+        </div>
+
+        <!-- Link Tab Content -->
+        <div class="tab-content" *ngIf="activeTab === 'link'">
+          <div class="link-info">
+            <i class="fas fa-info-circle"></i>
+            <p>Generate a shareable invitation link that can be sent through any platform.</p>
+          </div>
+
+          <!-- Generated Link Display -->
+          <div class="generated-link-container" *ngIf="generatedInviteLink">
+            <div class="generated-link">
+              <div class="link-header">
+                <i class="fas fa-check-circle success"></i>
+                <span>Invitation Link Generated!</span>
+              </div>
+              <div class="link-display">
+                <input 
+                  type="text" 
+                  [value]="generatedInviteLink" 
+                  readonly 
+                  class="link-input">
+                <button 
+                  type="button" 
+                  class="copy-btn" 
+                  (click)="copyInviteLink()">
+                  <i class="fas fa-copy"></i>
+                  Copy
+                </button>
+              </div>
+              
+              <!-- Social Sharing Options -->
+              <div class="social-sharing">
+                <h4>Share via:</h4>
+                <div class="social-buttons">
+                  <button 
+                    type="button" 
+                    class="social-btn twitter" 
+                    (click)="shareInvitation('twitter')">
+                    <i class="fab fa-twitter"></i>
+                    Twitter
+                  </button>
+                  <button 
+                    type="button" 
+                    class="social-btn facebook" 
+                    (click)="shareInvitation('facebook')">
+                    <i class="fab fa-facebook"></i>
+                    Facebook
+                  </button>
+                  <button 
+                    type="button" 
+                    class="social-btn whatsapp" 
+                    (click)="shareInvitation('whatsapp')">
+                    <i class="fab fa-whatsapp"></i>
+                    WhatsApp
+                  </button>
+                  <button 
+                    type="button" 
+                    class="social-btn email" 
+                    (click)="shareInvitation('email')">
+                    <i class="fas fa-envelope"></i>
+                    Email
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Common Form Fields -->
+        <div class="form-group">
+          <label for="customMessage" class="form-label">
+            <i class="fas fa-comment"></i>
+            Personal Message (Optional)
+          </label>
+          <textarea 
+            id="customMessage"
+            formControlName="customMessage"
+            class="form-textarea"
+            [class.error]="isFieldInvalid('customMessage')"
+            placeholder="Add a personal message to your invitation..."
+            rows="3"></textarea>
+          <div class="form-help">
+            {{ customMessage?.value?.length || 0 }}/500 characters
+          </div>
+          <div class="error-message" *ngIf="isFieldInvalid('customMessage')">
+            {{ getFieldError('customMessage') }}
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="expiresIn" class="form-label">
+            <i class="fas fa-calendar-alt"></i>
+            Expires In (Days)
+          </label>
+          <select 
+            id="expiresIn"
+            formControlName="expiresIn"
+            class="form-select">
+            <option value="1">1 Day</option>
+            <option value="3">3 Days</option>
+            <option value="7">1 Week</option>
+            <option value="14">2 Weeks</option>
+            <option value="30">1 Month</option>
+          </select>
+        </div>
+
+        <!-- Form Actions -->
+        <div class="form-actions">
+          <button 
+            type="button" 
+            class="btn btn-secondary" 
+            (click)="close()"
+            [disabled]="isSubmitting">
+            Cancel
+          </button>
+          <button 
+            type="submit" 
+            class="btn btn-primary"
+            [disabled]="inviteForm.invalid || isSubmitting">
+            <i class="fas fa-spinner fa-spin" *ngIf="isSubmitting"></i>
+            <i class="fas fa-paper-plane" *ngIf="!isSubmitting"></i>
+            <span *ngIf="activeTab === 'email' && !isSubmitting">Send Invitation</span>
+            <span *ngIf="activeTab === 'link' && !isSubmitting">Generate Link</span>
+            <span *ngIf="isSubmitting">Processing...</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
