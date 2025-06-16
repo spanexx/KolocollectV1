@@ -1,0 +1,29 @@
+🔐 VERIFY YOUR EMAIL - KOLOCOLLECT
+================================
+
+Hi {{userName}},
+
+Please verify your email address to complete your registration with KoloCollect.
+
+🔗 VERIFICATION LINK: {{verificationUrl}}
+
+🛡️ SECURITY NOTICE
+==================
+
+• This verification link will expire in 24 hours for your security
+• If you didn't create an account with KoloCollect, please ignore this email
+• Never share this verification link with anyone
+
+NEED HELP?
+==========
+
+If you have any issues with verification, contact us at:
+📧 support@kolocollect.com
+
+---
+
+© 2025 KoloCollect. All rights reserved.
+This is an automated message, please do not reply to this email.
+
+Best regards,
+The KoloCollect Team

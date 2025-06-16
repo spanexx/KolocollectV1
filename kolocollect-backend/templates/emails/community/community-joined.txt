@@ -1,0 +1,35 @@
+Welcome to {{communityName}}! 🎉
+
+Hi {{memberName}}!
+
+You've successfully joined the "{{communityName}}" community on Kolocollect!
+
+Community Information:
+• Name: {{communityName}}
+{{#if description}}• Description: {{description}}{{/if}}
+• Your Status: {{memberStatusText}}
+{{#if memberPosition}}• Your Position: {{memberPosition}}{{/if}}
+• Contribution Frequency: {{contributionFrequency}}
+• Joined: {{joinedDate}}
+• Community Admin: {{adminName}}
+
+What Happens Next?
+{{#if isMidCycle}}
+✓ Mid-Cycle Join: You've joined during an active cycle
+✓ Catch-Up Contributions: You may need to make back-payments
+✓ Next Payout: You'll be eligible for payouts in the next cycle
+{{else}}
+✓ Wait for More Members: The community needs more members to start
+✓ First Contribution: You'll be notified when it's time to contribute
+✓ Payout Schedule: Learn about when you'll receive your payout
+{{/if}}
+✓ Stay Active: Participate in community discussions and votes
+
+View your community dashboard: {{communityUrl}}
+
+How Kolocollect Works:
+Kolocollect communities work through rotating credit associations (ROSCAs). Members contribute regularly, and each member receives a payout when it's their turn. This system helps everyone save consistently while getting access to larger sums when needed.
+
+Questions about your community? Contact the admin or visit our support center.
+
+© 2025 Kolocollect. All rights reserved.

@@ -1,0 +1,78 @@
+🎉 WELCOME TO KOLOCOLLECT! 🎉
+Your Community Savings Journey Starts Here
+
+Hello and Welcome, {{userName}}!
+
+We're thrilled to have you join the KoloCollect community! You've just taken the first step towards a more collaborative and rewarding way to save money.
+
+WHAT YOU CAN DO NOW
+===================
+
+🏛️  CREATE OR JOIN COMMUNITIES
+    Start your own savings group or join existing communities with friends, 
+    family, or like-minded savers.
+
+💰  ROTATING SAVINGS (ROSCA)
+    Participate in rotating credit associations where everyone contributes 
+    and takes turns receiving the total amount.
+
+👥  INVITE FRIENDS & FAMILY
+    Share the benefits of community savings by inviting people you trust 
+    to join your circles.
+
+📊  TRACK YOUR PROGRESS
+    Monitor your contributions, upcoming payouts, and overall savings 
+    growth in real-time.
+
+🔒  SECURE & TRANSPARENT
+    All transactions are tracked securely with full transparency for 
+    all community members.
+
+READY TO GET STARTED?
+=====================
+
+Complete your profile and start your savings journey today!
+
+🔗 Go to Dashboard: {{dashboardUrl}}
+🔗 Complete Profile: {{profileUrl}}
+
+💡 QUICK TIPS TO GET STARTED
+============================
+
+• VERIFY YOUR EMAIL: Make sure you can receive important notifications
+• SET UP YOUR PROFILE: Add a profile picture and personal details  
+• EXPLORE COMMUNITIES: Browse available groups or create your own
+• INVITE TRUSTED CONTACTS: KoloCollect works best with people you know and trust
+• START SMALL: Begin with a small savings amount to get comfortable with the system
+
+NEED HELP GETTING STARTED?
+===========================
+
+Our support team is here to help you every step of the way:
+
+📧 Email: support@kolocollect.com
+💬 Live Chat: Available 24/7 in your dashboard  
+📖 Help Center: {{helpCenterUrl}}
+
+STAY CONNECTED
+==============
+
+Follow us on social media:
+Facebook: {{facebookUrl}}
+Twitter: {{twitterUrl}}  
+LinkedIn: {{linkedinUrl}}
+Instagram: {{instagramUrl}}
+
+WELCOME TO THE KOLOCOLLECT FAMILY!
+
+Together, we're building stronger financial futures through community savings.
+
+---
+
+© 2025 KoloCollect. All rights reserved.
+
+You're receiving this email because you just created an account with us.
+If you have any questions, don't hesitate to contact our support team.
+
+Best regards,
+The KoloCollect Team

@@ -11,6 +11,7 @@ const CommunityVote = require('../models/CommunityVote');
 const Cycle = require('../models/Cycle');
 const MidCycle = require('../models/Midcycle');
 const Member = require('../models/Member');
+const EmailService = require('../services/emailService');
 
 // Helper functions for schema validation and common operations
 const validateMember = async (userId, communityId) => {
@@ -213,12 +214,19 @@ exports.createCommunity = async (req, res) => {
     await adminUser.save();
 
     // Save final community state
-    await newCommunity.save();
-
-    // Fetch the complete community data with populated references
+    await newCommunity.save();    // Fetch the complete community data with populated references
     const populatedCommunity = await Community.findById(newCommunity._id)
       .populate('members')
       .populate('activityLog');
+
+    // Send community created email to admin
+    try {
+      await EmailService.sendCommunityCreatedEmail(populatedCommunity, adminUser);
+      console.log(`Community created email sent to admin: ${adminUser.email}`);
+    } catch (emailError) {
+      console.error('Error sending community created email:', emailError);
+      // Don't fail the request if email fails, just log it
+    }
 
     res.status(201).json({
       status: 'success',
@@ -300,9 +308,7 @@ exports.joinCommunity = async (req, res) => {
 
       await user.addCommunity(communityId);
       await user.save();
-    }
-
-    // Create activity log
+    }    // Create activity log
     const activityLog = new CommunityActivityLog({
       communityId: community._id,
       activityType: 'member_joined',
@@ -311,7 +317,26 @@ exports.joinCommunity = async (req, res) => {
     });
     await activityLog.save();
     community.activityLog.push(activityLog._id);
-    await community.save();    // Return optimized community data
+    await community.save();
+
+    // Send community joined email to new member
+    try {
+      // Get admin information
+      const adminUser = await User.findById(community.admin);
+      const memberData = { name, email, position: null };
+      const joinContext = {
+        isMidCycle: currentCycleNumber > 1,
+        adminName: adminUser ? adminUser.name : 'Community Admin'
+      };
+      
+      await EmailService.sendCommunityJoinedEmail(community, memberData, joinContext);
+      console.log(`Community joined email sent to member: ${email}`);
+    } catch (emailError) {
+      console.error('Error sending community joined email:', emailError);
+      // Don't fail the request if email fails, just log it
+    }
+
+    // Return optimized community data
     const populatedCommunity = await QueryOptimizer.getCommunityById(community._id, 'withMembers');
 
     res.status(200).json({

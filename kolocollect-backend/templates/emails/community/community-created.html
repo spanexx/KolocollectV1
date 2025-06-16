@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Community Created Successfully</title>
+  <style>
+    body { 
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+      line-height: 1.6; 
+      color: #333; 
+      margin: 0; 
+      padding: 0; 
+      background-color: #f4f4f4;
+    }
+    .container { 
+      max-width: 600px; 
+      margin: 0 auto; 
+      padding: 20px; 
+      background-color: white;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    .header { 
+      text-align: center; 
+      padding: 20px 0; 
+      border-bottom: 2px solid #007bff;
+      margin-bottom: 30px;
+    }
+    .header h1 { 
+      color: #007bff; 
+      margin: 0;
+      font-size: 28px;
+    }
+    .community-card {
+      background: linear-gradient(135deg, #28a745, #20c997);
+      color: white;
+      padding: 30px;
+      border-radius: 10px;
+      text-align: center;
+      margin: 20px 0;
+    }
+    .community-name {
+      font-size: 24px;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+    .cta-button { 
+      display: inline-block; 
+      padding: 15px 30px; 
+      background-color: #007bff; 
+      color: white; 
+      text-decoration: none; 
+      border-radius: 5px; 
+      font-weight: bold;
+      font-size: 16px;
+      margin: 20px 0;
+      transition: background-color 0.3s;
+    }
+    .cta-button:hover {
+      background-color: #0056b3;
+    }
+    .info-box {
+      background-color: #f8f9fa;
+      padding: 20px;
+      border-left: 4px solid #28a745;
+      margin: 20px 0;
+      border-radius: 5px;
+    }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+      margin: 20px 0;
+    }
+    .stat-item {
+      background-color: #f8f9fa;
+      padding: 15px;
+      border-radius: 5px;
+      text-align: center;
+    }
+    .stat-number {
+      font-size: 24px;
+      font-weight: bold;
+      color: #007bff;
+    }
+    .stat-label {
+      font-size: 14px;
+      color: #666;
+    }
+    .footer { 
+      text-align: center; 
+      margin-top: 30px; 
+      padding-top: 20px; 
+      border-top: 1px solid #ddd; 
+      color: #666;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🎉 Community Created!</h1>
+    </div>
+    
+    <div class="community-card">
+      <div class="community-name">{{communityName}}</div>
+      <p>Congratulations! Your community has been successfully created.</p>
+    </div>
+
+    <div style="text-align: center;">
+      <a href="{{communityUrl}}" class="cta-button">
+        Manage Your Community
+      </a>
+    </div>
+
+    <div class="info-box">
+      <h3>🏆 What's Next?</h3>
+      <ul style="text-align: left;">
+        <li><strong>Invite Members:</strong> Share your community with friends and family</li>
+        <li><strong>Set Up Contributions:</strong> Configure contribution amounts and schedules</li>
+        <li><strong>Start Your First Cycle:</strong> Begin saving together as a group</li>
+        <li><strong>Monitor Progress:</strong> Track member contributions and payouts</li>
+      </ul>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-item">
+        <div class="stat-number">{{maxMembers}}</div>
+        <div class="stat-label">Max Members</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-number">{{contributionFrequency}}</div>
+        <div class="stat-label">Contribution Frequency</div>
+      </div>
+    </div>
+
+    <div style="text-align: center; margin: 30px 0;">
+      <p><strong>Community Details:</strong></p>
+      <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; text-align: left;">
+        <p><strong>Name:</strong> {{communityName}}</p>
+        {{#if description}}
+        <p><strong>Description:</strong> {{description}}</p>
+        {{/if}}
+        <p><strong>Created:</strong> {{createdDate}}</p>
+        <p><strong>Admin:</strong> {{adminName}} ({{adminEmail}})</p>
+      </div>
+    </div>
+
+    <div class="footer">
+      <p>Need help managing your community? Visit our support center or reply to this email.</p>
+      <hr style="margin: 20px 0;">
+      <p>© 2025 Kolocollect. All rights reserved.</p>
+    </div>
+  </div>
+</body>
+</html>

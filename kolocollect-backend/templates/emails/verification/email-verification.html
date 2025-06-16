@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Verify Your Email - KoloCollect</title>
+  <style>
+    body { 
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+      line-height: 1.6; 
+      color: #333; 
+      margin: 0; 
+      padding: 0; 
+      background-color: #f4f4f4;
+    }
+    .container { 
+      max-width: 600px; 
+      margin: 0 auto; 
+      padding: 20px; 
+      background-color: white;
+      border-radius: 10px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.1);
+    }
+    .header { 
+      text-align: center; 
+      padding: 30px 0 20px; 
+      background: linear-gradient(135deg, #007bff, #0056b3);
+      border-radius: 10px 10px 0 0;
+      margin: -20px -20px 30px -20px;
+      color: white;
+    }
+    .header h1 { 
+      margin: 0;
+      font-size: 28px;
+      font-weight: bold;
+    }
+    .verification-card {
+      background: linear-gradient(135deg, #ffc107, #ff8c00);
+      color: white;
+      padding: 30px;
+      border-radius: 10px;
+      text-align: center;
+      margin: 20px 0;
+    }
+    .verification-message {
+      font-size: 18px;
+      margin-bottom: 20px;
+    }
+    .cta-button { 
+      display: inline-block; 
+      padding: 15px 30px; 
+      background-color: #28a745; 
+      color: white; 
+      text-decoration: none; 
+      border-radius: 5px; 
+      font-weight: bold;
+      font-size: 16px;
+      margin: 20px 0;
+      transition: background-color 0.3s;
+    }
+    .cta-button:hover {
+      background-color: #1e7e34;
+    }
+    .security-notice {
+      background-color: #f8f9fa;
+      border-left: 4px solid #ffc107;
+      padding: 20px;
+      margin: 20px 0;
+      border-radius: 5px;
+    }
+    .footer { 
+      text-align: center; 
+      margin-top: 30px; 
+      padding-top: 20px; 
+      border-top: 1px solid #ddd; 
+      color: #666;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🔐 Verify Your Email</h1>
+    </div>
+    
+    <div class="verification-card">
+      <div class="verification-message">
+        Hi {{userName}},<br>
+        Please verify your email address to complete your registration.
+      </div>
+      <a href="{{verificationUrl}}" class="cta-button">Verify Email Address</a>
+    </div>
+
+    <div class="security-notice">
+      <h3>🛡️ Security Notice</h3>
+      <p>This verification link will expire in <strong>24 hours</strong> for your security.</p>
+      <p>If you didn't create an account with KoloCollect, please ignore this email.</p>
+    </div>
+
+    <div style="margin: 20px 0;">
+      <p>If the button doesn't work, copy and paste this link into your browser:</p>
+      <p style="word-break: break-all; color: #007bff;">{{verificationUrl}}</p>
+    </div>
+
+    <div class="footer">
+      <p>© 2025 KoloCollect. All rights reserved.</p>
+      <p>This is an automated message, please do not reply to this email.</p>
+    </div>
+  </div>
+</body>
+</html>

@@ -5,6 +5,7 @@ const User = require('../models/User');
 const Wallet = require('../models/Wallet');
 const Community = require('../models/Community');
 const crypto = require('crypto');
+const emailService = require('../services/emailService');
 
 // Update User Profile
 exports.updateUserProfile = async (req, res) => {
@@ -105,6 +106,22 @@ exports.registerUser = async (req, res) => {
       transactions: [],
     });
     await wallet.save();
+
+    // Send welcome email (non-blocking)
+    const userData = {
+      name: savedUser.name,
+      email: savedUser.email,
+      id: savedUser._id
+    };
+
+    emailService.sendWelcomeEmail(userData)
+      .then(result => {
+        console.log(`Welcome email sent to ${savedUser.email}:`, result.messageId);
+      })
+      .catch(error => {
+        console.error(`Failed to send welcome email to ${savedUser.email}:`, error.message);
+        // Note: We don't fail the registration if email fails
+      });
 
     res.status(201).json({
       message: 'User registered successfully.',

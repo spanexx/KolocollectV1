@@ -12,9 +12,9 @@
 const redis = require('redis');
 const { performance } = require('perf_hooks');
 
-class CacheManager {
-  constructor(options = {}) {
+class CacheManager {  constructor(options = {}) {
     this.redisUrl = options.redisUrl || process.env.REDIS_URL || 'redis://localhost:6379';
+    this.redisPassword = options.redisPassword || process.env.REDIS_PASSWORD;
     this.defaultTTL = options.defaultTTL || 3600; // 1 hour default
     this.enableMetrics = options.enableMetrics !== false;
     this.maxMemoryCacheSize = options.maxMemoryCacheSize || 1000;
@@ -40,16 +40,22 @@ class CacheManager {
 
   /**
    * Initialize Redis connection
-   */
-  async connect() {
+   */  async connect() {
     try {
-      this.redisClient = redis.createClient({
+      const redisConfig = {
         url: this.redisUrl,
         socket: {
           connectTimeout: 10000,
           lazyConnect: true
         }
-      });
+      };
+
+      // Add password if provided
+      if (this.redisPassword) {
+        redisConfig.password = this.redisPassword;
+      }
+
+      this.redisClient = redis.createClient(redisConfig);
 
       this.redisClient.on('error', (err) => {
         console.error('Redis Client Error:', err);

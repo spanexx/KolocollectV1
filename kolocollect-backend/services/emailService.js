@@ -85,16 +85,30 @@ class EmailService {
    * Initialize SMTP provider (Gmail, etc.)
    */
   initializeSMTP() {
-    this.transporter = nodemailer.createTransport({
+    // Check if we're running in Docker
+    const isDocker = process.env.DOCKER_CONTAINER === 'true' || 
+                     process.env.NODE_ENV === 'production' ||
+                     process.cwd() === '/app';
+    
+    console.log(`🔧 Initializing SMTP provider (Docker environment: ${isDocker})`);
+
+    // More lenient SSL settings for Docker
+    const shouldRelaxSSL = isDocker || process.env.SMTP_REJECT_UNAUTHORIZED === 'false';
+    
+    if (shouldRelaxSSL) {
+      console.log('🔒 Using relaxed SSL settings for Docker compatibility');
+    }    this.transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST || 'smtp.gmail.com',
       port: parseInt(process.env.SMTP_PORT) || 587,
       secure: process.env.SMTP_SECURE === 'true' || false, // true for 465, false for other ports
       auth: {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASS
-      },
-      tls: {
-        rejectUnauthorized: process.env.SMTP_REJECT_UNAUTHORIZED !== 'false'
+      },      tls: {
+        rejectUnauthorized: shouldRelaxSSL ? false : (process.env.SMTP_REJECT_UNAUTHORIZED !== 'false'),
+        // Additional settings for Docker environments
+        ciphers: 'SSLv3',
+        secureProtocol: 'TLSv1_2_method'
       }
     });
   }
@@ -175,18 +189,19 @@ class EmailService {
     // Otherwise use the specified provider
     return await this.sendWithProvider(this.provider, { to, subject, text, html, from: fromAddress });
   }
-
   /**
    * Get appropriate from address based on provider
    */
   getFromAddress() {
-    if (process.env.SES_FROM_EMAIL && (this.provider === 'aws-ses' || this.fallbackOrder.includes('aws-ses'))) {
-      return `"Kolocollect" <${process.env.SES_FROM_EMAIL}>`;
+    // Always use the properly configured FROM address
+    const fromEmail = process.env.SES_FROM_EMAIL || process.env.SMTP_FROM || process.env.SMTP_USER;
+    
+    if (!fromEmail) {
+      console.warn('⚠️ No FROM email configured. Check SES_FROM_EMAIL, SMTP_FROM, or SMTP_USER in environment');
+      return 'noreply@kolocollect.com'; // fallback
     }
-    if (process.env.SENDGRID_FROM && (this.provider === 'sendgrid' || this.fallbackOrder.includes('sendgrid'))) {
-      return `"Kolocollect" <${process.env.SENDGRID_FROM}>`;
-    }
-    return `"Kolocollect" <${process.env.SMTP_FROM || process.env.SMTP_USER}>`;
+    
+    return `"Kolocollect" <${fromEmail}>`;
   }
 
   /**
@@ -292,8 +307,7 @@ class EmailService {
   async sendWithMailgun(emailOptions) {
     // TODO: Implement Mailgun when needed
     throw new Error('Mailgun provider not yet implemented. Please set EMAIL_PROVIDER=smtp');
-  }
-  /**
+  }  /**
    * Send email via AWS SES
    */
   async sendWithAWSSES(emailOptions) {
@@ -303,9 +317,14 @@ class EmailService {
 
     const { to, subject, text, html, from } = emailOptions;
     
+    // Ensure we use the correct FROM address
+    const fromAddress = from || this.providerService.fromEmail || process.env.SES_FROM_EMAIL;
+    
+    console.log(`🔧 AWS SES Debug - FROM: ${fromAddress}, TO: ${to}`);
+    
     // Prepare the email parameters for SES
     const params = {
-      Source: from || this.providerService.fromEmail,
+      Source: fromAddress,
       Destination: {
         ToAddresses: Array.isArray(to) ? to : [to]
       },
@@ -669,6 +688,200 @@ If you didn't expect this invitation, you can safely ignore this email.
       throw new Error(`Failed to send reminder email: ${error.message}`);
     }
   }  /**
+   * Send welcome email to new users
+   * @param {Object} userData - User data
+   * @returns {Promise<Object>} - Email sending result
+   */
+  async sendWelcomeEmail(userData) {
+    const { name, email } = userData;
+    
+    if (!name || !email) {
+      throw new Error('User name and email are required for welcome email');
+    }
+
+    const emailOptions = {
+      to: email,
+      subject: 'Welcome to Kolocollect! 🎉',
+      text: this.generateWelcomeEmailText({ name }),
+      html: this.generateWelcomeEmailHTML({ name })
+    };
+
+    try {
+      const result = await this.sendEmail(emailOptions);
+      console.log(`Welcome email sent to ${email}:`, result.messageId || result.success);
+      return result;
+    } catch (error) {
+      console.error(`Error sending welcome email to ${email}:`, error);
+      throw new Error(`Failed to send welcome email: ${error.message}`);
+    }
+  }
+
+  /**
+   * Generate HTML template for welcome email
+   * @param {Object} data - Email template data
+   * @returns {string} - HTML content
+   */
+  generateWelcomeEmailHTML(data) {
+    const { name } = data;
+
+    return `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Welcome to Kolocollect</title>
+        <style>
+          body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            line-height: 1.6; 
+            color: #333; 
+            margin: 0; 
+            padding: 0; 
+            background-color: #f4f4f4;
+          }
+          .container { 
+            max-width: 600px; 
+            margin: 0 auto; 
+            padding: 20px; 
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+          }
+          .header { 
+            text-align: center; 
+            padding: 20px 0; 
+            border-bottom: 2px solid #007bff;
+            margin-bottom: 30px;
+          }
+          .header h1 { 
+            color: #007bff; 
+            margin: 0;
+            font-size: 28px;
+          }
+          .welcome-card {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            margin: 20px 0;
+          }
+          .welcome-title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 10px;
+          }
+          .cta-button { 
+            display: inline-block; 
+            padding: 15px 30px; 
+            background-color: #28a745; 
+            color: white; 
+            text-decoration: none; 
+            border-radius: 5px; 
+            font-weight: bold;
+            font-size: 16px;
+            margin: 20px 0;
+            transition: background-color 0.3s;
+          }
+          .cta-button:hover {
+            background-color: #218838;
+          }
+          .feature-box {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-left: 4px solid #007bff;
+            margin: 20px 0;
+            border-radius: 5px;
+          }
+          .footer { 
+            text-align: center; 
+            margin-top: 30px; 
+            padding-top: 20px; 
+            border-top: 1px solid #ddd; 
+            color: #666;
+            font-size: 14px;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>🎉 Welcome to Kolocollect!</h1>
+          </div>
+          
+          <div class="welcome-card">
+            <div class="welcome-title">Hi ${name}!</div>
+            <p>Thank you for joining Kolocollect - your journey to better savings starts now!</p>
+          </div>
+
+          <div style="text-align: center;">
+            <a href="${process.env.CLIENT_URL || 'http://localhost:4200'}" class="cta-button">
+              Start Saving Today
+            </a>
+          </div>
+
+          <div class="feature-box">
+            <h3>🏦 What you can do with Kolocollect:</h3>
+            <ul style="text-align: left;">
+              <li><strong>Join Communities:</strong> Connect with like-minded savers</li>
+              <li><strong>Regular Contributions:</strong> Save consistently with your group</li>
+              <li><strong>Receive Payouts:</strong> Get your turn when the time comes</li>
+              <li><strong>Track Progress:</strong> Monitor your savings journey</li>
+            </ul>
+          </div>
+
+          <div style="text-align: center; margin: 30px 0;">
+            <p><strong>Ready to get started?</strong></p>
+            <p style="color: #666; font-size: 14px;">
+              Kolocollect is a community-based savings platform that helps people 
+              save money together through rotating credit associations (ROSCAs). 
+              Build your financial future with the support of your community!
+            </p>
+          </div>
+
+          <div class="footer">
+            <p>Need help? Visit our support center or reply to this email.</p>
+            <hr style="margin: 20px 0;">
+            <p>© 2025 Kolocollect. All rights reserved.</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+  }
+
+  /**
+   * Generate plain text version of welcome email
+   * @param {Object} data - Email template data
+   * @returns {string} - Plain text content
+   */
+  generateWelcomeEmailText(data) {
+    const { name } = data;
+
+    return `
+Welcome to Kolocollect! 🎉
+
+Hi ${name}!
+
+Thank you for joining Kolocollect - your journey to better savings starts now!
+
+What you can do with Kolocollect:
+• Join Communities: Connect with like-minded savers
+• Regular Contributions: Save consistently with your group  
+• Receive Payouts: Get your turn when the time comes
+• Track Progress: Monitor your savings journey
+
+Ready to get started? Visit: ${process.env.CLIENT_URL || 'http://localhost:4200'}
+
+Kolocollect is a community-based savings platform that helps people save money together through rotating credit associations (ROSCAs). Build your financial future with the support of your community!
+
+Need help? Visit our support center or reply to this email.
+
+© 2025 Kolocollect. All rights reserved.
+    `.trim();
+  }
+  /**
    * Test email configuration
    * @returns {Promise<boolean>} - Whether email configuration is working
    */
@@ -733,6 +946,211 @@ If you didn't expect this invitation, you can safely ignore this email.
         fromEmail: this.providerService?.fromEmail
       } : null
     };
+  }
+  /**
+   * Send community created email to admin
+   * @param {Object} communityData - Community data
+   * @param {Object} adminData - Admin user data
+   * @returns {Promise<Object>} - Email sending result
+   */
+  async sendCommunityCreatedEmail(communityData, adminData) {
+    const { _id, name, description, settings, createdAt } = communityData;
+    const { name: adminName, email: adminEmail } = adminData;
+    
+    if (!name || !adminEmail || !adminName) {
+      throw new Error('Community name, admin name and email are required for community created email');
+    }
+
+    const templateData = {
+      communityName: name,
+      description: description || '',
+      maxMembers: settings?.maxMembers || 'Not set',
+      contributionFrequency: settings?.contributionFrequency || 'Not set',
+      createdDate: createdAt ? new Date(createdAt).toLocaleDateString() : new Date().toLocaleDateString(),
+      adminName,
+      adminEmail,
+      communityUrl: `${process.env.FRONTEND_URL || 'http://localhost:4200'}/communities/${_id}`,
+      communityId: _id
+    };
+
+    const emailOptions = {
+      to: adminEmail,
+      subject: `🎉 Your Community "${name}" has been Created Successfully!`,
+      text: this.generateCommunityCreatedEmailText(templateData),
+      html: await this.loadEmailTemplate('community/community-created.html', templateData)
+    };
+
+    try {
+      const result = await this.sendEmail(emailOptions);
+      console.log(`Community created email sent to ${adminEmail}:`, result.messageId || result.success);
+      return result;
+    } catch (error) {
+      console.error(`Error sending community created email to ${adminEmail}:`, error);
+      throw new Error(`Failed to send community created email: ${error.message}`);
+    }
+  }
+
+  /**
+   * Send community joined email to new member
+   * @param {Object} communityData - Community data
+   * @param {Object} memberData - New member data
+   * @param {Object} joinContext - Context about the join (mid-cycle, etc.)
+   * @returns {Promise<Object>} - Email sending result
+   */
+  async sendCommunityJoinedEmail(communityData, memberData, joinContext = {}) {
+    const { _id, name, description, settings, admin } = communityData;
+    const { name: memberName, email: memberEmail, position } = memberData;
+    const { isMidCycle = false, adminName = 'Community Admin' } = joinContext;
+    
+    if (!name || !memberEmail || !memberName) {
+      throw new Error('Community name, member name and email are required for community joined email');
+    }
+
+    const memberStatus = isMidCycle ? 'waiting' : 'active';
+    const memberStatusText = isMidCycle ? 'Pending (Mid-cycle join)' : 'Active';
+
+    const templateData = {
+      communityName: name,
+      description: description || '',
+      memberName,
+      memberEmail,
+      memberPosition: position || null,
+      memberStatus,
+      memberStatusText,
+      contributionFrequency: settings?.contributionFrequency || 'Not set',
+      joinedDate: new Date().toLocaleDateString(),
+      adminName,
+      isMidCycle,
+      communityUrl: `${process.env.FRONTEND_URL || 'http://localhost:4200'}/communities/${_id}`,
+      communityId: _id
+    };
+
+    const emailOptions = {
+      to: memberEmail,
+      subject: `🎉 Welcome to "${name}" Community!`,
+      text: this.generateCommunityJoinedEmailText(templateData),
+      html: await this.loadEmailTemplate('community/community-joined.html', templateData)
+    };
+
+    try {
+      const result = await this.sendEmail(emailOptions);
+      console.log(`Community joined email sent to ${memberEmail}:`, result.messageId || result.success);
+      return result;
+    } catch (error) {
+      console.error(`Error sending community joined email to ${memberEmail}:`, error);
+      throw new Error(`Failed to send community joined email: ${error.message}`);
+    }
+  }
+
+  /**
+   * Generate text version for community created email
+   * @param {Object} data - Template data
+   * @returns {string} - Text content
+   */
+  generateCommunityCreatedEmailText(data) {
+    const { communityName, adminName, maxMembers, contributionFrequency, createdDate } = data;
+    
+    return `
+🎉 Congratulations ${adminName}!
+
+Your community "${communityName}" has been successfully created on ${createdDate}.
+
+Community Details:
+- Name: ${communityName}
+- Max Members: ${maxMembers}
+- Contribution Frequency: ${contributionFrequency}
+- Admin: ${adminName}
+
+What's Next?
+✓ Invite Members: Share your community with friends and family
+✓ Set Up Contributions: Configure contribution amounts and schedules  
+✓ Start Your First Cycle: Begin saving together as a group
+✓ Monitor Progress: Track member contributions and payouts
+
+Manage your community: ${data.communityUrl}
+
+Need help? Visit our support center or reply to this email.
+
+Best regards,
+The Kolocollect Team
+
+© 2025 Kolocollect. All rights reserved.
+    `.trim();
+  }
+
+  /**
+   * Generate text version for community joined email
+   * @param {Object} data - Template data
+   * @returns {string} - Text content
+   */
+  generateCommunityJoinedEmailText(data) {
+    const { communityName, memberName, memberStatusText, contributionFrequency, joinedDate, adminName, isMidCycle } = data;
+    
+    return `
+🎉 Welcome ${memberName}!
+
+You've successfully joined the "${communityName}" community on ${joinedDate}.
+
+Your Status: ${memberStatusText}
+
+Community Information:
+- Community: ${communityName}
+- Contribution Frequency: ${contributionFrequency}
+- Community Admin: ${adminName}
+- Your Position: ${data.memberPosition || 'To be assigned'}
+
+What Happens Next?
+${isMidCycle ? 
+  `✓ Mid-Cycle Join: You've joined during an active cycle
+✓ Catch-Up Contributions: You may need to make back-payments
+✓ Next Payout: You'll be eligible for payouts in the next cycle` :
+  `✓ Wait for More Members: The community needs more members to start
+✓ First Contribution: You'll be notified when it's time to contribute
+✓ Payout Schedule: Learn about when you'll receive your payout`
+}
+✓ Stay Active: Participate in community discussions and votes
+
+View your community: ${data.communityUrl}
+
+Kolocollect communities work through rotating credit associations (ROSCAs). 
+Members contribute regularly, and each member receives a payout when it's their turn. 
+This system helps everyone save consistently while getting access to larger sums when needed.
+
+Questions? Contact the admin or visit our support center.
+
+Best regards,
+The Kolocollect Team
+
+© 2025 Kolocollect. All rights reserved.
+    `.trim();
+  }
+  /**
+   * Load email template from file system
+   * @param {string} templatePath - Path to the email template file
+   * @param {Object} data - Data to populate the template
+   * @returns {Promise<string>} - Rendered HTML content
+   */
+  async loadEmailTemplate(templatePath, data) {
+    const fs = require('fs').promises;
+    const path = require('path');
+    const Handlebars = require('handlebars');
+
+    try {
+      // Resolve the full path to the template file
+      const filePath = path.resolve(__dirname, '../templates/emails', templatePath);
+      
+      // Read the file content
+      const fileContent = await fs.readFile(filePath, 'utf-8');
+      
+      // Compile the template with Handlebars
+      const template = Handlebars.compile(fileContent);
+      const renderedContent = template(data);
+      
+      return renderedContent;
+    } catch (error) {
+      console.error('Error loading email template:', error);
+      throw new Error(`Failed to load email template: ${error.message}`);
+    }
   }
 }
 

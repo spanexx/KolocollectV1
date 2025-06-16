@@ -1,0 +1,87 @@
+# Docker Compose Configuration for Kolocollect
+# Uses .env.docker for environment variables
+
+services:
+  # MongoDB Database
+  mongodb:
+    image: mongo:7.0
+    container_name: kolocollect-mongo
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: password123
+      MONGO_INITDB_DATABASE: kolocollect
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+      - ./mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+    networks:
+      - kolocollect-network
+
+  # Redis for caching and sessions
+  redis:
+    image: redis:7-alpine
+    container_name: kolocollect-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --requirepass redispassword123
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - kolocollect-network
+  # Backend API (without cache)
+  backend:
+    build:
+      context: ./kolocollect-backend
+      dockerfile: Dockerfile
+    container_name: kolocollect-backend
+    restart: unless-stopped
+    env_file:
+      - .env.docker
+    ports:
+      - "9000:9000"
+    volumes:
+      - ./kolocollect-backend/uploads:/app/uploads
+      - ./kolocollect-backend/logs:/app/logs
+    depends_on:
+      - mongodb
+      - redis
+    networks:
+      - kolocollect-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Frontend Angular App
+  frontend:
+    build:
+      context: ./kolocollect-frontend
+      dockerfile: Dockerfile
+    container_name: kolocollect-frontend
+    restart: unless-stopped
+    ports:
+      - "4200:4200"
+    depends_on:
+      - backend
+    networks:
+      - kolocollect-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4200"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  mongodb_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  kolocollect-network:
+    driver: bridge

@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Welcome to the Community</title>
+  <style>
+    body { 
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+      line-height: 1.6; 
+      color: #333; 
+      margin: 0; 
+      padding: 0; 
+      background-color: #f4f4f4;
+    }
+    .container { 
+      max-width: 600px; 
+      margin: 0 auto; 
+      padding: 20px; 
+      background-color: white;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    .header { 
+      text-align: center; 
+      padding: 20px 0; 
+      border-bottom: 2px solid #007bff;
+      margin-bottom: 30px;
+    }
+    .header h1 { 
+      color: #007bff; 
+      margin: 0;
+      font-size: 28px;
+    }
+    .community-card {
+      background: linear-gradient(135deg, #007bff, #0056b3);
+      color: white;
+      padding: 30px;
+      border-radius: 10px;
+      text-align: center;
+      margin: 20px 0;
+    }
+    .community-name {
+      font-size: 24px;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+    .member-info {
+      font-size: 16px;
+      opacity: 0.9;
+    }
+    .cta-button { 
+      display: inline-block; 
+      padding: 15px 30px; 
+      background-color: #28a745; 
+      color: white; 
+      text-decoration: none; 
+      border-radius: 5px; 
+      font-weight: bold;
+      font-size: 16px;
+      margin: 20px 0;
+      transition: background-color 0.3s;
+    }
+    .cta-button:hover {
+      background-color: #218838;
+    }
+    .info-box {
+      background-color: #f8f9fa;
+      padding: 20px;
+      border-left: 4px solid #007bff;
+      margin: 20px 0;
+      border-radius: 5px;
+    }
+    .status-badge {
+      display: inline-block;
+      padding: 5px 15px;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: bold;
+      margin: 10px 0;
+    }
+    .status-active {
+      background-color: #d4edda;
+      color: #155724;
+    }
+    .status-waiting {
+      background-color: #fff3cd;
+      color: #856404;
+    }
+    .footer { 
+      text-align: center; 
+      margin-top: 30px; 
+      padding-top: 20px; 
+      border-top: 1px solid #ddd; 
+      color: #666;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🎉 Welcome to the Community!</h1>
+    </div>
+    
+    <div class="community-card">
+      <div class="community-name">{{communityName}}</div>
+      <div class="member-info">You've successfully joined as a member!</div>
+      <div class="status-badge status-{{memberStatus}}">
+        Status: {{memberStatusText}}
+      </div>
+    </div>
+
+    <div style="text-align: center;">
+      <a href="{{communityUrl}}" class="cta-button">
+        View Community Dashboard
+      </a>
+    </div>
+
+    <div class="info-box">
+      <h3>🏆 What Happens Next?</h3>
+      <ul style="text-align: left;">
+        {{#if isMidCycle}}
+        <li><strong>Mid-Cycle Join:</strong> You've joined during an active cycle</li>
+        <li><strong>Catch-Up Contributions:</strong> You may need to make back-payments</li>
+        <li><strong>Next Payout:</strong> You'll be eligible for payouts in the next cycle</li>
+        {{else}}
+        <li><strong>Wait for More Members:</strong> The community needs more members to start</li>
+        <li><strong>First Contribution:</strong> You'll be notified when it's time to contribute</li>
+        <li><strong>Payout Schedule:</strong> Learn about when you'll receive your payout</li>
+        {{/if}}
+        <li><strong>Stay Active:</strong> Participate in community discussions and votes</li>
+      </ul>
+    </div>
+
+    <div style="text-align: center; margin: 30px 0;">
+      <p><strong>Community Information:</strong></p>
+      <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; text-align: left;">
+        <p><strong>Community:</strong> {{communityName}}</p>
+        {{#if description}}
+        <p><strong>Description:</strong> {{description}}</p>
+        {{/if}}
+        <p><strong>Your Position:</strong> {{memberPosition}}{{#unless memberPosition}}To be assigned{{/unless}}</p>
+        <p><strong>Contribution Frequency:</strong> {{contributionFrequency}}</p>
+        <p><strong>Joined:</strong> {{joinedDate}}</p>
+        <p><strong>Community Admin:</strong> {{adminName}}</p>
+      </div>
+    </div>
+
+    <div style="text-align: center; margin: 30px 0;">
+      <p style="color: #666; font-size: 14px;">
+        Kolocollect communities work through rotating credit associations (ROSCAs). 
+        Members contribute regularly, and each member receives a payout when it's their turn. 
+        This system helps everyone save consistently while getting access to larger sums when needed.
+      </p>
+    </div>
+
+    <div class="footer">
+      <p>Questions about your community? Contact the admin or visit our support center.</p>
+      <hr style="margin: 20px 0;">
+      <p>© 2025 Kolocollect. All rights reserved.</p>
+    </div>
+  </div>
+</body>
+</html>

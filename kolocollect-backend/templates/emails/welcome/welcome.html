@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Welcome to KoloCollect - Your Journey Begins!</title>
+  <style>
+    body { 
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+      line-height: 1.6; 
+      color: #333; 
+      margin: 0; 
+      padding: 0; 
+      background-color: #f4f4f4;
+    }
+    .container { 
+      max-width: 600px; 
+      margin: 0 auto; 
+      padding: 20px; 
+      background-color: white;
+      border-radius: 10px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.1);
+    }
+    .header { 
+      text-align: center; 
+      padding: 30px 0 20px; 
+      background: linear-gradient(135deg, #007bff, #0056b3);
+      border-radius: 10px 10px 0 0;
+      margin: -20px -20px 30px -20px;
+      color: white;
+    }
+    .header h1 { 
+      margin: 0;
+      font-size: 32px;
+      font-weight: bold;
+    }
+    .header p {
+      margin: 10px 0 0 0;
+      font-size: 18px;
+      opacity: 0.9;
+    }
+    .welcome-card {
+      background: linear-gradient(135deg, #28a745, #20c997);
+      color: white;
+      padding: 30px;
+      border-radius: 10px;
+      text-align: center;
+      margin: 20px 0;
+    }
+    .welcome-message {
+      font-size: 20px;
+      font-weight: bold;
+      margin-bottom: 15px;
+    }
+    .user-name {
+      font-size: 24px;
+      font-weight: bold;
+      color: #ffc107;
+      margin-bottom: 10px;
+    }
+    .features-section {
+      margin: 30px 0;
+    }
+    .features-title {
+      font-size: 24px;
+      font-weight: bold;
+      color: #007bff;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .feature-item {
+      display: flex;
+      align-items: center;
+      margin: 15px 0;
+      padding: 15px;
+      background-color: #f8f9fa;
+      border-radius: 8px;
+      border-left: 4px solid #007bff;
+    }
+    .feature-icon {
+      font-size: 24px;
+      margin-right: 15px;
+      color: #007bff;
+    }
+    .feature-text {
+      flex: 1;
+    }
+    .feature-title {
+      font-weight: bold;
+      margin-bottom: 5px;
+      color: #333;
+    }
+    .feature-description {
+      color: #666;
+      font-size: 14px;
+    }
+    .cta-section {
+      text-align: center;
+      margin: 30px 0;
+      padding: 25px;
+      background-color: #f8f9fa;
+      border-radius: 10px;
+    }
+    .cta-button { 
+      display: inline-block; 
+      padding: 15px 30px; 
+      background-color: #007bff; 
+      color: white; 
+      text-decoration: none; 
+      border-radius: 5px; 
+      font-weight: bold;
+      font-size: 16px;
+      margin: 10px;
+      transition: background-color 0.3s;
+    }
+    .cta-button:hover {
+      background-color: #0056b3;
+    }
+    .cta-button.secondary {
+      background-color: #28a745;
+    }
+    .cta-button.secondary:hover {
+      background-color: #1e7e34;
+    }
+    .tips-section {
+      background-color: #fff3cd;
+      border: 1px solid #ffeaa7;
+      border-radius: 8px;
+      padding: 20px;
+      margin: 20px 0;
+    }
+    .tips-title {
+      color: #856404;
+      font-weight: bold;
+      margin-bottom: 15px;
+    }
+    .tip-item {
+      margin: 10px 0;
+      color: #856404;
+    }
+    .footer { 
+      text-align: center; 
+      margin-top: 40px; 
+      padding-top: 30px; 
+      border-top: 2px solid #e9ecef; 
+      color: #666;
+      font-size: 14px;
+    }
+    .social-links {
+      margin: 20px 0;
+    }
+    .social-links a {
+      display: inline-block;
+      margin: 0 10px;
+      color: #007bff;
+      text-decoration: none;
+    }
+    .contact-info {
+      background-color: #f8f9fa;
+      padding: 20px;
+      border-radius: 8px;
+      margin: 20px 0;
+    }
+    @media (max-width: 600px) {
+      .container {
+        margin: 10px;
+        padding: 15px;
+      }
+      .header h1 {
+        font-size: 24px;
+      }
+      .feature-item {
+        flex-direction: column;
+        text-align: center;
+      }
+      .feature-icon {
+        margin-bottom: 10px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🎉 Welcome to KoloCollect!</h1>
+      <p>Your Community Savings Journey Starts Here</p>
+    </div>
+    
+    <div class="welcome-card">
+      <div class="welcome-message">Hello and Welcome!</div>
+      <div class="user-name">{{userName}}</div>
+      <p>We're thrilled to have you join the KoloCollect community! You've just taken the first step towards a more collaborative and rewarding way to save money.</p>
+    </div>
+
+    <div class="features-section">
+      <div class="features-title">What You Can Do Now</div>
+      
+      <div class="feature-item">
+        <div class="feature-icon">🏛️</div>
+        <div class="feature-text">
+          <div class="feature-title">Create or Join Communities</div>
+          <div class="feature-description">Start your own savings group or join existing communities with friends, family, or like-minded savers.</div>
+        </div>
+      </div>
+
+      <div class="feature-item">
+        <div class="feature-icon">💰</div>
+        <div class="feature-text">
+          <div class="feature-title">Rotating Savings (ROSCA)</div>
+          <div class="feature-description">Participate in rotating credit associations where everyone contributes and takes turns receiving the total amount.</div>
+        </div>
+      </div>
+
+      <div class="feature-item">
+        <div class="feature-icon">👥</div>
+        <div class="feature-text">
+          <div class="feature-title">Invite Friends & Family</div>
+          <div class="feature-description">Share the benefits of community savings by inviting people you trust to join your circles.</div>
+        </div>
+      </div>
+
+      <div class="feature-item">
+        <div class="feature-icon">📊</div>
+        <div class="feature-text">
+          <div class="feature-title">Track Your Progress</div>
+          <div class="feature-description">Monitor your contributions, upcoming payouts, and overall savings growth in real-time.</div>
+        </div>
+      </div>
+
+      <div class="feature-item">
+        <div class="feature-icon">🔒</div>
+        <div class="feature-text">
+          <div class="feature-title">Secure & Transparent</div>
+          <div class="feature-description">All transactions are tracked securely with full transparency for all community members.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="cta-section">
+      <h3>Ready to Get Started?</h3>
+      <p>Complete your profile and start your savings journey today!</p>
+      <a href="{{dashboardUrl}}" class="cta-button">Go to Dashboard</a>
+      <a href="{{profileUrl}}" class="cta-button secondary">Complete Profile</a>
+    </div>
+
+    <div class="tips-section">
+      <div class="tips-title">💡 Quick Tips to Get Started</div>
+      <div class="tip-item">• <strong>Verify your email:</strong> Make sure you can receive important notifications</div>
+      <div class="tip-item">• <strong>Set up your profile:</strong> Add a profile picture and personal details</div>
+      <div class="tip-item">• <strong>Explore communities:</strong> Browse available groups or create your own</div>
+      <div class="tip-item">• <strong>Invite trusted contacts:</strong> KoloCollect works best with people you know and trust</div>
+      <div class="tip-item">• <strong>Start small:</strong> Begin with a small savings amount to get comfortable with the system</div>
+    </div>
+
+    <div class="contact-info">
+      <h3>Need Help Getting Started?</h3>
+      <p>Our support team is here to help you every step of the way:</p>
+      <p>📧 Email: <a href="mailto:support@kolocollect.com">support@kolocollect.com</a></p>
+      <p>💬 Live Chat: Available 24/7 in your dashboard</p>
+      <p>📖 Help Center: <a href="{{helpCenterUrl}}">Visit our comprehensive guides</a></p>
+    </div>
+
+    <div class="footer">
+      <div class="social-links">
+        <a href="{{facebookUrl}}">Facebook</a> |
+        <a href="{{twitterUrl}}">Twitter</a> |
+        <a href="{{linkedinUrl}}">LinkedIn</a> |
+        <a href="{{instagramUrl}}">Instagram</a>
+      </div>
+      
+      <p><strong>Welcome to the KoloCollect Family!</strong></p>
+      <p>Together, we're building stronger financial futures through community savings.</p>
+      
+      <hr style="margin: 20px 0;">
+      <p>© 2025 KoloCollect. All rights reserved.</p>
+      <p>You're receiving this email because you just created an account with us.</p>
+      <p>If you have any questions, don't hesitate to contact our support team.</p>
+    </div>
+  </div>
+</body>
+</html>

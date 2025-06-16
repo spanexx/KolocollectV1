@@ -1,0 +1,27 @@
+Community Created Successfully! 🎉
+
+Congratulations {{adminName}}!
+
+Your community "{{communityName}}" has been successfully created on Kolocollect.
+
+Community Details:
+• Name: {{communityName}}
+{{#if description}}• Description: {{description}}{{/if}}
+• Max Members: {{maxMembers}}
+• Contribution Frequency: {{contributionFrequency}}
+• Created: {{createdDate}}
+• Admin: {{adminName}} ({{adminEmail}})
+
+What's Next?
+✓ Invite Members: Share your community with friends and family
+✓ Set Up Contributions: Configure contribution amounts and schedules  
+✓ Start Your First Cycle: Begin saving together as a group
+✓ Monitor Progress: Track member contributions and payouts
+
+Manage your community: {{communityUrl}}
+
+Kolocollect is here to help you build a successful savings community. Start by inviting trusted friends and family members to join your group!
+
+Need help managing your community? Visit our support center or reply to this email.
+
+© 2025 Kolocollect. All rights reserved.
