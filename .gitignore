@@ -62,3 +62,4 @@ build/Release
 .fusebox/
 .dynamodb/
 .tern-port
+.env.docker
