@@ -138,13 +138,13 @@ export class InvitationAcceptComponent implements OnInit {
   navigateToLogin() {
     // Store the current URL to redirect back after login
     const returnUrl = this.router.url;
-    this.router.navigate(['/auth/login'], { queryParams: { returnUrl } });
+    this.router.navigate(['/login'], { queryParams: { returnUrl } });
   }
 
   navigateToRegister() {
     // Store the current URL to redirect back after registration
     const returnUrl = this.router.url;
-    this.router.navigate(['/auth/register'], { queryParams: { returnUrl } });
+    this.router.navigate(['/register'], { queryParams: { returnUrl } });
   }
   goToCommunity() {
     if (this.invitationDetails?.community?.id) {

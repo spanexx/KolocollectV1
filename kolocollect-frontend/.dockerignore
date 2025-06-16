@@ -1,0 +1,16 @@
+node_modules
+npm-debug.log
+.git
+.gitignore
+README.md
+.env
+.nyc_output
+coverage
+*.log
+.DS_Store
+Thumbs.db
+dist
+e2e
+src/**/*.spec.ts
+*.md
+.angular
