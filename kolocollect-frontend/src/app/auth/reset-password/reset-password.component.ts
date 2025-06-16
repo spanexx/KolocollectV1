@@ -6,6 +6,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatIconModule } from '@angular/material/icon';
 import { AuthService } from '../../services/auth.service';
 import { ToastService } from '../../services/toast.service';
 import { catchError, finalize } from 'rxjs/operators';
@@ -13,15 +14,15 @@ import { throwError } from 'rxjs';
 
 @Component({
   selector: 'app-reset-password',
-  standalone: true,
-  imports: [
+  standalone: true,  imports: [
     CommonModule,
     RouterModule,
     ReactiveFormsModule,
     MatInputModule,
     MatButtonModule,
     MatCardModule,
-    MatProgressSpinnerModule
+    MatProgressSpinnerModule,
+    MatIconModule
   ],
   templateUrl: './reset-password.component.html',
   styleUrls: ['./reset-password.component.scss']
@@ -31,8 +32,8 @@ export class ResetPasswordComponent implements OnInit {
   loading = false;
   submitted = false;
   error = '';
-  token = '';
-  resetComplete = false;
+  token = '';  resetComplete = false;
+  isCodeValid = false;
 
   constructor(
     private formBuilder: FormBuilder,
@@ -42,10 +43,16 @@ export class ResetPasswordComponent implements OnInit {
     private toastService: ToastService
   ) {
     this.resetForm = this.formBuilder.group({
+      verificationCode: ['', [Validators.required, Validators.pattern(/^\d{4}$/)]],
       password: ['', [Validators.required, Validators.minLength(6)]],
       confirmPassword: ['', Validators.required]
     }, {
       validator: this.passwordMatchValidator
+    });
+
+    // Watch for verification code changes
+    this.resetForm.get('verificationCode')?.valueChanges.subscribe(value => {
+      this.isCodeValid = value && value.length === 4 && /^\d{4}$/.test(value);
     });
   }
 
@@ -74,12 +81,11 @@ export class ResetPasswordComponent implements OnInit {
 
   // Convenience getter for easy access to form fields
   get f() { return this.resetForm.controls; }
-
   onSubmit() {
     this.submitted = true;
 
-    // Stop here if form is invalid
-    if (this.resetForm.invalid || !this.token) {
+    // Stop here if form is invalid or missing required fields
+    if (this.resetForm.invalid || !this.token || !this.isCodeValid) {
       return;
     }
 
@@ -88,7 +94,8 @@ export class ResetPasswordComponent implements OnInit {
 
     this.authService.resetPassword({
       token: this.token,
-      password: this.f['password'].value
+      password: this.f['password'].value,
+      verificationCode: this.f['verificationCode'].value
     })
     .pipe(
       catchError(error => {

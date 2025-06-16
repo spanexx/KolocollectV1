@@ -64,11 +64,10 @@ export class AuthService {
   requestPasswordReset(email: string): Observable<any> {
     return this.apiService.post('/users/request-reset-password', { email });
   }
-
   /**
    * Reset password with token
    */
-  resetPassword(resetData: { token: string; password: string }): Observable<any> {
+  resetPassword(resetData: { token: string; password: string; verificationCode: string }): Observable<any> {
     return this.apiService.post('/users/reset-password', resetData);
   }
 

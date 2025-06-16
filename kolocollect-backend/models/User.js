@@ -76,11 +76,11 @@ const userSchema = new mongoose.Schema({
     {
       communityId: { type: mongoose.Schema.Types.ObjectId, ref: 'Community' },
       amount: { type: Number },
-      date: { type: Date },
-    },
+      date: { type: Date },    },
   ],
   resetPasswordToken: String,
   resetPasswordExpires: Date,
+  resetPasswordCode: String,
 });
 
 // Enable virtuals in toJSON and toObject output

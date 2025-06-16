@@ -534,20 +534,35 @@ exports.requestPasswordReset = async (req, res) => {
       return createErrorResponse(res, 404, 'USER_NOT_FOUND', 'No user found with this email address.');
     }
 
-    // Generate reset token
+    // Generate reset token and 4-digit code
     const resetToken = crypto.randomBytes(32).toString('hex');
     const hashedToken = crypto.createHash('sha256').update(resetToken).digest('hex');
+    const verificationCode = Math.floor(1000 + Math.random() * 9000).toString(); // 4-digit code
     
-    // Save hashed token to user
+    // Save hashed token and verification code to user
     user.resetPasswordToken = hashedToken;
-    user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
-    await user.save();
+    user.resetPasswordExpires = Date.now() + 600000; // 10 minutes
+    user.resetPasswordCode = verificationCode;
+    await user.save();    // Send email with reset link and verification code
+    const emailService = require('../services/emailService');
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:4200';
+    const resetUrl = `${frontendUrl}/reset-password?token=${resetToken}`;
+    
+    await emailService.sendPasswordResetEmail({
+      email: user.email,
+      userName: user.firstName || user.email,
+      resetUrl,
+      verificationCode,
+      expirationTime: '10 minutes'
+    });
 
-    // In a real app, send this token via email
-    // For development, we'll return it in the response
     res.status(200).json({ 
-      message: 'Password reset email has been sent.',
-      resetToken // In production, this should be sent via email instead
+      message: 'Password reset email has been sent. Please check your email for the reset link and verification code.',
+      // Don't return sensitive data in production
+      ...(process.env.NODE_ENV === 'development' && { 
+        resetToken,
+        verificationCode 
+      })
     });
   } catch (err) {
     console.error('Error requesting password reset:', err);
@@ -558,7 +573,12 @@ exports.requestPasswordReset = async (req, res) => {
 // Reset password with token
 exports.resetPassword = async (req, res) => {
   try {
-    const { token, newPassword } = req.body;
+    const { token, password, verificationCode } = req.body;
+    
+    if (!token || !password || !verificationCode) {
+      return createErrorResponse(res, 400, 'MISSING_FIELDS', 'Token, password, and verification code are required.');
+    }
+    
     const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
 
     const user = await User.findOne({
@@ -570,11 +590,23 @@ exports.resetPassword = async (req, res) => {
       return createErrorResponse(res, 400, 'INVALID_TOKEN', 'Invalid or expired reset token.');
     }
 
+    // Verify the 4-digit code
+    if (user.resetPasswordCode !== verificationCode) {
+      return createErrorResponse(res, 400, 'INVALID_CODE', 'Invalid verification code.');
+    }
+
     // Update password and clear reset token
-    user.password = newPassword;
+    user.password = password;
     user.resetPasswordToken = undefined;
     user.resetPasswordExpires = undefined;
-    await user.save();
+    user.resetPasswordCode = undefined;
+    await user.save();    // Send confirmation email
+    const emailService = require('../services/emailService');
+    await emailService.sendPasswordResetConfirmationEmail({
+      email: user.email,
+      userName: user.firstName || user.email,
+      resetTime: new Date().toLocaleString()
+    });
 
     res.status(200).json({ message: 'Password has been reset successfully.' });
   } catch (err) {

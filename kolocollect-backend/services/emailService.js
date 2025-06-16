@@ -1125,6 +1125,82 @@ The Kolocollect Team
     `.trim();
   }
   /**
+   * Send password reset email with link and verification code
+   */
+  async sendPasswordResetEmail(data) {
+    try {
+      // Load HTML template
+      const htmlContent = await this.loadEmailTemplate('auth/password-reset-request.html', {
+        userName: data.userName,
+        resetUrl: data.resetUrl,
+        verificationCode: data.verificationCode,
+        expirationTime: data.expirationTime,
+        frontendUrl: process.env.FRONTEND_URL || 'http://localhost:4200'
+      });
+
+      // Load text template
+      const textContent = await this.loadEmailTemplate('auth/password-reset-request.txt', {
+        userName: data.userName,
+        resetUrl: data.resetUrl,
+        verificationCode: data.verificationCode,
+        expirationTime: data.expirationTime,
+        frontendUrl: process.env.FRONTEND_URL || 'http://localhost:4200'
+      });
+
+      const emailOptions = {
+        to: data.email,
+        subject: '🔐 Reset Your KoloCollect Password',
+        html: htmlContent,
+        text: textContent,
+        type: 'auth'
+      };
+
+      const result = await this.sendEmail(emailOptions);
+      console.log('Password reset email sent successfully:', { email: data.email });
+      return result;
+    } catch (error) {
+      console.error('Error sending password reset email:', error);
+      throw new Error(`Failed to send password reset email: ${error.message}`);
+    }
+  }
+
+  /**
+   * Send password reset confirmation email
+   */
+  async sendPasswordResetConfirmationEmail(data) {
+    try {
+      // Load HTML template
+      const htmlContent = await this.loadEmailTemplate('auth/password-reset-confirmation.html', {
+        userName: data.userName,
+        resetTime: data.resetTime,
+        frontendUrl: process.env.FRONTEND_URL || 'http://localhost:4200'
+      });
+
+      // Load text template
+      const textContent = await this.loadEmailTemplate('auth/password-reset-confirmation.txt', {
+        userName: data.userName,
+        resetTime: data.resetTime,
+        frontendUrl: process.env.FRONTEND_URL || 'http://localhost:4200'
+      });
+
+      const emailOptions = {
+        to: data.email,
+        subject: '✅ Password Reset Successful - KoloCollect',
+        html: htmlContent,
+        text: textContent,
+        type: 'auth'
+      };
+
+      const result = await this.sendEmail(emailOptions);
+      console.log('Password reset confirmation email sent successfully:', { email: data.email });
+      return result;
+    } catch (error) {
+      console.error('Error sending password reset confirmation email:', error);
+      throw new Error(`Failed to send password reset confirmation email: ${error.message}`);
+    }
+  }
+
+  /**
    * Load email template from file system
    * @param {string} templatePath - Path to the email template file
    * @param {Object} data - Data to populate the template
