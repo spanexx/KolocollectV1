@@ -163,7 +163,49 @@ const schedulePayouts = async () => {
       // Check if payout is due
       const isDue = payoutDate && payoutDate <= now;
       
+      // Calculate time until payout in milliseconds
+      const timeUntilPayout = payoutDate && !isDue ? (payoutDate - now) : null;
+      
       console.log(`Scheduler monitoring community: ${community.name} - Countdown: ${countdownMinutes} mins - Ready: ${isReady} - Due: ${isDue || false} - Next payout: ${payoutDate ? payoutDate.toISOString() : 'Not set'}`);
+      
+      // Send upcoming payout reminder if 24 hours before payout
+      if (timeUntilPayout !== null && timeUntilPayout <= 86400000 && timeUntilPayout > 0) { // 24 hours
+        // Only send reminder if we have the next recipient's information
+        try {
+          // Find the next recipient
+          const nextRecipientId = community.schedule[community.currentRecipientIndex];
+          if (nextRecipientId) {
+            const User = mongoose.model('User');
+            const nextRecipient = await User.findById(nextRecipientId);
+            
+            if (nextRecipient && nextRecipient.email) {
+              // Check if reminder has been sent recently (within last 12 hours)
+              // to avoid duplicate emails
+              const reminderKey = `payout_reminder_${community._id}_${activeMidCycle._id}`;
+              const cacheManager = require('../services/cacheManager');
+              const reminderSent = await cacheManager.get(reminderKey);
+              
+              if (!reminderSent) {
+                console.log(`Sending upcoming payout reminder for ${community.name} to ${nextRecipient.email}`);
+                const emailService = require('../services/emailService');
+                await emailService.sendUpcomingPayoutReminder({
+                  recipientEmail: nextRecipient.email,
+                  payoutDate: payoutDate,
+                  expectedAmount: activeMidCycle.payoutAmount || community.contribution, 
+                  communityName: community.name
+                });
+                
+                // Set reminder sent flag in cache for 12 hours
+                await cacheManager.set(reminderKey, true, 43200);
+                console.log(`✅ Upcoming payout reminder sent to ${nextRecipient.email}`);
+              }
+            }
+          }
+        } catch (reminderError) {
+          console.error(`Error sending payout reminder for ${community.name}:`, reminderError);
+          // Non-critical error, don't throw
+        }
+      }
       
       // If close to payout time but not ready, try to update readiness
       if (countdownMinutes !== 'N/A' && countdownMinutes < 2 && !isReady) {

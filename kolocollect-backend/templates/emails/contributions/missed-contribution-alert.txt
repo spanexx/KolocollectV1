@@ -1,47 +1,49 @@
 MISSED CONTRIBUTION ALERT - KOLOCOLLECT
 ======================================
 
-Hello {{memberName}},
+Hello {{userName}},
 
-🚨 CONTRIBUTION OVERDUE
-Your contribution deadline has passed
+🚨 CONTRIBUTION MISSED
+A penalty has been applied to your account
 
-We noticed that your contribution for this cycle has not been received. This may affect your standing in the community and could result in penalties.
+We noticed that your contribution for the current cycle in {{communityName}} was missed. A penalty has been applied to your account.
 
 MISSED CONTRIBUTION DETAILS:
 - Community: {{communityName}}
-- Amount: ₦{{contributionAmount}}
-- Original Due Date: {{originalDueDate}}
-- Days Overdue: {{daysOverdue}}
-- Cycle: {{cycleNumber}}
+- Penalty Amount: €{{penaltyAmount}}
+- Total Missed Contributions: {{missedCount}}
 
+{{#if thresholdWarning}}
+⚠️ URGENT WARNING:
+You have reached the maximum number of allowed missed contributions in this community.
+
+CONSEQUENCES:
+- Your wallet has been frozen
+- Your status has been changed to inactive
+- You will not receive any payouts until all penalties are paid
+
+TO RESTORE YOUR STATUS: You must pay all outstanding penalties and make arrangements with the community administrator.
+{{else}}
 PENALTY INFORMATION:
-- Late Fee: ₦{{lateFee}}
-- Grace Period: {{gracePeriodDays}} days remaining
-- Total Amount Due: ₦{{totalAmountDue}}
+This penalty will be deducted from your next payout. If you miss more contributions, additional penalties will apply.
 
-If payment is not received within the grace period, additional penalties may apply.
+WARNING: If you miss too many contributions, your wallet may be frozen and your status set to inactive.
+{{/if}}
 
 WHAT HAPPENS NEXT:
-- Make your payment as soon as possible to avoid additional penalties
-- Your payment will be verified within 24 hours
-- Late payments may affect your payout position
-- Continued non-payment may result in removal from the community
+- Your penalty will be automatically deducted from your next payout
+- Make sure to contribute on time for future cycles
+- If your status has been changed to inactive, contact the community administrator
+- Multiple missed contributions may result in removal from the community
 
-PAYMENT METHODS:
-- Bank Transfer: {{communityAccountDetails}}
-- Mobile Money: {{mobileMoneyDetails}}
-- Online Payment: {{paymentLink}}
+We understand that there may be legitimate reasons for missing a contribution. If you're experiencing difficulties, please contact the community administrator to discuss possible solutions.
 
-Reference: {{paymentReference}}
-
-We understand that financial situations can be challenging. If you're experiencing difficulties, please contact our support team to discuss possible solutions.
-
-Contact Support: {{contactSupportLink}}
+View Community: {{frontendUrl}}/dashboard/communities/{{communityName}}
+Check Wallet: {{frontendUrl}}/dashboard/wallet
 
 Best regards,
 The Kolocollect Team
 
 ---
-This is an automated alert from Kolocollect. Please do not reply to this email.
-If you need assistance, contact us at support@kolocollect.com
+This is an automated message from Kolocollect. Please do not reply to this email.
+If you need assistance, visit {{frontendUrl}} or contact us at support@kolocollect.com

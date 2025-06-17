@@ -62,27 +62,24 @@
         <div class="header">
             <h1>🎉 Payout Received!</h1>
         </div>
+          <div class="success-icon">✅</div>
         
-        <div class="success-icon">✅</div>
-        
-        <p>Hello {{memberName}},</p>
+        <p>Hello {{userName}},</p>
         
         <p>Great news! You've received a payout from your Kolocollect community.</p>
         
         <div class="amount">
-            ₦{{payoutAmount}}
+            €{{amount}}
         </div>
         
         <div class="details">
             <h3>Payout Details:</h3>
             <p><strong>Community:</strong> {{communityName}}</p>
             <p><strong>Cycle:</strong> {{cycleNumber}}</p>
-            <p><strong>Payment Date:</strong> {{paymentDate}}</p>
-            <p><strong>Transaction ID:</strong> {{transactionId}}</p>
-            <p><strong>Recipient Position:</strong> {{recipientPosition}}</p>
+            <p><strong>Payment Date:</strong> {{payoutDate}}</p>
         </div>
         
-        <p>The funds have been credited to your registered account. Please check your bank account or mobile money wallet for the transaction.</p>
+        <p>The funds have been credited to your KoloCollect wallet. You can log in to your account to view this transaction in your wallet history.</p>
         
         <p>If you have any questions about this payout, please contact our support team.</p>
         
@@ -93,7 +90,7 @@
         
         <div class="footer">
             <p>This is an automated message from Kolocollect. Please do not reply to this email.</p>
-            <p>If you need assistance, contact us at support@kolocollect.com</p>
+            <p>If you need assistance, visit <a href="{{frontendUrl}}">KoloCollect</a> or contact us at support@kolocollect.com</p>
         </div>
     </div>
 </body>

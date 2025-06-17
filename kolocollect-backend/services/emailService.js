@@ -1165,6 +1165,296 @@ The Kolocollect Team
   }
 
   /**
+   * Send upcoming payout reminder email
+   * @param {Object} data - Payout reminder data
+   * @returns {Promise<Object>} - Email sending result
+   */
+  async sendUpcomingPayoutReminder(data) {
+    try {
+      // Format the payout date
+      const payoutDate = new Date(data.payoutDate);
+      const formattedDate = payoutDate.toLocaleDateString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+      
+      // Extract recipient name from email
+      const recipientName = data.recipientEmail.split('@')[0];
+      
+      // Load HTML template
+      const htmlContent = await this.loadEmailTemplate('financial/upcoming-payout-reminder.html', {
+        userName: recipientName,
+        communityName: data.communityName,
+        payoutDate: formattedDate,
+        expectedAmount: parseFloat(data.expectedAmount).toFixed(2),
+        frontendUrl: process.env.FRONTEND_URL || 'http://localhost:4200'
+      });
+
+      // Load text template
+      const textContent = await this.loadEmailTemplate('financial/upcoming-payout-reminder.txt', {
+        userName: recipientName,
+        communityName: data.communityName,
+        payoutDate: formattedDate,
+        expectedAmount: parseFloat(data.expectedAmount).toFixed(2),
+        frontendUrl: process.env.FRONTEND_URL || 'http://localhost:4200'
+      });
+
+      const emailOptions = {
+        to: data.recipientEmail,
+        subject: `🔔 Upcoming Payout Reminder - ${data.communityName}`,
+        html: htmlContent,
+        text: textContent,
+        type: 'financial'
+      };
+
+      const result = await this.sendEmail(emailOptions);
+      console.log('Upcoming payout reminder email sent successfully:', { email: data.recipientEmail });
+      return result;
+    } catch (error) {
+      console.error('Error sending upcoming payout reminder email:', error);
+      throw new Error(`Failed to send upcoming payout reminder email: ${error.message}`);
+    }
+  }
+
+  /**
+   * Send payout notification email
+   * @param {Object} data - Payout data
+   * @returns {Promise<Object>} - Email sending result
+   */
+  async sendPayoutNotification(data) {
+    try {
+      // Load HTML template
+      const htmlContent = await this.loadEmailTemplate('financial/payout-received.html', {
+        userName: data.recipient.split('@')[0],
+        amount: data.amount.toFixed(2),
+        communityName: data.communityName,
+        cycleNumber: data.cycleNumber,
+        payoutDate: new Date(data.payoutDate).toLocaleString(),
+        frontendUrl: process.env.FRONTEND_URL || 'http://localhost:4200'
+      });
+
+      // Load text template
+      const textContent = await this.loadEmailTemplate('financial/payout-received.txt', {
+        userName: data.recipient.split('@')[0],
+        amount: data.amount.toFixed(2),
+        communityName: data.communityName,
+        cycleNumber: data.cycleNumber,
+        payoutDate: new Date(data.payoutDate).toLocaleString(),
+        frontendUrl: process.env.FRONTEND_URL || 'http://localhost:4200'
+      });
+
+      const emailOptions = {
+        to: data.recipient,
+        subject: `💰 Your Payout of €${data.amount.toFixed(2)} from ${data.communityName}`,
+        html: htmlContent,
+        text: textContent,
+        type: 'financial'
+      };
+
+      const result = await this.sendEmail(emailOptions);
+      console.log('Payout notification email sent successfully:', { email: data.recipient });
+      return result;
+    } catch (error) {
+      console.error('Error sending payout notification email:', error);
+      throw new Error(`Failed to send payout notification email: ${error.message}`);
+    }
+  }
+
+  /**
+   * Send password reset confirmation email
+   */
+  async sendPasswordResetConfirmationEmail(data) {
+    try {
+      // Load HTML template
+      const htmlContent = await this.loadEmailTemplate('auth/password-reset-confirmation.html', {
+        userName: data.userName,
+        resetTime: data.resetTime,
+        frontendUrl: process.env.FRONTEND_URL || 'http://localhost:4200'
+      });
+
+      // Load text template
+      const textContent = await this.loadEmailTemplate('auth/password-reset-confirmation.txt', {
+        userName: data.userName,
+        resetTime: data.resetTime,
+        frontendUrl: process.env.FRONTEND_URL || 'http://localhost:4200'
+      });
+
+      const emailOptions = {
+        to: data.email,
+        subject: '✅ Password Reset Successful - KoloCollect',
+        html: htmlContent,
+        text: textContent,
+        type: 'auth'
+      };
+
+      const result = await this.sendEmail(emailOptions);
+      console.log('Password reset confirmation email sent successfully:', { email: data.email });
+      return result;
+    } catch (error) {
+      console.error('Error sending password reset confirmation email:', error);
+      throw new Error(`Failed to send password reset confirmation email: ${error.message}`);
+    }
+  }
+
+  /**
+   * Send missed contribution alert email
+   * @param {Object} data - Missed contribution data
+   * @returns {Promise<Object>} - Email sending result
+   */
+  async sendMissedContributionAlert(data) {
+    try {
+      // Extract recipient name from email
+      const recipientName = data.memberEmail.split('@')[0];
+      
+      // Determine severity based on missed count vs threshold
+      const severity = data.thresholdWarning ? 'high' : 'medium';
+      
+      // Load HTML template
+      const htmlContent = await this.loadEmailTemplate('contributions/missed-contribution-alert.html', {
+        userName: recipientName,
+        communityName: data.communityName,
+        penaltyAmount: parseFloat(data.penaltyAmount).toFixed(2),
+        missedCount: data.missedCount,
+        thresholdWarning: data.thresholdWarning,
+        frontendUrl: process.env.FRONTEND_URL || 'http://localhost:4200',
+        severity: severity
+      });
+
+      // Load text template
+      const textContent = await this.loadEmailTemplate('contributions/missed-contribution-alert.txt', {
+        userName: recipientName,
+        communityName: data.communityName,
+        penaltyAmount: parseFloat(data.penaltyAmount).toFixed(2),
+        missedCount: data.missedCount,
+        thresholdWarning: data.thresholdWarning,
+        frontendUrl: process.env.FRONTEND_URL || 'http://localhost:4200',
+        severity: severity
+      });
+
+      const emailOptions = {
+        to: data.memberEmail,
+        subject: data.thresholdWarning ? 
+          `⚠️ URGENT: Missed Contribution in ${data.communityName} - Action Required` :
+          `⚠️ Missed Contribution in ${data.communityName}`,
+        html: htmlContent,
+        text: textContent,
+        type: 'contributions'
+      };
+
+      const result = await this.sendEmail(emailOptions);
+      console.log('Missed contribution alert email sent successfully:', { email: data.memberEmail });
+      return result;
+    } catch (error) {
+      console.error('Error sending missed contribution alert email:', error);
+      throw new Error(`Failed to send missed contribution alert email: ${error.message}`);
+    }
+  }
+
+  /**
+   * Send upcoming payout reminder email
+   * @param {Object} data - Payout reminder data
+   * @returns {Promise<Object>} - Email sending result
+   */
+  async sendUpcomingPayoutReminder(data) {
+    try {
+      // Format the payout date
+      const payoutDate = new Date(data.payoutDate);
+      const formattedDate = payoutDate.toLocaleDateString('en-US', {
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+      
+      // Extract recipient name from email
+      const recipientName = data.recipientEmail.split('@')[0];
+      
+      // Load HTML template
+      const htmlContent = await this.loadEmailTemplate('financial/upcoming-payout-reminder.html', {
+        userName: recipientName,
+        communityName: data.communityName,
+        payoutDate: formattedDate,
+        expectedAmount: parseFloat(data.expectedAmount).toFixed(2),
+        frontendUrl: process.env.FRONTEND_URL || 'http://localhost:4200'
+      });
+
+      // Load text template
+      const textContent = await this.loadEmailTemplate('financial/upcoming-payout-reminder.txt', {
+        userName: recipientName,
+        communityName: data.communityName,
+        payoutDate: formattedDate,
+        expectedAmount: parseFloat(data.expectedAmount).toFixed(2),
+        frontendUrl: process.env.FRONTEND_URL || 'http://localhost:4200'
+      });
+
+      const emailOptions = {
+        to: data.recipientEmail,
+        subject: `🔔 Upcoming Payout Reminder - ${data.communityName}`,
+        html: htmlContent,
+        text: textContent,
+        type: 'financial'
+      };
+
+      const result = await this.sendEmail(emailOptions);
+      console.log('Upcoming payout reminder email sent successfully:', { email: data.recipientEmail });
+      return result;
+    } catch (error) {
+      console.error('Error sending upcoming payout reminder email:', error);
+      throw new Error(`Failed to send upcoming payout reminder email: ${error.message}`);
+    }
+  }
+
+  /**
+   * Send payout notification email
+   * @param {Object} data - Payout data
+   * @returns {Promise<Object>} - Email sending result
+   */
+  async sendPayoutNotification(data) {
+    try {
+      // Load HTML template
+      const htmlContent = await this.loadEmailTemplate('financial/payout-received.html', {
+        userName: data.recipient.split('@')[0],
+        amount: data.amount.toFixed(2),
+        communityName: data.communityName,
+        cycleNumber: data.cycleNumber,
+        payoutDate: new Date(data.payoutDate).toLocaleString(),
+        frontendUrl: process.env.FRONTEND_URL || 'http://localhost:4200'
+      });
+
+      // Load text template
+      const textContent = await this.loadEmailTemplate('financial/payout-received.txt', {
+        userName: data.recipient.split('@')[0],
+        amount: data.amount.toFixed(2),
+        communityName: data.communityName,
+        cycleNumber: data.cycleNumber,
+        payoutDate: new Date(data.payoutDate).toLocaleString(),
+        frontendUrl: process.env.FRONTEND_URL || 'http://localhost:4200'
+      });
+
+      const emailOptions = {
+        to: data.recipient,
+        subject: `💰 Your Payout of €${data.amount.toFixed(2)} from ${data.communityName}`,
+        html: htmlContent,
+        text: textContent,
+        type: 'financial'
+      };
+
+      const result = await this.sendEmail(emailOptions);
+      console.log('Payout notification email sent successfully:', { email: data.recipient });
+      return result;
+    } catch (error) {
+      console.error('Error sending payout notification email:', error);
+      throw new Error(`Failed to send payout notification email: ${error.message}`);
+    }
+  }
+
+  /**
    * Send password reset confirmation email
    */
   async sendPasswordResetConfirmationEmail(data) {

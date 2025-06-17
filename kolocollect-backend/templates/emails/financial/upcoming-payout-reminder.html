@@ -68,37 +68,33 @@
         <div class="header">
             <h1>📅 Payout Reminder</h1>
         </div>
+          <p>Hello {{userName}},</p>
         
-        <p>Hello {{memberName}},</p>
-        
-        <p>This is a friendly reminder that your payout is coming up soon!</p>
+        <p>This is a friendly reminder that your payout from <strong>{{communityName}}</strong> is scheduled for tomorrow!</p>
         
         <div class="countdown">
-            <div class="days-left">{{daysLeft}}</div>
-            <p>days until your payout</p>
+            <div class="days-left">24</div>
+            <p>hours until your payout</p>
         </div>
         
         <div class="details">
             <h3>Payout Details:</h3>
             <p><strong>Community:</strong> {{communityName}}</p>
-            <p><strong>Your Position:</strong> {{memberPosition}}</p>
-            <p><strong>Expected Amount:</strong> ₦{{expectedAmount}}</p>
+            <p><strong>Expected Amount:</strong> €{{expectedAmount}}</p>
             <p><strong>Payout Date:</strong> {{payoutDate}}</p>
-            <p><strong>Cycle:</strong> {{cycleNumber}}</p>
         </div>
         
         <div class="checklist">
             <h3>📋 Before Your Payout:</h3>
             <ul>
-                <li>✅ Ensure your account details are up to date</li>
-                <li>✅ Verify your phone number is active</li>
-                <li>✅ Check that all contributions are current</li>
-                <li>✅ Confirm your preferred payment method</li>
+                <li>✅ Ensure all members have made their contributions</li>
+                <li>✅ Verify your wallet is active and properly set up</li>
+                <li>✅ Check that you don't have any outstanding penalties</li>
             </ul>
-            <p><strong>Need to update your details?</strong> <a href="{{profileUpdateLink}}">Click here</a></p>
+            <p><strong>Need to check your wallet?</strong> <a href="{{frontendUrl}}/dashboard/wallet">Click here</a></p>
         </div>
         
-        <p>Your payout will be processed automatically on the scheduled date. You'll receive a confirmation email once the payment is completed.</p>
+        <p>Your payout will be processed automatically and added to your KoloCollect wallet on the scheduled date. You'll receive a confirmation email once the payment is completed.</p>
         
         <p>If you have any questions or concerns, please don't hesitate to contact our support team.</p>
         
@@ -107,7 +103,7 @@
         
         <div class="footer">
             <p>This is an automated reminder from Kolocollect. Please do not reply to this email.</p>
-            <p>If you need assistance, contact us at support@kolocollect.com</p>
+            <p>If you need assistance, visit <a href="{{frontendUrl}}">KoloCollect</a> or contact us at support@kolocollect.com</p>
         </div>
     </div>
 </body>

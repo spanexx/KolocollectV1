@@ -64,7 +64,30 @@ module.exports = async function() {
                     }
                 );
                 
-                console.log(`Added missed contribution record for member ${member.name} (${member.userId})`);                // Get updated member to check the count of missed contributions
+                console.log(`Added missed contribution record for member ${member.name} (${member.userId})`);
+                
+                // Send missed contribution email notification
+                try {
+                    const User = mongoose.model('User');
+                    const memberUser = await User.findById(member.userId);
+                    
+                    if (memberUser && memberUser.email) {
+                        const emailService = require('../services/emailService');
+                        await emailService.sendMissedContributionAlert({
+                            memberEmail: memberUser.email,
+                            communityName: this.name,
+                            penaltyAmount: this.settings.penalty,
+                            missedCount: (updatedMember?.missedContributions?.length || 0) + 1, // Add 1 for the current missed contribution
+                            thresholdWarning: ((updatedMember?.missedContributions?.length || 0) + 1) >= this.settings.numMissContribution
+                        });
+                        console.log(`✅ Missed contribution alert email sent to ${memberUser.email}`);
+                    }
+                } catch (emailError) {
+                    console.error('Failed to send missed contribution alert email:', emailError);
+                    // Non-critical error, don't throw
+                }
+                
+                // Get updated member to check the count of missed contributions
                 const updatedMember = await Member.findById(member._id);
                 if (updatedMember.missedContributions.length >= this.settings.numMissContribution) {
                     console.log(`Member ${updatedMember.name} has reached or exceeded the missed contribution threshold (${this.settings.numMissContribution}). Freezing wallet and setting member to inactive...`);

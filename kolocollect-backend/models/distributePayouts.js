@@ -163,7 +163,30 @@ module.exports = async function () {
             
             // Update the community's total distributed amount
             this.totalDistributed = (this.totalDistributed || 0) + netPayout;
-        }        // STEP 7: Mark mid-cycle as complete using the handler
+            
+            // Send payout email notification
+            try {
+                const User = mongoose.model('User');
+                const recipientUser = await User.findById(nextRecipientId);
+                
+                if (recipientUser && recipientUser.email) {
+                    const emailService = require('../services/emailService');
+                    await emailService.sendPayoutNotification({
+                        recipient: recipientUser.email,
+                        amount: netPayout,
+                        communityName: this.name,
+                        cycleNumber: activeMidCycle.cycleNumber,
+                        payoutDate: new Date()
+                    });
+                    console.log(`✅ Payout notification email sent to ${recipientUser.email}`);
+                }
+            } catch (emailError) {
+                console.error('Failed to send payout notification email:', emailError);
+                // Non-critical error, don't throw - payout was successful
+            }
+        }
+        
+        // STEP 7: Mark mid-cycle as complete using the handler
         const { completeMidcycle } = require('./midcycleCompletionHandler');
         await completeMidcycle(activeMidCycle._id);
 

@@ -84,58 +84,66 @@
         <div class="header">
             <h1>🚨 Missed Contribution Alert</h1>
         </div>
-        
-        <p>Hello {{memberName}},</p>
+          <p>Hello {{userName}},</p>
         
         <div class="alert">
-            <h3>⚠️ CONTRIBUTION OVERDUE</h3>
-            <p>Your contribution deadline has passed</p>
+            <h3>⚠️ CONTRIBUTION MISSED</h3>
+            <p>A penalty has been applied to your account</p>
         </div>
         
-        <p>We noticed that your contribution for this cycle has not been received. This may affect your standing in the community and could result in penalties.</p>
+        <p>We noticed that your contribution for the current cycle in {{communityName}} was missed. A penalty has been applied to your account.</p>
         
         <div class="details">
             <h3>Missed Contribution Details:</h3>
             <p><strong>Community:</strong> {{communityName}}</p>
-            <p><strong>Amount:</strong> ₦{{contributionAmount}}</p>
-            <p><strong>Original Due Date:</strong> {{originalDueDate}}</p>
-            <p><strong>Days Overdue:</strong> {{daysOverdue}}</p>
-            <p><strong>Cycle:</strong> {{cycleNumber}}</p>
+            <p><strong>Penalty Amount:</strong> €{{penaltyAmount}}</p>
+            <p><strong>Total Missed Contributions:</strong> {{missedCount}}</p>
         </div>
         
+        {{#if thresholdWarning}}
         <div class="penalty-info">
-            <h3>⚠️ Penalty Information:</h3>
-            <p><strong>Late Fee:</strong> ₦{{lateFee}}</p>
-            <p><strong>Grace Period:</strong> {{gracePeriodDays}} days remaining</p>
-            <p><strong>Total Amount Due:</strong> ₦{{totalAmountDue}}</p>
-            <p>If payment is not received within the grace period, additional penalties may apply.</p>
+            <h3>⚠️ URGENT WARNING:</h3>
+            <p>You have reached the maximum number of allowed missed contributions in this community.</p>
+            <p><strong>Consequences:</strong></p>
+            <ul>
+                <li>Your wallet has been frozen</li>
+                <li>Your status has been changed to inactive</li>
+                <li>You will not receive any payouts until all penalties are paid</li>
+            </ul>
+            <p><strong>To restore your status:</strong> You must pay all outstanding penalties and make arrangements with the community administrator.</p>
         </div>
+        {{else}}
+        <div class="penalty-info">
+            <h3>Penalty Information:</h3>
+            <p>This penalty will be deducted from your next payout. If you miss more contributions, additional penalties will apply.</p>
+            <p><strong>Warning:</strong> If you miss too many contributions, your wallet may be frozen and your status set to inactive.</p>
+        </div>
+        {{/if}}
         
         <div class="action-buttons">
-            <a href="{{paymentLink}}" class="btn btn-primary">Pay Now</a>
-            <a href="{{contactSupportLink}}" class="btn btn-secondary">Contact Support</a>
+            <a href="{{frontendUrl}}/dashboard/communities/{{communityName}}" class="btn btn-primary">View Community</a>
+            <a href="{{frontendUrl}}/dashboard/wallet" class="btn btn-secondary">Check Wallet</a>
         </div>
         
         <p><strong>What happens next?</strong></p>
-        <ul>
-            <li>Make your payment as soon as possible to avoid additional penalties</li>
-            <li>Your payment will be verified within 24 hours</li>
-            <li>Late payments may affect your payout position</li>
-            <li>Continued non-payment may result in removal from the community</li>
+        <ul>            <li>Your penalty will be automatically deducted from your next payout</li>
+            <li>Make sure to contribute on time for future cycles</li>
+            <li>If your status has been changed to inactive, contact the community administrator</li>
+            <li>Multiple missed contributions may result in removal from the community</li>
         </ul>
         
-        <p><strong>Payment Methods:</strong></p>
-        <ul>
-            <li>Bank Transfer: {{communityAccountDetails}}</li>
-            <li>Mobile Money: {{mobileMoneyDetails}}</li>
-            <li>Online Payment: Use the "Pay Now" button above</li>
-        </ul>
-        <p><strong>Reference:</strong> {{paymentReference}}</p>
-        
-        <p>We understand that financial situations can be challenging. If you're experiencing difficulties, please contact our support team to discuss possible solutions.</p>
+        <p>We understand that there may be legitimate reasons for missing a contribution. If you're experiencing difficulties, please contact the community administrator to discuss possible solutions.</p>
         
         <p>Best regards,<br>
         The Kolocollect Team</p>
+        
+        <div class="footer">
+            <p>This is an automated message from Kolocollect. Please do not reply to this email.</p>
+            <p>If you need assistance, visit <a href="{{frontendUrl}}">KoloCollect</a> or contact us at support@kolocollect.com</p>
+        </div>
+    </div>
+</body>
+</html>
         
         <div class="footer">
             <p>This is an automated alert from Kolocollect. Please do not reply to this email.</p>
