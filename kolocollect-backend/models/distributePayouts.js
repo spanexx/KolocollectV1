@@ -226,11 +226,31 @@ module.exports = async function () {
 
         // STEP 10: Start new cycle or mid-cycle based on payment status
         if (allPaid) {
-            // All members have been paid, complete the current cycle and start a new one
-            console.log('All members have been paid, marking cycle as complete');
+            // All members have been paid, complete the current cycle and start a new one            console.log('All members have been paid, marking cycle as complete');
             activeCycle.isComplete = true;
             activeCycle.endDate = new Date();
             await activeCycle.save();
+
+            // Send cycle completion notification to admin
+            try {
+                const User = mongoose.model('User');
+                const admin = await User.findById(this.admin);
+                
+                if (admin && admin.email) {
+                    const emailService = require('../services/emailService');
+                    await emailService.sendCycleCompletionNotification({
+                        adminEmail: admin.email,
+                        communityName: this.name,
+                        completedCycleNumber: activeCycle.cycleNumber,
+                        totalDistributed: this.totalDistributed || 0,
+                        newCycleStart: true
+                    });
+                    console.log(`✅ Cycle completion notification sent to admin: ${admin.email}`);
+                }
+            } catch (emailError) {
+                console.error('Error sending cycle completion notification email:', emailError);
+                // Don't fail the cycle completion if email fails
+            }
             
             try {
                 // Attempt to start a new cycle

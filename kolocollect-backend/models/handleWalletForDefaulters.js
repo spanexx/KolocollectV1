@@ -62,9 +62,7 @@ module.exports = async function (userId, action = 'freeze') {
                 }
             }
 
-            console.log(`Total penalty for member ${member.name}: €${penaltyTotal}`);
-
-            if (action === 'freeze') {
+            console.log(`Total penalty for member ${member.name}: €${penaltyTotal}`);            if (action === 'freeze') {
                 // Freeze the wallet if it has available balance
                 if (wallet.availableBalance > 0) {
                     wallet.isFrozen = true;
@@ -78,7 +76,19 @@ module.exports = async function (userId, action = 'freeze') {
                             'warning',
                             `Your wallet has been frozen due to missed contributions in community ${this.name}.`,
                             this._id
-                        );
+                        );                        // Send wallet freeze notification email
+                        try {
+                            const emailService = require('../services/emailService');
+                            await emailService.sendWalletFreezeNotification({
+                                memberEmail: user.email,
+                                communityName: this.name,
+                                frozenBalance: wallet.availableBalance,
+                                reason: 'missed contributions',
+                                actionRequired: 'Pay outstanding penalties to unfreeze'
+                            });
+                        } catch (emailError) {
+                            console.error('Error sending wallet freeze notification email:', emailError);
+                        }
                     }
                 }
             } else if (action === 'deduct') {
@@ -112,8 +122,7 @@ module.exports = async function (userId, action = 'freeze') {
                     // Always clear missed contributions regardless of remaining penalty
                     // If there's still penalty left, it's now consolidated in the penalty field
                     member.missedContributions = [];
-                    
-                    // If there's still a remaining penalty, notify the user
+                      // If there's still a remaining penalty, notify the user
                     if (remainingPenalty > 0) {
                         const User = mongoose.model('User');
                         const userDoc = await User.findById(userId);
@@ -123,6 +132,20 @@ module.exports = async function (userId, action = 'freeze') {
                                 `Your wallet was charged €${deductionAmount} for penalties. You still owe €${remainingPenalty.toFixed(2)}.`,
                                 this._id
                             );
+
+                            // Send penalty notification email
+                            try {
+                                const emailService = require('../services/emailService');
+                                await emailService.sendPenaltyNotification({
+                                    memberEmail: userDoc.email,
+                                    deductedAmount: deductionAmount,
+                                    remainingPenalty: remainingPenalty,
+                                    communityName: this.name,
+                                    missedContributions: member.missedContributions.length
+                                });
+                            } catch (emailError) {
+                                console.error('Error sending penalty notification email:', emailError);
+                            }
                         }
                     }
                     

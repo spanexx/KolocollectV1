@@ -201,8 +201,17 @@ const schedulePayouts = async () => {
               }
             }
           }
+        } catch (reminderError) {          console.error(`Error sending payout reminder for ${community.name}:`, reminderError);
+          // Non-critical error, don't throw
+        }
+      }
+
+      // Send contribution deadline reminders (24 hours before payout)
+      if (timeUntilPayout !== null && timeUntilPayout <= 86400000 && timeUntilPayout > 0) { // 24 hours
+        try {
+          await sendContributionDeadlineReminders(community, activeMidCycle, payoutDate);
         } catch (reminderError) {
-          console.error(`Error sending payout reminder for ${community.name}:`, reminderError);
+          console.error(`Error sending contribution deadline reminders for ${community.name}:`, reminderError);
           // Non-critical error, don't throw
         }
       }
@@ -449,7 +458,76 @@ const schedulePayouts = async () => {
     } catch (err) {
       console.error('Error sending notification about payout failure:', err);
     }
-  };
+  }
+
+  /**
+   * Send contribution deadline reminders to members who haven't contributed yet
+   * @param {Object} community - The community object
+   * @param {Object} activeMidCycle - The active mid-cycle
+   * @param {Date} payoutDate - The payout date
+   */
+  async function sendContributionDeadlineReminders(community, activeMidCycle, payoutDate) {
+    try {
+      const Member = mongoose.model('Member');
+      const User = mongoose.model('User');
+      const Contribution = mongoose.model('Contribution');
+
+      // Get all active members in the community
+      const activeMembers = await Member.find({ 
+        _id: { $in: community.members }, 
+        status: 'active' 
+      });
+
+      // Get contributions for this mid-cycle
+      const contributions = await Contribution.find({
+        midCycleId: activeMidCycle._id
+      });
+
+      // Create a map of userId to contribution for quick lookup
+      const contributorIds = new Set(contributions.map(c => c.userId.toString()));
+
+      // Find members who haven't contributed yet
+      const nonContributors = activeMembers.filter(member => 
+        !contributorIds.has(member.userId.toString())
+      );
+
+      console.log(`Found ${nonContributors.length} members who haven't contributed to ${community.name}`);
+
+      // Send reminders to non-contributors
+      for (const member of nonContributors) {
+        try {
+          const user = await User.findById(member.userId);
+          if (user && user.email) {
+            // Check if reminder has been sent recently (within last 12 hours)
+            const reminderKey = `contribution_reminder_${community._id}_${activeMidCycle._id}_${user._id}`;
+            const cacheManager = require('../services/cacheManager');
+            const reminderSent = await cacheManager.get(reminderKey);
+            
+            if (!reminderSent) {
+              const emailService = require('../services/emailService');
+              await emailService.sendContributionReminder({
+                memberEmail: user.email,
+                communityName: community.name,
+                deadlineDate: payoutDate,
+                minContribution: community.contribution || community.settings?.minContribution || 0
+              });
+
+              // Set reminder sent flag in cache for 12 hours
+              await cacheManager.set(reminderKey, true, 43200);
+              console.log(`✅ Contribution deadline reminder sent to ${user.email}`);
+            }
+          }
+        } catch (emailError) {
+          console.error(`Error sending contribution reminder to member ${member.userId}:`, emailError);
+          // Continue with other members
+        }
+      }
+    } catch (error) {
+      console.error('Error in sendContributionDeadlineReminders:', error);
+      throw error;
+    }
+  }
+
   console.log('Scheduler initialized.');
 };
 

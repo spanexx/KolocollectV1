@@ -56,14 +56,29 @@ exports.createContribution = async (req, res) => {
     }
 
     // Convert userId to ObjectId if it's a string
-    const userIdObject = mongoose.Types.ObjectId.isValid(userId) ? new mongoose.Types.ObjectId(userId) : userId;
+    const userIdObject = mongoose.Types.ObjectId.isValid(userId) ? new mongoose.Types.ObjectId(userId) : userId;    // Call the static method to handle the contribution logic
+    const result = await Contribution.createContributionWithInstallment(userIdObject, communityId, amount, midCycleId);
 
-    // Call the static method to handle the contribution logic
-    const savedContribution = await Contribution.createContributionWithInstallment(userIdObject, communityId, amount, midCycleId);
+    // Send contribution confirmation email
+    if (result.success && result.contributionData) {
+      try {
+        const emailService = require('../services/emailService');
+        await emailService.sendContributionConfirmation({
+          memberEmail: result.user.email,
+          amount: result.contribution.amount,
+          communityName: result.community.name,
+          cycleNumber: result.midCycle.cycleNumber,
+          transactionId: result.contribution._id.toString()
+        });
+      } catch (emailError) {
+        console.error('Error sending contribution confirmation email:', emailError);
+        // Don't fail the entire operation if email fails
+      }
+    }
 
     res.status(201).json({
       message: 'Contribution created successfully and recorded in community.',
-      contribution: savedContribution,
+      contribution: result.contribution,
     });
   } catch (err) {
     console.error('Error creating contribution:', err);

@@ -328,11 +328,22 @@ exports.joinCommunity = async (req, res) => {
         isMidCycle: currentCycleNumber > 1,
         adminName: adminUser ? adminUser.name : 'Community Admin'
       };
-      
-      await EmailService.sendCommunityJoinedEmail(community, memberData, joinContext);
+        await EmailService.sendCommunityJoinedEmail(community, memberData, joinContext);
       console.log(`Community joined email sent to member: ${email}`);
+
+      // Send admin notification about new member
+      if (adminUser && adminUser.email) {
+        await EmailService.sendNewMemberNotificationToAdmin({
+          adminEmail: adminUser.email,
+          newMemberName: name,
+          newMemberEmail: email,
+          communityName: community.name,
+          joinDate: new Date()
+        });
+        console.log(`New member notification sent to admin: ${adminUser.email}`);
+      }
     } catch (emailError) {
-      console.error('Error sending community joined email:', emailError);
+      console.error('Error sending community related emails:', emailError);
       // Don't fail the request if email fails, just log it
     }
 

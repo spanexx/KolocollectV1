@@ -1690,13 +1690,33 @@ CommunitySchema.methods.leaveCommunity = async function (userId) {
         if (member.penalty > 0) {
             throw new Error('You have outstanding penalties to pay before leaving the community.');
         }
-        
-        // Change member status to inactive
+          // Change member status to inactive
         member.status = 'inactive';
         member.leaveDate = new Date();
         await member.save();
         
         await this.addActivityLog('member_left', userId);
+
+        // Send admin notification about member leaving
+        try {
+            const User = mongoose.model('User');
+            const admin = await User.findById(this.admin);
+            const memberUser = await User.findById(userId);
+            
+            if (admin && admin.email && memberUser) {
+                const emailService = require('../services/emailService');
+                await emailService.sendMemberLeaveNotification({
+                    adminEmail: admin.email,
+                    memberName: memberUser.name || memberUser.email,
+                    communityName: this.name,
+                    leaveDate: member.leaveDate
+                });
+                console.log(`✅ Member leave notification sent to admin: ${admin.email}`);
+            }
+        } catch (emailError) {
+            console.error('Error sending member leave notification email:', emailError);
+            // Don't fail the leave operation if email fails
+        }
         
         return {
             success: true,

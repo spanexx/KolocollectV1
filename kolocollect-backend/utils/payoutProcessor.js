@@ -140,6 +140,21 @@ async function notifyPayoutFailure(community) {
       
       await admin.addNotification('alert', message, community._id);
       logger.info(`Notification sent to admin ${admin.name} about payout failure for ${community.name}`);
+
+      // Send email notification to admin
+      try {
+        const emailService = require('../services/emailService');
+        await emailService.sendPayoutFailureAlert({
+          adminEmail: admin.email,
+          communityName: community.name,
+          nextInLine: nextInLine ? nextInLine.name : 'Unknown',
+          scheduledDate: midCycle && midCycle.payoutDate ? midCycle.payoutDate : new Date(),
+          failureReason: 'Mid-cycle preparation failed or insufficient contributions'
+        });
+        logger.info(`✅ Payout failure alert email sent to admin ${admin.email}`);
+      } catch (emailError) {
+        logger.error({ msg: 'Failed to send payout failure alert email', error: emailError.message });
+      }
     }
   } catch (err) {
     logger.error({ msg: 'Error sending notification about payout failure', error: err.message });

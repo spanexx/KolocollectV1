@@ -135,13 +135,24 @@ class TransactionManager {
         activityType: 'contribution_created',
         timestamp: new Date()
       });
-      await activityLog.save({ session });
-
-      // 8. Update community activity log
+      await activityLog.save({ session });      // 8. Update community activity log
       community.activityLog.push(activityLog._id);
-      await community.save({ session });      return {
+      await community.save({ session });
+
+      // 9. Send contribution confirmation email (outside transaction)
+      // We'll do this after the transaction completes successfully
+      const contributionData = {
+        contribution: savedContribution,
+        community,
+        user,
+        midCycle
+      };      return {
         success: true,
         contribution: savedContribution,
+        community,
+        user,
+        midCycle,
+        contributionData,
         message: 'Contribution processed successfully'
       };
     });

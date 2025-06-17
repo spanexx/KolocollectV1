@@ -116,13 +116,27 @@ module.exports = async function() {
                     try {
                         const mongoose = require('mongoose');
                         const User = mongoose.model('User');
-                        const userDoc = await User.findById(updatedMember.userId);
-                        if (userDoc) {
+                        const userDoc = await User.findById(updatedMember.userId);                        if (userDoc) {
                             await userDoc.addNotification(
                                 'alert',
                                 `Your membership in community "${this.name}" has been set to inactive due to ${updatedMember.missedContributions.length} missed contributions. As an inactive member, you will no longer receive payouts, but you are still responsible for any outstanding penalties. Please contact the community admin if you wish to reinstate your membership.`,
                                 this._id
                             );
+
+                            // Send member status change email notification
+                            try {
+                                const emailService = require('../services/emailService');
+                                await emailService.sendMemberStatusChangeNotification({
+                                    memberEmail: userDoc.email,
+                                    communityName: this.name,
+                                    newStatus: 'inactive',
+                                    reason: 'excessive missed contributions',
+                                    missedCount: updatedMember.missedContributions.length
+                                });
+                                console.log(`✅ Member status change notification email sent to ${userDoc.email}`);
+                            } catch (emailError) {
+                                console.error('Failed to send member status change notification email:', emailError);
+                            }
                             
                             // Add a record to the user's activity log
                             userDoc.activityLog.push({
